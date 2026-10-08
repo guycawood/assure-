@@ -23,9 +23,12 @@ Next.js 15 (App Router, server actions) · TypeScript · Tailwind · Supabase (P
    $env:Path = "$PWD\..\.tools\node;$PWD\..\.tools\git\cmd;$env:Path"
    ```
 2. **Supabase project.** Create a project at supabase.com (EU region). Then:
-   - SQL Editor → paste and run `supabase/migrations/20261008000001_core_and_srt.sql`.
+   - SQL Editor → paste and run each file in `supabase/migrations/` in order (`…0001_core_and_srt.sql`, then `…0002_import_and_sweep.sql`).
+   - Optional dummy data: run `supabase/seed/demo_data.sql`. It adds 30 made-up suppliers (codes `DEMO-001`…`DEMO-030`) with a realistic mix of gate statuses, plus 14 tickets. The file's header shows how to remove it.
    - Authentication → URL Configuration → Site URL `http://localhost:3000`, and add `http://localhost:3000/auth/callback` to Redirect URLs.
-   - Optional: Database → Extensions → enable `pg_cron`, then run the `cron.schedule` statement at the bottom of the migration so expiry dates and fast-track deadlines are re-checked nightly.
+   - Optional: Database → Extensions → enable `pg_cron`, then run
+     `select cron.schedule('srt-daily-sweep', '15 0 * * *', $$ select public.srt_daily_sweep() $$);`
+     so expiry dates and fast-track deadlines are re-checked nightly and renewal tickets are raised 30 days before certificates expire.
 3. **Environment.** Copy `.env.example` to `.env.local` and fill in the project URL and anon key (Project Settings → API).
 4. **Install and start.**
    ```powershell

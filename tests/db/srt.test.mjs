@@ -196,6 +196,67 @@ test("fast-track: lead approval required, not self-approval, lifts block until c
   assert.deepEqual(s2, { fast_track_approved_by: ids.lead, purchasing_blocked: true }, "approval can't be cleared directly; past close-by re-blocks");
 });
 
+test("import: lead only, creates suppliers with gates, audits, skips duplicates", async () => {
+  const rows = JSON.stringify([
+    { name: "Guangzhou Display Ltd", supplier_code: "CN0201", market: "China", region: "APAC", client: "Unilever", ytd_spend: 250000,
+      gates: { msa: "verified", bank: "verified", sustainability: "requested", bogus: "verified", coc: "nonsense" } },
+    { name: "Hanoi Packaging", market: "Vietnam", region: "Mars", client: "Heineken", ytd_spend: "12000" },
+    { name: "Shanghai Print Co", market: "China" }, // already exists
+    { name: "  " }, // blank name
+  ]);
+  await rejects(as("agent", "select public.import_suppliers($1::jsonb, 'fast_track')", [rows]), /Only an SRT lead or admin/);
+  const res = (await as("lead", "select public.import_suppliers($1::jsonb, 'fast_track') r", [rows])).rows[0].r;
+  assert.deepEqual(res, { created: 2, skipped: 2, gates_set: 3, skipped_names: ["Shanghai Print Co"] });
+  const s = (await as("lead", "select id, region, client, onboarding_route, fast_track_approved_by, rag, purchasing_blocked, gates_clear from public.suppliers where supplier_code = 'CN0201'")).rows[0];
+  assert.equal(s.region, "APAC");
+  assert.equal(s.onboarding_route, "fast_track");
+  assert.equal(s.fast_track_approved_by, null, "import never approves fast-track");
+  assert.equal(s.gates_clear, 2);
+  assert.equal(s.purchasing_blocked, true);
+  const audit = (await as("lead", "select count(*)::int n from public.gate_audit_log where supplier_id = $1 and note = 'Imported from tracker'", [s.id])).rows[0].n;
+  assert.equal(audit, 3);
+  const h = (await as("lead", "select region, ytd_spend::int spend from public.suppliers where name = 'Hanoi Packaging'")).rows[0];
+  assert.deepEqual(h, { region: null, spend: 12000 }, "invalid enum values are dropped, not stored");
+  const again = (await as("lead", "select public.import_suppliers($1::jsonb) r", [rows])).rows[0].r;
+  assert.equal(again.created, 0);
+});
+
+test("daily sweep: renewal tickets for certs expiring within the warning window, deduped", async () => {
+  const sid = (await as("lead", "select id from public.suppliers where supplier_code = 'CN0201'")).rows[0].id;
+  await as("lead", "update public.suppliers set srt_owner = $1 where id = $2", [ids.agent, sid]);
+  await as("agent", "select public.update_supplier_gate($1, 'quality', 'verified', current_date + 10)", [sid]);
+  await as("agent", "select public.update_supplier_gate($1, 'environment', 'verified', current_date + 200)", [sid]);
+  await rejects(as("agent", "select public.srt_daily_sweep()"), /Only an SRT lead or admin/);
+  const r1 = (await as("lead", "select public.srt_daily_sweep() r")).rows[0].r;
+  assert.equal(r1.renewal_tickets, 1);
+  const t = (await as("lead", "select type, gate_key, assignee, source, due_date - current_date as days from public.srt_tickets where supplier_id = $1 and type = 'certificate_renewal'", [sid])).rows;
+  assert.deepEqual(t, [{ type: "certificate_renewal", gate_key: "quality", assignee: ids.agent, source: "cert_expiry", days: 10 }]);
+  const r2 = (await asSuper("select public.srt_daily_sweep() r")).rows[0].r; // as pg_cron would run it
+  assert.equal(r2.renewal_tickets, 0, "no duplicate while the first renewal ticket is open");
+});
+
+test("demo seed loads, gives a realistic mix, and is re-runnable", async () => {
+  const seed = readFileSync(join(MIGRATIONS, "..", "seed", "demo_data.sql"), "utf8");
+  await db.exec("reset role; select set_config('request.jwt.claim.sub', '', false);");
+  await db.exec(seed);
+  await db.exec(seed); // second run replaces, doesn't duplicate
+  const s = (await asSuper(`select count(*)::int n,
+      count(*) filter (where rag = 'green')::int green,
+      count(*) filter (where rag = 'amber')::int amber,
+      count(*) filter (where rag = 'red')::int red,
+      count(*) filter (where purchasing_blocked)::int blocked,
+      count(distinct priority_tier)::int tiers
+    from public.suppliers where supplier_code like 'DEMO-%'`)).rows[0];
+  assert.equal(s.n, 30);
+  assert.ok(s.green > 0 && s.amber > 0 && s.red > 0, `expected a RAG mix, got ${JSON.stringify(s)}`);
+  assert.ok(s.tiers >= 3, `expected several tiers, got ${s.tiers}`);
+  const t = (await asSuper("select count(*)::int n from public.srt_tickets where source_ref = 'demo'")).rows[0].n;
+  assert.equal(t, 14);
+  const bad = (await asSuper(`select count(*)::int n from public.supplier_gates g join public.gate_definitions d on d.key = g.gate_key
+    where g.expiry_date is not null and not d.has_expiry`)).rows[0].n;
+  assert.equal(bad, 0);
+});
+
 test("anonymous users see nothing", async () => {
   await db.exec("reset role; select set_config('request.jwt.claim.sub', '', false); set role anon;");
   try {
