@@ -99,6 +99,28 @@ export interface Ticket {
   updated_at: string;
 }
 
+export interface TicketActivity {
+  id: number;
+  ticket_id: string;
+  kind: "comment" | "event";
+  body: string;
+  actor: string | null;
+  created_at: string;
+}
+
+export interface GateAudit {
+  id: number;
+  supplier_id: string;
+  gate_key: string;
+  from_status: string | null;
+  to_status: string | null;
+  expiry_from: string | null;
+  expiry_to: string | null;
+  note: string | null;
+  actor: string | null;
+  created_at: string;
+}
+
 export const GATE_STATUS: { value: GateStatus; label: string }[] = [
   { value: "missing", label: "Missing" },
   { value: "requested", label: "Requested" },

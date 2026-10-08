@@ -16,11 +16,22 @@ Access is enforced in the database (row-level security plus security-definer fun
 
 Next.js 15 (App Router, server actions) · TypeScript · Tailwind · Supabase (Postgres, Auth) · PGlite for database tests.
 
-## Run it locally
+## Demo mode (no Supabase needed)
 
-1. **Tools.** Node 22 and Git. On ADM laptops without admin rights, portable copies live in `../.tools`; put them on your path for the session:
+With no Supabase settings in `.env.local` (or with `DEMO_MODE=1`), the app runs on an in-process Postgres (PGlite) loaded with the real migrations and the dummy data in `supabase/seed/demo_data.sql`. Sign in by picking a demo user (Admin, SRT lead, SRT agent, Finance, Procurement or Vendor). The real access rules apply, changes are saved, and everything resets when the server restarts.
+
+```powershell
+npm run build
+npx next start
+```
+
+Keep the repo outside OneDrive (for example `C:\dev\assure-plus`): OneDrive locks `node_modules` and `.next`, which makes `next dev` and builds hang.
+
+## Run it with Supabase
+
+1. **Tools.** Node 22 and Git. On ADM laptops without admin rights, portable copies live in `C:\dev\.tools`; put them on your path for the session:
    ```powershell
-   $env:Path = "$PWD\..\.tools\node;$PWD\..\.tools\git\cmd;$env:Path"
+   $env:Path = "C:\dev\.tools\node;C:\dev\.tools\git\cmd;$env:Path"
    ```
 2. **Supabase project.** Create a project at supabase.com (EU region). Then:
    - SQL Editor → paste and run each file in `supabase/migrations/` in order (`…0001_core_and_srt.sql`, then `…0002_import_and_sweep.sql`).

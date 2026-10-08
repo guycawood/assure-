@@ -6,7 +6,7 @@ import { createClient } from "@/lib/supabase/server";
 import { byId, getGateDefs, getInternalPeople } from "@/lib/data";
 import {
   effectiveGateState, formatDate, GATE_STATUS, label, personName, TICKET_STATUS, TICKET_TYPES, ticketRef, timeAgo,
-  type Supplier, type SupplierGate, type Ticket,
+  type Supplier, type SupplierGate, type Ticket, type TicketActivity,
 } from "@/lib/srt";
 import { Card, GateStrip, Pill, RagDot, TierPill } from "@/components/ui";
 import { CommentForm, CreateSupplierButton, TicketUpdateForm } from "./forms";
@@ -56,9 +56,9 @@ export default async function TicketDetail({ params }: { params: Promise<{ id: s
           <Card className="p-4">
             <h2 className="mb-3 font-display text-lg font-semibold">Activity</h2>
             <ol className="space-y-3">
-              {(activity.data ?? []).map((a) => (
+              {((activity.data ?? []) as TicketActivity[]).map((a) => (
                 <li key={a.id} className="text-sm">
-                  <p className="text-xs text-muted"><span className="font-semibold text-fg">{personName(pMap.get(a.actor))}</span> · {timeAgo(a.created_at)}</p>
+                  <p className="text-xs text-muted"><span className="font-semibold text-fg">{a.actor ? personName(pMap.get(a.actor)) : "System"}</span> · {timeAgo(a.created_at)}</p>
                   {a.kind === "comment" ? <p className="mt-0.5 whitespace-pre-wrap rounded bg-surface-2 px-3 py-2">{a.body}</p> : <p>{a.body}</p>}
                 </li>
               ))}

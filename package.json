@@ -7,9 +7,11 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "test:db": "node --test tests/db/srt.test.mjs"
+    "test:db": "node --test tests/db/srt.test.mjs",
+    "demo": "next dev"
   },
   "dependencies": {
+    "@electric-sql/pglite": "^0.5.8",
     "@supabase/ssr": "^0.12.7",
     "@supabase/supabase-js": "^2.117.3",
     "clsx": "^2.1.1",
@@ -21,7 +23,6 @@
     "zod": "^4.6.5"
   },
   "devDependencies": {
-    "@electric-sql/pglite": "^0.5.8",
     "@eslint/eslintrc": "^3",
     "@types/node": "^20",
     "@types/react": "^19",

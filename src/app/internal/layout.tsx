@@ -1,6 +1,7 @@
 import { requireInternal } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { personName, SRT_ROLES } from "@/lib/srt";
+import { isDemoMode } from "@/lib/demo/config";
 import { NavLink } from "./nav-link";
 
 export const dynamic = "force-dynamic";
@@ -48,7 +49,18 @@ export default async function InternalLayout({ children }: { children: React.Rea
           </form>
         </div>
       </aside>
-      <main className="mx-auto flex w-full min-w-0 max-w-[1500px] flex-col gap-5 px-4 py-6 md:px-8">{children}</main>
+      <main className="mx-auto flex w-full min-w-0 max-w-[1500px] flex-col gap-5 px-4 py-6 md:px-8">
+        {isDemoMode() && (
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-1 rounded border border-line bg-warn-soft px-3 py-2 text-sm">
+            <b>Demo mode</b>
+            <span className="text-muted">Dummy data in a temporary database. Changes last until the server restarts.</span>
+            <form action="/auth/signout" method="post" className="ml-auto">
+              <button className="font-semibold text-accent underline underline-offset-2">Switch user</button>
+            </form>
+          </div>
+        )}
+        {children}
+      </main>
     </div>
   );
 }

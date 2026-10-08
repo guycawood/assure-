@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { requireInternal } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { byId, getGateDefs, getInternalPeople } from "@/lib/data";
-import { formatDate, personName, RAG_LABEL, TIER_LABEL, timeAgo, type Supplier, type SupplierGate, type Ticket } from "@/lib/srt";
+import { formatDate, personName, RAG_LABEL, TIER_LABEL, timeAgo, type GateAudit, type Supplier, type SupplierGate, type Ticket } from "@/lib/srt";
 import { updateSupplier } from "@/app/internal/actions";
 import { ButtonLink, Card, GateStrip, Pill, RagDot, TierPill } from "@/components/ui";
 import { TicketTable } from "@/app/internal/srt/ticket-table";
@@ -102,13 +102,13 @@ export default async function SupplierPage({ params }: { params: Promise<{ id: s
           <p className="text-sm text-muted">No gate changes recorded yet.</p>
         ) : (
           <ol className="space-y-2 text-sm">
-            {(auditRes.data ?? []).map((a) => (
+            {((auditRes.data ?? []) as GateAudit[]).map((a) => (
               <li key={a.id}>
                 <span className="font-semibold">{labelOf.get(a.gate_key) ?? a.gate_key}</span>
                 {a.from_status !== a.to_status && <>: {a.from_status} → {a.to_status}</>}
                 {a.expiry_from !== a.expiry_to && <>, expiry {a.expiry_to ? formatDate(a.expiry_to) : "cleared"}</>}
                 {a.note && <span className="text-muted"> ({a.note})</span>}
-                <span className="block text-xs text-muted">{personName(pMap.get(a.actor))} · {timeAgo(a.created_at)}</span>
+                <span className="block text-xs text-muted">{a.actor ? personName(pMap.get(a.actor)) : "System"} · {timeAgo(a.created_at)}</span>
               </li>
             ))}
           </ol>
