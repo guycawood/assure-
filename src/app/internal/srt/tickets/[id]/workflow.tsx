@@ -1,11 +1,10 @@
-import { CERTIFICATIONS, formatDate, personName, timeAgo, type Profile, type VendorRfi } from "@/lib/srt";
+﻿import { CERTIFICATIONS, formatDate, personName, timeAgo, type Profile, type VendorRfi } from "@/lib/srt";
 import { Card, Pill } from "@/components/ui";
 import { ReviewForm, SendRfiForm } from "./workflow-forms";
+import { ONBOARDING_STEPS, Stepper } from "@/components/stepper";
 
 type Bank = { bank_name: string | null; account_name: string | null; account_number: string | null; sort_code_or_swift: string | null; iban: string | null; bank_country: string | null };
 type Email = { to_email: string; subject: string; link: string | null; created_at: string; status: string };
-
-const STEPS = ["Request raised", "Vendor information", "Procurement head review", "Remaining gates & approval"] as const;
 
 function currentStep(rfi: VendorRfi | null) {
   if (!rfi || rfi.status === "cancelled") return 1;
@@ -14,7 +13,7 @@ function currentStep(rfi: VendorRfi | null) {
   return 3;
 }
 
-const mask = (v: string | null) => (v ? `•••• ${v.slice(-4)}` : "—");
+const mask = (v: string | null) => (v ? `â€¢â€¢â€¢â€¢ ${v.slice(-4)}` : "â€”");
 
 export function OnboardingWorkflow({
   ticketId, rfi, email, bank, me, people, prospectEmail,
@@ -41,18 +40,7 @@ export function OnboardingWorkflow({
         }</Pill>}
       </div>
 
-      <ol className="grid gap-2 sm:grid-cols-4" aria-label="Workflow steps">
-        {STEPS.map((s, i) => {
-          const done = step > i || (step === 3 && i === 3 && false);
-          const active = step === i;
-          return (
-            <li key={s} className={`rounded border px-3 py-2 text-xs ${active ? "border-accent bg-accent-soft font-semibold" : done ? "border-ok/50 bg-ok-soft text-ok" : "border-line text-muted"}`}>
-              <span className="block font-mono">{done ? "✓" : `Step ${i + 1}`}</span>
-              {s}
-            </li>
-          );
-        })}
-      </ol>
+      <Stepper steps={ONBOARDING_STEPS} current={step < 0 ? 2 : step} failedAt={step < 0 ? 2 : undefined} />
 
       {/* Step 2: collect vendor information */}
       {(!rfi || rfi.status === "cancelled") && (
@@ -88,22 +76,22 @@ export function OnboardingWorkflow({
       {/* Step 3: Procurement head review */}
       {rfi && (rfi.status === "submitted" || rfi.status === "approved" || rfi.status === "rejected") && (
         <div className="space-y-3 text-sm">
-          <p className="text-muted">Submitted {timeAgo(rfi.submitted_at!)}{rfi.reviewed_at ? ` · reviewed ${timeAgo(rfi.reviewed_at)} by ${personName(rfi.reviewed_by ? people.get(rfi.reviewed_by) : null)}` : ""}</p>
+          <p className="text-muted">Submitted {timeAgo(rfi.submitted_at!)}{rfi.reviewed_at ? ` Â· reviewed ${timeAgo(rfi.reviewed_at)} by ${personName(rfi.reviewed_by ? people.get(rfi.reviewed_by) : null)}` : ""}</p>
           <dl className="grid gap-x-6 gap-y-2 rounded border border-line p-3 sm:grid-cols-2">
             {[
               ["Registered name", d.legal_name], ["Trading name", d.trading_name], ["Registration no.", d.registration_number], ["VAT / tax no.", d.vat_number],
               ["Established", d.year_established], ["Website", d.website], ["Address", [d.address, d.country].filter(Boolean).join(", ")],
-              ["Main contact", [d.contact_name, d.contact_email, d.contact_phone].filter(Boolean).join(" · ")], ["Accounts email", d.accounts_email],
+              ["Main contact", [d.contact_name, d.contact_email, d.contact_phone].filter(Boolean).join(" Â· ")], ["Accounts email", d.accounts_email],
               ["Supplies", d.categories], ["Employees", d.employees], ["Sites", d.sites], ["Capabilities", d.capabilities],
               ["Certifications", (d.certifications ?? []).filter((c) => (CERTIFICATIONS as readonly string[]).includes(c)).join(", ") || "None declared"],
             ].map(([k, v]) => (
-              <div key={k as string}><dt className="text-xs font-semibold text-muted">{k}</dt><dd className="break-words">{(v as string) || "—"}</dd></div>
+              <div key={k as string}><dt className="text-xs font-semibold text-muted">{k}</dt><dd className="break-words">{(v as string) || "â€”"}</dd></div>
             ))}
           </dl>
           <div className="rounded border border-line p-3">
             <p className="text-xs font-semibold text-muted">Bank details</p>
             {bank ? (
-              <p>{bank.bank_name} · {bank.account_name} · account {mask(bank.account_number)}{bank.iban ? ` · IBAN ${mask(bank.iban)}` : ""}{bank.sort_code_or_swift ? ` · ${bank.sort_code_or_swift}` : ""} <span className="text-xs text-muted">(Finance verifies the full details on the bank gate)</span></p>
+              <p>{bank.bank_name} Â· {bank.account_name} Â· account {mask(bank.account_number)}{bank.iban ? ` Â· IBAN ${mask(bank.iban)}` : ""}{bank.sort_code_or_swift ? ` Â· ${bank.sort_code_or_swift}` : ""} <span className="text-xs text-muted">(Finance verifies the full details on the bank gate)</span></p>
             ) : (
               <p className="text-muted">Only Finance, SRT leads and the Procurement head can see bank details.</p>
             )}

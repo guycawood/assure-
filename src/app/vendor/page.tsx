@@ -1,10 +1,19 @@
-import type { Metadata } from "next";
+﻿import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { getProfile } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { isDemoMode } from "@/lib/demo/config";
 import { formatDate, RFI_COLUMNS, type VendorRfi } from "@/lib/srt";
 import { RfiForm } from "./rfi-form";
+import { Stepper, type Step } from "@/components/stepper";
+import { BadgeCheck, FileText, Search, UserPlus } from "lucide-react";
+
+const VENDOR_STEPS: Step[] = [
+  { label: "Registered", icon: UserPlus },
+  { label: "Your information", icon: FileText },
+  { label: "adm Indicia review", icon: Search },
+  { label: "Approved", icon: BadgeCheck },
+];
 
 export const metadata: Metadata = { title: "Vendor portal" };
 export const dynamic = "force-dynamic";
@@ -40,6 +49,15 @@ export default async function VendorHome() {
       <main className="mx-auto flex max-w-4xl flex-col gap-5 px-4 py-6">
         {isDemoMode() && (
           <p className="rounded border border-line bg-warn-soft px-3 py-2 text-sm"><b>Demo mode.</b> You are seeing the vendor&apos;s view.</p>
+        )}
+        {rfi && rfi.status !== "cancelled" && (
+          <div className="rounded-md border border-line bg-surface px-4 py-4">
+            <Stepper
+              steps={VENDOR_STEPS}
+              current={rfi.status === "submitted" ? 2 : rfi.status === "approved" ? 3 : 1}
+              failedAt={rfi.status === "rejected" ? 2 : undefined}
+            />
+          </div>
         )}
         {!profile.supplier_id ? (
           <section className="rounded-md border border-line bg-surface p-5 text-sm">
