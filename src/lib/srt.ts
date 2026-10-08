@@ -7,7 +7,54 @@ export type TicketType =
   | "new_onboarding" | "document_verification" | "missing_document" | "remediation"
   | "certificate_renewal" | "bank_change" | "query" | "deactivation";
 export type Priority = "urgent" | "high" | "normal" | "low";
-export type SrtRole = "agent" | "lead" | "finance" | "procurement";
+export type SrtRole = "agent" | "lead" | "finance" | "procurement" | "head";
+
+export type RfiStatus = "sent" | "submitted" | "returned" | "approved" | "rejected" | "cancelled";
+
+/** What the vendor fills in on the information request. Bank details are stored separately. */
+export interface RfiData {
+  legal_name?: string;
+  trading_name?: string;
+  registration_number?: string;
+  vat_number?: string;
+  year_established?: string;
+  website?: string;
+  address?: string;
+  country?: string;
+  contact_name?: string;
+  contact_email?: string;
+  contact_phone?: string;
+  accounts_email?: string;
+  categories?: string;
+  employees?: string;
+  sites?: string;
+  certifications?: string[];
+  capabilities?: string;
+  declaration?: boolean;
+}
+
+export interface VendorRfi {
+  id: string;
+  supplier_id: string;
+  ticket_id: string | null;
+  contact_email: string;
+  contact_name: string | null;
+  status: RfiStatus;
+  data: RfiData;
+  sent_at: string;
+  expires_at: string;
+  submitted_at: string | null;
+  reviewed_at: string | null;
+  review_note: string | null;
+  sent_by: string | null;
+  submitted_by: string | null;
+  reviewed_by: string | null;
+}
+
+export const CERTIFICATIONS = ["ISO 9001", "ISO 14001", "ISO 45001", "FSC", "PEFC", "Sedex / SMETA", "EcoVadis", "BRCGS", "GRS"] as const;
+
+export const RFI_COLUMNS =
+  "id, supplier_id, ticket_id, contact_email, contact_name, status, data, sent_at, expires_at, submitted_at, reviewed_at, review_note, sent_by, submitted_by, reviewed_by";
 
 export interface Profile {
   id: string;
@@ -164,7 +211,8 @@ export const SRT_ROLES: { value: SrtRole; label: string; description: string }[]
   { value: "agent", label: "SRT agent", description: "Works tickets and verifies most gates" },
   { value: "lead", label: "SRT lead", description: "Also approves fast-track, marks gates not required, changes due dates" },
   { value: "finance", label: "Finance", description: "Verifies bank details" },
-  { value: "procurement", label: "In-market procurement", description: "Raises requests and chases vendors" },
+  { value: "procurement", label: "In-market procurement", description: "Raises requests, sends vendor information requests, chases vendors" },
+  { value: "head", label: "Procurement head", description: "Reviews vendor information and gives final onboarding approval" },
 ];
 
 export type Tone = "ok" | "warn" | "bad" | "info" | "accent" | "neutral";

@@ -32,6 +32,7 @@ export default async function InternalLayout({ children }: { children: React.Rea
           <NavLink href="/internal/srt" exact>Dashboard</NavLink>
           <NavLink href="/internal/srt/tickets" badge={mine ?? 0}>Tickets</NavLink>
           <NavLink href="/internal/srt/register">Gate register</NavLink>
+          <NavLink href="/internal/srt/outbox">Outbox</NavLink>
           <p className="eyebrow hidden px-2.5 pb-1 pt-3 md:block">Suppliers</p>
           <NavLink href="/internal/suppliers/new">Add supplier</NavLink>
           {profile.is_admin && (

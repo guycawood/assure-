@@ -31,6 +31,8 @@ const ids = {
   plain: "00000000-0000-0000-0000-0000000000a4",
   vendor: "00000000-0000-0000-0000-0000000000b1",
   otherVendor: "00000000-0000-0000-0000-0000000000b2",
+  head: "00000000-0000-0000-0000-0000000000a5",
+  newVendor: "00000000-0000-0000-0000-0000000000b3",
 };
 
 let db;
@@ -131,9 +133,11 @@ test("verifier roles are enforced per gate", async () => {
 });
 
 test("closing critical gates turns amber and lifts the purchasing block; audit is written", async () => {
-  for (const g of ["registration", "financial", "msa", "coc", "capability", "sustainability", "approval"]) {
+  for (const g of ["registration", "financial", "msa", "coc", "capability", "sustainability"]) {
     await as("agent", "select public.update_supplier_gate($1, $2, 'verified')", [supplierId, g]);
   }
+  await rejects(as("agent", "select public.update_supplier_gate($1, 'approval', 'verified')", [supplierId]), /Only the Procurement head/);
+  await as("admin", "select public.update_supplier_gate($1, 'approval', 'verified')", [supplierId]);
   let s = (await as("agent", "select rag, purchasing_blocked, critical_open from public.suppliers where id = $1", [supplierId])).rows[0];
   assert.deepEqual(s, { rag: "red", purchasing_blocked: true, critical_open: 1 }, "bank still missing");
   await as("finance", "select public.update_supplier_gate($1, 'bank', 'verified')", [supplierId]);
@@ -255,6 +259,88 @@ test("demo seed loads, gives a realistic mix, and is re-runnable", async () => {
   const bad = (await asSuper(`select count(*)::int n from public.supplier_gates g join public.gate_definitions d on d.key = g.gate_key
     where g.expiry_date is not null and not d.has_expiry`)).rows[0].n;
   assert.equal(bad, 0);
+});
+
+test("vendor RFI: send, register, submit, review by Procurement head", async () => {
+  await asSuper("insert into auth.users (id, email) values ($1, 'head@adm-indicia.com')", [ids.head]);
+  await as("admin", "select public.admin_set_user_access($1, 'internal', 'head', false, null)", [ids.head]);
+
+  // A new-vendor request ticket with no supplier yet.
+  const ticket = (await as("agent",
+    "insert into public.srt_tickets (type, title, prospect_name, client, market) values ('new_onboarding', 'New vendor: Coastal Foam', 'Coastal Foam Inserts', 'Unilever', 'Vietnam') returning id")).rows[0].id;
+
+  await rejects(as("vendor", "select public.send_vendor_rfi($1, 'a@b.co', null, 'http://x')", [ticket]), /Only SRT, procurement or admin/);
+  await rejects(as("agent", "select public.send_vendor_rfi($1, 'not-an-email', null, 'http://x')", [ticket]), /valid vendor email/);
+  const sent = (await as("agent", "select public.send_vendor_rfi($1, 'Sales@CoastalFoam.example', 'Linh', 'http://localhost:3000/') r", [ticket])).rows[0].r;
+  const token = new URL(sent.link).searchParams.get("invite");
+  assert.ok(token && token.length >= 60);
+  assert.match(sent.link, /^http:\/\/localhost:3000\/vendor\/register\?invite=/);
+
+  const t = (await as("agent", "select status, supplier_id from public.srt_tickets where id = $1", [ticket])).rows[0];
+  assert.equal(t.status, "waiting_vendor");
+  assert.equal(t.supplier_id, sent.supplier_id, "supplier created from the prospect");
+  const gate = (await as("agent", "select status from public.supplier_gates where supplier_id = $1 and gate_key = 'rfi'", [sent.supplier_id])).rows[0];
+  assert.equal(gate.status, "requested");
+  const mail = (await as("agent", "select to_email, link, status from public.email_outbox where ticket_id = $1", [ticket])).rows;
+  assert.deepEqual(mail, [{ to_email: "sales@coastalfoam.example", link: sent.link, status: "queued" }]);
+  const stored = (await asSuper("select token_hash from public.vendor_rfis where id = $1", [sent.rfi_id])).rows[0].token_hash;
+  assert.notEqual(stored, token, "only a hash of the token is stored");
+  await rejects(as("agent", "select token_hash from public.vendor_rfis"), /permission denied/);
+
+  // Public lookup works without signing in, and reveals nothing for a wrong token.
+  await db.exec("reset role; select set_config('request.jwt.claim.sub', '', false); set role anon;");
+  const look = (await db.query("select public.lookup_vendor_invite($1) r", [token])).rows[0].r;
+  const bad = (await db.query("select public.lookup_vendor_invite('nope') r")).rows[0].r;
+  await db.exec("reset role;");
+  assert.deepEqual(look, { valid: true, supplier_name: "Coastal Foam Inserts", email: "sales@coastalfoam.example" });
+  assert.deepEqual(bad, { valid: false, reason: "not_found" });
+
+  // Vendor registers with the invited email -> linked to the supplier.
+  await asSuper("insert into auth.users (id, email) values ($1, 'sales@coastalfoam.example')", [ids.newVendor]);
+  const p = (await asSuper("select user_type, supplier_id from public.profiles where id = $1", [ids.newVendor])).rows[0];
+  assert.deepEqual(p, { user_type: "vendor", supplier_id: sent.supplier_id });
+  const mine = (await as("newVendor", "select id, status from public.vendor_rfis")).rows;
+  assert.deepEqual(mine, [{ id: sent.rfi_id, status: "sent" }]);
+
+  // Submission rules.
+  await rejects(as("vendor", "select public.submit_vendor_rfi($1, '{}'::jsonb, null)", [sent.rfi_id]), /not for your company/);
+  await rejects(as("newVendor", "select public.submit_vendor_rfi($1, $2::jsonb, null)", [sent.rfi_id, JSON.stringify({ legal_name: "Coastal Foam Inserts Co Ltd", registration_number: "0312345678" })]), /declaration/);
+  const data = { legal_name: "Coastal Foam Inserts Co Ltd", registration_number: "0312345678", vat_number: "VN0312345678", declaration: true };
+  const bank = { bank_name: "Example Bank", account_name: "Coastal Foam", account_number: "12345678", sort_code_or_swift: "EXAMVNVX" };
+  await as("newVendor", "select public.submit_vendor_rfi($1, $2::jsonb, $3::jsonb)", [sent.rfi_id, JSON.stringify(data), JSON.stringify(bank)]);
+  await rejects(as("newVendor", "select public.submit_vendor_rfi($1, $2::jsonb, null)", [sent.rfi_id, JSON.stringify(data)]), /already been submitted/);
+
+  const gates = (await as("agent", "select gate_key, status from public.supplier_gates where supplier_id = $1 and gate_key in ('rfi','bank') order by gate_key", [sent.supplier_id])).rows;
+  assert.deepEqual(gates, [{ gate_key: "bank", status: "received" }, { gate_key: "rfi", status: "received" }], "vendor input is never verified");
+  assert.equal((await as("agent", "select status from public.srt_tickets where id = $1", [ticket])).rows[0].status, "in_progress");
+
+  // Bank details: Finance / lead / head / admin only; vendor and agent can't read them.
+  assert.equal((await as("newVendor", "select * from public.vendor_bank_details")).rows.length, 0);
+  assert.equal((await as("agent", "select * from public.vendor_bank_details")).rows.length, 0);
+  assert.equal((await as("finance", "select account_number from public.vendor_bank_details")).rows[0].account_number, "12345678");
+
+  // Review: head only; return needs a note and issues a fresh link.
+  await rejects(as("agent", "select public.review_vendor_rfi($1, 'approve', null)", [sent.rfi_id]), /Only the Procurement head/);
+  await rejects(as("head", "select public.review_vendor_rfi($1, 'return', '')", [sent.rfi_id]), /Add a note/);
+  await as("head", "select public.review_vendor_rfi($1, 'return', 'Please add your VAT certificate', 'http://localhost:3000')", [sent.rfi_id]);
+  const returned = (await as("newVendor", "select status, review_note from public.vendor_rfis where id = $1", [sent.rfi_id])).rows[0];
+  assert.deepEqual(returned, { status: "returned", review_note: "Please add your VAT certificate" });
+  assert.equal((await as("agent", "select count(*)::int n from public.email_outbox where ticket_id = $1", [ticket])).rows[0].n, 2);
+  assert.equal((await as("agent", "select status from public.srt_tickets where id = $1", [ticket])).rows[0].status, "waiting_vendor");
+
+  await as("newVendor", "select public.submit_vendor_rfi($1, $2::jsonb, null)", [sent.rfi_id, JSON.stringify({ ...data, vat_certificate_note: "attached" })]);
+  await as("head", "select public.review_vendor_rfi($1, 'approve', 'Looks complete')", [sent.rfi_id]);
+  const after = (await as("agent", "select gate_key, status from public.supplier_gates where supplier_id = $1 and gate_key in ('request','rfi') order by gate_key", [sent.supplier_id])).rows;
+  assert.deepEqual(after, [{ gate_key: "request", status: "verified" }, { gate_key: "rfi", status: "verified" }]);
+
+  // Final onboarding approval gate now belongs to the Procurement head.
+  await rejects(as("lead", "select public.update_supplier_gate($1, 'approval', 'verified')", [sent.supplier_id]), /Only the Procurement head/);
+  await as("head", "select public.update_supplier_gate($1, 'approval', 'verified')", [sent.supplier_id]);
+
+  const log = (await as("agent", "select body from public.srt_ticket_activity where ticket_id = $1 and kind = 'event' order by id", [ticket])).rows.map((r) => r.body);
+  assert.ok(log.some((b) => /Information request emailed/.test(b)));
+  assert.ok(log.some((b) => /Vendor submitted/.test(b)));
+  assert.ok(log.some((b) => /approved the vendor information/.test(b)));
 });
 
 test("anonymous users see nothing", async () => {

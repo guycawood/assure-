@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { requireAdmin, requireInternal } from "@/lib/auth";
@@ -234,6 +235,44 @@ export async function createSupplierFromTicket(ticketId: string): Promise<Action
   await supabase.from("srt_tickets").update({ supplier_id: s.id }).eq("id", ticketId);
   revalidatePath(`/internal/srt/tickets/${ticketId}`);
   return { ok: true, message: "Supplier record created" };
+}
+
+/* ---------------- Vendor information request ---------------- */
+
+/** Base URL for links in vendor emails: the configured site URL, else this request's origin. */
+async function siteUrl() {
+  if (process.env.NEXT_PUBLIC_SITE_URL) return process.env.NEXT_PUBLIC_SITE_URL;
+  const h = await headers();
+  return `${h.get("x-forwarded-proto") ?? "http"}://${h.get("host") ?? "localhost:3000"}`;
+}
+
+export async function sendVendorRfi(ticketId: string, _: ActionResult, fd: FormData): Promise<ActionResult> {
+  await requireInternal();
+  const email = blank(fd.get("email"));
+  if (!email || !z.string().email().safeParse(email).success) return { error: "Enter the vendor's email address." };
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("send_vendor_rfi", {
+    p_ticket: ticketId, p_email: email, p_contact_name: blank(fd.get("contact_name")), p_link_base: await siteUrl(),
+  });
+  if (error) return { error: /^(Only|Enter|The vendor|Ticket)/.test(error.message) ? error.message : "The request wasn't sent. Try again." };
+  revalidatePath(`/internal/srt/tickets/${ticketId}`);
+  revalidatePath("/internal/srt", "layout");
+  return { ok: true, message: `Information request emailed to ${email}` };
+}
+
+export async function reviewVendorRfi(rfiId: string, ticketId: string, _: ActionResult, fd: FormData): Promise<ActionResult> {
+  await requireInternal();
+  const decision = fd.get("decision");
+  if (decision !== "approve" && decision !== "return" && decision !== "reject") return { error: "Choose approve, return or reject." };
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("review_vendor_rfi", {
+    p_rfi: rfiId, p_decision: decision, p_note: blank(fd.get("note")), p_link_base: await siteUrl(),
+  });
+  if (error) return { error: /^(Only|Add a note|Information request|Unknown)/.test(error.message) ? error.message : "The review wasn't saved. Try again." };
+  revalidatePath(`/internal/srt/tickets/${ticketId}`);
+  revalidatePath("/internal/srt", "layout");
+  const done = { approve: "Vendor information approved", return: "Returned to the vendor with your note", reject: "Vendor rejected and ticket closed" };
+  return { ok: true, message: done[decision] };
 }
 
 /* ---------------- Admin ---------------- */

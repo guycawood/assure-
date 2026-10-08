@@ -32,7 +32,8 @@ async function build(): Promise<PGlite> {
   for (const u of DEMO_USERS) {
     await db.query("insert into auth.users (id, email, raw_user_meta_data) values ($1, $2, $3)", [u.id, u.email, JSON.stringify({ full_name: u.name })]);
   }
-  const [admin, lead, agent, finance, procurement] = DEMO_USERS;
+  const [admin, lead, agent, finance, procurement, head] = DEMO_USERS;
+  await db.query("update public.profiles set srt_role = 'head' where id = $1", [head.id]);
   await db.query("update public.profiles set is_admin = true where id = $1", [admin.id]);
   await db.query("update public.profiles set srt_role = 'lead' where id = $1", [lead.id]);
   await db.query("update public.profiles set srt_role = 'agent' where id = $1", [agent.id]);

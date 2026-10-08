@@ -22,6 +22,7 @@ export const DEMO_USERS: DemoUser[] = [
   { id: "d0000000-0000-4000-8000-000000000002", email: "lena.lead@adm-indicia.com", name: "Lena Lead", role: "SRT lead", description: "Approves fast-track, marks gates not required, changes due dates" },
   { id: "d0000000-0000-4000-8000-000000000003", email: "arjun.agent@adm-indicia.com", name: "Arjun Agent", role: "SRT agent", description: "Works tickets, verifies gates except bank details" },
   { id: "d0000000-0000-4000-8000-000000000004", email: "fiona.finance@adm-indicia.com", name: "Fiona Finance", role: "Finance", description: "Verifies bank details" },
-  { id: "d0000000-0000-4000-8000-000000000005", email: "pedro.procurement@adm-indicia.com", name: "Pedro Procurement", role: "In-market procurement", description: "Raises tickets, sets gates to requested or received" },
+  { id: "d0000000-0000-4000-8000-000000000005", email: "pedro.procurement@adm-indicia.com", name: "Pedro Procurement", role: "In-market procurement", description: "Raises tickets, sends vendor information requests" },
+  { id: "d0000000-0000-4000-8000-000000000007", email: "hana.head@adm-indicia.com", name: "Hana Head", role: "Procurement head", description: "Reviews vendor information and gives final onboarding approval" },
   { id: "d0000000-0000-4000-8000-000000000006", email: "vendor1@example.com", name: "Wei Chen (Northwind Print Co)", role: "Vendor", description: "A vendor user: sees only the vendor portal" },
 ];

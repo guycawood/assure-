@@ -151,19 +151,31 @@ class Query<T = unknown> implements PromiseLike<Result<T>> {
   }
 }
 
-export function createDemoClient(userId: string | null) {
-  const user = DEMO_USERS.find((u) => u.id === userId) ?? null;
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+/** Demo users plus anyone who registered through a vendor invitation in this demo session. */
+async function findUser(userId: string | null): Promise<{ id: string; email: string } | null> {
+  if (!userId || !UUID.test(userId)) return null;
+  const known = DEMO_USERS.find((u) => u.id === userId);
+  if (known) return { id: known.id, email: known.email };
+  const db = await demoDb();
+  const res = await db.query<{ id: string; email: string }>("select id, email from auth.users where id = $1", [userId]);
+  return res.rows[0] ?? null;
+}
+
+export function createDemoClient(cookieUserId: string | null) {
+  const userId = cookieUserId && UUID.test(cookieUserId) ? cookieUserId : null;
   return {
     auth: {
       async getUser() {
-        return { data: { user: user ? { id: user.id, email: user.email } : null }, error: null };
+        return { data: { user: await findUser(userId) }, error: null };
       },
       async signOut() {
         return { error: null };
       },
     },
     from(table: string) {
-      return new Query(table, user?.id ?? null);
+      return new Query(table, userId);
     },
     async rpc(fn: string, args: Record<string, unknown> = {}): Promise<Result> {
       try {
@@ -174,7 +186,7 @@ export function createDemoClient(userId: string | null) {
           return v !== null && typeof v === "object" ? JSON.stringify(v) : v;
         });
         const named = keys.map((k, i) => `${ident(k)} => $${i + 1}`).join(", ");
-        const res = await asUser(user?.id ?? null, (tx) => tx.query<{ r: unknown }>(`select public.${ident(fn)}(${named}) as r`, params, { parsers: PARSERS }));
+        const res = await asUser(userId, (tx) => tx.query<{ r: unknown }>(`select public.${ident(fn)}(${named}) as r`, params, { parsers: PARSERS }));
         return { data: res.rows[0]?.r ?? null, error: null };
       } catch (e) {
         return { data: null, error: toError(e) };

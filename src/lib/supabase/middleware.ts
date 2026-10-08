@@ -2,7 +2,8 @@ import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import { DEMO_COOKIE, isDemoMode } from "@/lib/demo/config";
 
-const PUBLIC_PATHS = ["/login", "/auth"];
+// /vendor/register is where invited vendors land from the email link, before they have an account.
+const PUBLIC_PATHS = ["/login", "/auth", "/vendor/register"];
 
 export async function updateSession(request: NextRequest) {
   const path = request.nextUrl.pathname;
