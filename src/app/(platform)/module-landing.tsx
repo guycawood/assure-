@@ -1,17 +1,17 @@
 import Link from "next/link";
 import { HORIZONTALS, MODULES, moduleByKey, type ModuleDef } from "@/modules/registry";
+import { MSymbol } from "@/components/symbol";
 import { Card } from "@/components/ui";
 
 /** Landing page for a module that isn't built yet: what it will do and where it sits in the flow. */
 export function ModuleLanding({ m }: { m: ModuleDef }) {
-  const Icon = m.icon;
   const i = MODULES.findIndex((x) => x.key === m.key);
   const assure = moduleByKey("assure");
   return (
-    <main className="mx-auto flex w-full max-w-[1100px] flex-col gap-5 px-4 py-8 md:px-8">
+    <div className="mx-auto flex w-full max-w-[1100px] flex-col gap-5">
       <div className="flex items-start gap-4">
         <span className="grid h-12 w-12 shrink-0 place-items-center rounded-lg" style={{ background: m.colour + "33", color: m.colour }}>
-          <Icon size={26} aria-hidden />
+          <MSymbol name={m.icon} size={26} />
         </span>
         <div>
           <p className="eyebrow">{m.phase} · coming next</p>
@@ -56,6 +56,6 @@ export function ModuleLanding({ m }: { m: ModuleDef }) {
       <p className="text-sm text-muted">
         Module {i + 1} of {MODULES.length}. See <Link href="/watchtower" className="font-semibold text-accent underline">Watchtower</Link> for live status across the platform.
       </p>
-    </main>
+    </div>
   );
 }

@@ -1,14 +1,11 @@
-import {
-  Boxes, ClipboardList, Lightbulb, PackageSearch, RadioTower, ShieldCheck, Truck, type LucideIcon,
-} from "lucide-react";
-
 export type ModuleKey = "watchtower" | "briefing" | "sourcing" | "assure" | "logistics" | "execution" | "shopper-iq";
 
 export type ModuleDef = {
   key: ModuleKey;
   name: string;
   tagline: string;
-  icon: LucideIcon;
+  /** Google Material Symbols name (brand iconography). */
+  icon: string;
   /** Brand service colour (adm Indicia guidelines, July 2025). */
   colour: string;
   basePath: string;
@@ -26,7 +23,7 @@ export const MODULES: ModuleDef[] = [
     key: "watchtower",
     name: "Watchtower",
     tagline: "One view of the whole system",
-    icon: RadioTower,
+    icon: "cell_tower",
     colour: "#9DC5ED",
     basePath: "/watchtower",
     status: "live",
@@ -42,7 +39,7 @@ export const MODULES: ModuleDef[] = [
     key: "briefing",
     name: "Briefing+",
     tagline: "Campaigns and creative briefs",
-    icon: Lightbulb,
+    icon: "lightbulb",
     colour: "#B776BC",
     basePath: "/briefing",
     status: "planned",
@@ -58,7 +55,7 @@ export const MODULES: ModuleDef[] = [
     key: "sourcing",
     name: "Sourcing+",
     tagline: "Specs, triage, RFQs and estimates",
-    icon: PackageSearch,
+    icon: "request_quote",
     colour: "#4896F7",
     basePath: "/sourcing",
     status: "planned",
@@ -74,7 +71,7 @@ export const MODULES: ModuleDef[] = [
     key: "assure",
     name: "Assure+",
     tagline: "Supplier relationship management",
-    icon: ShieldCheck,
+    icon: "verified_user",
     colour: "#6A2DD3",
     basePath: "/assure",
     status: "live",
@@ -92,7 +89,7 @@ export const MODULES: ModuleDef[] = [
     key: "logistics",
     name: "Logistics+",
     tagline: "Deliveries, shipments and proof of delivery",
-    icon: Truck,
+    icon: "local_shipping",
     colour: "#FFB05B",
     basePath: "/logistics",
     status: "planned",
@@ -108,7 +105,7 @@ export const MODULES: ModuleDef[] = [
     key: "execution",
     name: "Execution+",
     tagline: "Recces, installs and audits in store",
-    icon: Boxes,
+    icon: "storefront",
     colour: "#FFB05B",
     basePath: "/execution",
     status: "planned",
@@ -124,7 +121,7 @@ export const MODULES: ModuleDef[] = [
     key: "shopper-iq",
     name: "Shopper IQ",
     tagline: "What to make, and what worked",
-    icon: ClipboardList,
+    icon: "insights",
     colour: "#EE4E62",
     basePath: "/shopper-iq",
     status: "planned",

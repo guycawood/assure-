@@ -6,6 +6,7 @@ import { getSuppliers, getTickets } from "@/lib/data";
 import { getInputsBySupplier, getMethodology } from "@/lib/scorecard-data";
 import { scoreSupplier } from "@/lib/scorecard";
 import { MODULES } from "@/modules/registry";
+import { MSymbol } from "@/components/symbol";
 import { Card, PageHead, Pill } from "@/components/ui";
 
 export const metadata: Metadata = { title: "Watchtower" };
@@ -26,17 +27,16 @@ export default async function MasterWatchtower() {
   });
 
   return (
-    <main className="mx-auto flex w-full max-w-[1400px] flex-col gap-5 px-4 py-6 md:px-8">
+    <div className="mx-auto flex w-full max-w-[1400px] flex-col gap-5">
       <PageHead title="Watchtower" sub="One view of the whole platform. Each module has its own Watchtower for its rules and health; they all roll up here." />
 
       <section className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
         {MODULES.filter((x) => x.key !== "watchtower").map((x) => {
-          const Icon = x.icon;
           const live = x.key === "assure";
           return (
             <Card key={x.key} className="flex flex-col gap-2 p-4" >
               <div className="flex items-center gap-2">
-                <span className="grid h-8 w-8 place-items-center rounded" style={{ background: x.colour + "33", color: x.colour }}><Icon size={18} aria-hidden /></span>
+                <span className="grid h-8 w-8 place-items-center rounded" style={{ background: x.colour + "33", color: x.colour }}><MSymbol name={x.icon} size={18} /></span>
                 <h2 className="font-display text-lg font-semibold">{x.name}</h2>
                 <span className="ml-auto">{live ? <Pill tone="ok">Live</Pill> : <Pill>{x.phase}</Pill>}</span>
               </div>
@@ -79,6 +79,6 @@ export default async function MasterWatchtower() {
       </Card>
 
       <p className="text-xs text-muted">Next in the master Watchtower: change requests and a unified audit trail across modules, core principles, the DOA matrix, module access and shared libraries.</p>
-    </main>
+    </div>
   );
 }

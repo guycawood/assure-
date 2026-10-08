@@ -22,7 +22,7 @@ const toneClass: Record<Tone, string> = {
 
 export function Pill({ tone = "neutral", children, title }: { tone?: Tone; children: React.ReactNode; title?: string }) {
   return (
-    <span title={title} className={clsx("inline-flex items-center gap-1 whitespace-nowrap rounded-full px-2 py-px text-xs font-semibold", toneClass[tone])}>
+    <span title={title} className={clsx("inline-flex items-center gap-1 whitespace-nowrap rounded-full px-2.5 py-0.5 text-[0.72rem] font-bold", toneClass[tone])}>
       {children}
     </span>
   );
@@ -93,25 +93,67 @@ export function GateLegend() {
 }
 
 export function Card({ className, children }: { className?: string; children: React.ReactNode }) {
-  return <section className={clsx("rounded-md border border-line bg-surface", className)}>{children}</section>;
+  return <section className={clsx("rounded-xl border border-line bg-surface shadow-card", className)}>{children}</section>;
 }
 
-export function PageHead({ title, sub, children }: { title: string; sub?: string; children?: React.ReactNode }) {
+/** Card with a titled header row (and optional actions on the right). */
+export function Panel({ title, sub, actions, className, children }: { title: string; sub?: string; actions?: React.ReactNode; className?: string; children: React.ReactNode }) {
   return (
-    <div className="flex flex-wrap items-end justify-between gap-3">
-      <div>
-        <h1 className="font-display text-[1.7rem] font-bold leading-tight">{title}</h1>
-        {sub && <p className="mt-0.5 max-w-[70ch] text-muted">{sub}</p>}
+    <Card className={clsx("min-w-0", className)}>
+      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-line px-5 py-3.5">
+        <div className="min-w-0">
+          <h2 className="font-display text-[0.95rem] font-bold">{title}</h2>
+          {sub && <p className="text-xs text-muted">{sub}</p>}
+        </div>
+        {actions && <div className="flex flex-wrap items-center gap-2">{actions}</div>}
+      </div>
+      {children}
+    </Card>
+  );
+}
+
+export type Crumb = { label: string; href?: string };
+
+export function PageHead({ title, sub, crumbs, children }: { title: string; sub?: string; crumbs?: Crumb[]; children?: React.ReactNode }) {
+  return (
+    <div className="flex flex-wrap items-end justify-between gap-4 pb-1">
+      <div className="min-w-0">
+        {crumbs && crumbs.length > 0 && (
+          <nav aria-label="Breadcrumb" className="mb-1.5 flex flex-wrap items-center gap-1.5 text-xs font-semibold text-muted">
+            {crumbs.map((c, i) => (
+              <span key={i} className="flex items-center gap-1.5">
+                {c.href ? <Link href={c.href} className="hover:text-fg">{c.label}</Link> : <span>{c.label}</span>}
+                {i < crumbs.length - 1 && <span aria-hidden className="text-line">/</span>}
+              </span>
+            ))}
+          </nav>
+        )}
+        <h1 className="font-display text-[1.6rem] font-bold leading-tight tracking-[-0.01em]">{title}</h1>
+        {sub && <p className="mt-1 max-w-[75ch] text-[0.9rem] text-muted">{sub}</p>}
       </div>
       {children && <div className="flex flex-wrap items-center gap-2">{children}</div>}
     </div>
   );
 }
 
+/** KPI tile. tone colours the value; hint is the line under it. */
+export function Stat({ label, value, hint, tone, icon }: { label: string; value: React.ReactNode; hint?: React.ReactNode; tone?: "ok" | "warn" | "bad"; icon?: React.ReactNode }) {
+  return (
+    <Card className="flex items-start gap-3 px-5 py-4">
+      <div className="min-w-0 flex-1">
+        <p className="eyebrow">{label}</p>
+        <p className={clsx("mt-1 font-display text-[1.75rem] font-bold leading-none tabular-nums", tone === "ok" && "text-ok", tone === "warn" && "text-warn", tone === "bad" && "text-bad")}>{value}</p>
+        {hint && <p className="mt-1.5 text-xs text-muted">{hint}</p>}
+      </div>
+      {icon && <span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-accent-soft text-accent">{icon}</span>}
+    </Card>
+  );
+}
+
 export const btn = {
-  primary: "inline-flex items-center gap-1.5 whitespace-nowrap rounded border border-accent bg-accent px-3 py-1.5 text-sm font-semibold text-accent-fg hover:brightness-110 disabled:opacity-60",
-  secondary: "inline-flex items-center gap-1.5 whitespace-nowrap rounded border border-line bg-surface px-3 py-1.5 text-sm font-semibold hover:border-muted disabled:opacity-60",
-  danger: "inline-flex items-center gap-1.5 whitespace-nowrap rounded border border-line bg-surface px-3 py-1.5 text-sm font-semibold text-bad hover:border-bad disabled:opacity-60",
+  primary: "inline-flex items-center justify-center gap-1.5 whitespace-nowrap rounded-lg bg-accent px-3.5 py-2 text-sm font-semibold text-accent-fg shadow-sm transition hover:bg-accent/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/30 disabled:opacity-50",
+  secondary: "inline-flex items-center justify-center gap-1.5 whitespace-nowrap rounded-lg border border-line bg-surface px-3.5 py-2 text-sm font-semibold text-fg shadow-sm transition hover:border-accent/40 hover:bg-surface-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/20 disabled:opacity-50",
+  danger: "inline-flex items-center justify-center gap-1.5 whitespace-nowrap rounded-lg border border-line bg-surface px-3.5 py-2 text-sm font-semibold text-bad shadow-sm transition hover:border-bad/50 hover:bg-bad-soft disabled:opacity-50",
 };
 
 export function ButtonLink({ href, variant = "secondary", children }: { href: string; variant?: keyof typeof btn; children: React.ReactNode }) {
@@ -124,8 +166,8 @@ export function ButtonLink({ href, variant = "secondary", children }: { href: st
 
 export function Empty({ title, children }: { title: string; children?: React.ReactNode }) {
   return (
-    <div className="flex max-w-[70ch] flex-col items-start gap-2 px-4 py-8 text-muted">
-      <h2 className="font-display text-lg font-semibold text-fg">{title}</h2>
+    <div className="flex max-w-[70ch] flex-col items-start gap-2 px-6 py-10 text-muted">
+      <h2 className="font-display text-base font-bold text-fg">{title}</h2>
       {children}
     </div>
   );
