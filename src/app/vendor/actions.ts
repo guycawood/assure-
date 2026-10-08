@@ -54,6 +54,6 @@ export async function submitRfi(rfiId: string, _: VendorActionResult, fd: FormDa
     const safe = /^(This information request|Enter |Confirm )/.test(error.message);
     return { error: safe ? error.message : "Your information couldn't be submitted. Try again, or contact adm Indicia." };
   }
-  revalidatePath("/vendor");
+  revalidatePath("/vendor", "layout");
   return { ok: true };
 }

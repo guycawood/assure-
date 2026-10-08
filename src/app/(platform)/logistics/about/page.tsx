@@ -1,0 +1,8 @@
+import type { Metadata } from "next";
+import { ModuleAboutPage } from "../../module-about";
+
+export const metadata: Metadata = { title: "About Logistics+" };
+
+export default function About() {
+  return <ModuleAboutPage moduleKey="logistics" />;
+}

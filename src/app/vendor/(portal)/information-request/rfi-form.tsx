@@ -1,7 +1,7 @@
 "use client";
 
 import { useActionState } from "react";
-import { submitRfi, type VendorActionResult } from "./actions";
+import { submitRfi, type VendorActionResult } from "@/app/vendor/actions";
 import { CERTIFICATIONS, type RfiData } from "@/lib/srt";
 import { btn } from "@/components/ui";
 

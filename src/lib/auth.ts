@@ -20,8 +20,19 @@ export const getProfile = cache(async (): Promise<Profile | null> => {
 export async function requireInternal(): Promise<Profile> {
   const profile = await getProfile();
   if (!profile) redirect("/login");
-  if (!(profile.is_admin || profile.user_type === "internal")) redirect("/vendor");
+  if (!(profile.is_admin || profile.user_type === "internal")) redirect(profile.user_type === "client" ? "/client-portal" : "/vendor");
   return profile;
+}
+
+/**
+ * Client Portal gate: client users, plus internal staff (who may only preview a client, read-only).
+ * Vendors go to the vendor portal. Which accounts a client sees is decided in the database (client_users / my_client_ids()).
+ */
+export async function requireClient(): Promise<Profile> {
+  const profile = await getProfile();
+  if (!profile) redirect("/login");
+  if (profile.is_admin || profile.user_type === "internal" || profile.user_type === "client") return profile;
+  redirect("/vendor");
 }
 
 export async function requireAdmin(): Promise<Profile> {

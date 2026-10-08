@@ -4,5 +4,6 @@ import { getProfile } from "@/lib/auth";
 export default async function Home() {
   const profile = await getProfile();
   if (!profile) redirect("/login");
-  redirect(profile.is_admin || profile.user_type === "internal" ? "/home" : "/vendor");
+  if (profile.is_admin || profile.user_type === "internal") redirect("/home");
+  redirect(profile.user_type === "client" ? "/client-portal" : "/vendor");
 }

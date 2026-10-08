@@ -165,6 +165,14 @@ export const LIBRARY_SCHEMAS: Record<string, LibrarySchema> = {
       { key: "guidance", label: "Scoring guidance", type: "textarea", column: true },
     ],
   },
+  execution_rules: {
+    codeLabel: "Rule code", nameLabel: "Rule",
+    fields: [
+      { key: "value", label: "Value", type: "number", required: true, column: true },
+      { key: "unit", label: "Unit", type: "text", column: true },
+      { key: "description", label: "What it controls", type: "textarea", column: true },
+    ],
+  },
   touchpoint_types: { codeLabel: "Code", fields: [{ key: "permanence", label: "Typical permanence", type: "enum", options: opts("temporary", "permanent"), column: true, filter: true }, { key: "description", label: "Description", type: "textarea", column: true }] },
   p2p_stages: { codeLabel: "Code", fields: [{ key: "framework", label: "Framework", type: "enum", options: opts("connect_engage_sell", "connect_guide_convert"), column: true, filter: true }, { key: "order", label: "Order", type: "number", column: true }] },
   brief_fields: {

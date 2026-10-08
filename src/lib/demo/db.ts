@@ -65,6 +65,21 @@ async function build(): Promise<PGlite> {
      where source_ref = 'demo'`,
     [agent.id, lead.id, finance.id, procurement.id],
   );
+
+  // Client Portal: Claire Martin approves for the Heineken (demo) account; Lena manages its jobs (gets client decisions).
+  const client = DEMO_USERS.find((u) => u.role === "Client");
+  if (client) {
+    await db.query("update public.profiles set user_type = 'client' where id = $1", [client.id]);
+    await db.query(
+      "insert into public.client_users (user_id, client_id, role, granted_by) select $1, id, 'approver', $2 from public.sourcing_clients where code = 'HNK' on conflict do nothing",
+      [client.id, admin.id],
+    );
+    await db.query("update public.jobs set manager = $1 where manager is null and client_id = (select id from public.sourcing_clients where code = 'HNK')", [lead.id]);
+    await db.query(
+      "insert into public.client_comments (brief_id, client_id, body, author, created_at) select b.id, b.client_id, $2, $1, now() - interval '2 days' from public.briefs b where b.brief_code = 'BR-2026-00001' and b.client_id is not null",
+      [client.id, "Could the header carry the 0.0 pack shot as well as the tournament creative?"],
+    );
+  }
   return db;
 }
 

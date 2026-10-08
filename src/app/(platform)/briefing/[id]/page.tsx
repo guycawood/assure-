@@ -15,6 +15,7 @@ import { BriefStatusPill } from "@/components/briefing/labels";
 import { BriefForm } from "@/components/briefing/brief-form";
 import { ProgressTimeline, RevisionHistory } from "@/components/briefing/history";
 import { WhatWorkedPanel } from "@/components/shopper-iq/what-worked";
+import { ClientComments } from "@/components/client/client-comments";
 import { updateBrief } from "../actions";
 import { ApprovalPanel, BriefActions } from "./brief-controls";
 import { IdeationPanel } from "./ideation-panel";
@@ -138,6 +139,7 @@ export default async function BriefDetail({ params, searchParams }: { params: Pr
           )}
           <ProgressTimeline brief={brief} events={history.events} name={name} />
           <WhatWorkedPanel items={whatWorked} brand={brief.brand} client={brief.client} />
+          <ClientComments briefId={brief.id} />
         </div>
       </div>
     </>

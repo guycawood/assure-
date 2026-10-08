@@ -3,7 +3,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { DEMO_COOKIE, isDemoMode } from "@/lib/demo/config";
 
 // /vendor/register is where invited vendors land from the email link, before they have an account.
-const PUBLIC_PATHS = ["/login", "/auth", "/vendor/register"];
+const PUBLIC_PATHS = ["/login", "/auth", "/vendor/register", "/vendor-portal", "/apply"];
 
 export async function updateSession(request: NextRequest) {
   const path = request.nextUrl.pathname;

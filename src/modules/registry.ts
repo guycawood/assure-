@@ -139,8 +139,8 @@ export const MODULES: ModuleDef[] = [
     icon: "local_shipping",
     colour: "#FFB05B",
     basePath: "/logistics",
-    status: "planned",
-    phase: "Phase 2",
+    status: "live",
+    phase: "Live",
     scope: [
       "Deliveries per destination, shipments, legs and carriers",
       "Vendor proof of delivery with 8-point verification",
@@ -155,8 +155,8 @@ export const MODULES: ModuleDef[] = [
     icon: "storefront",
     colour: "#FFB05B",
     basePath: "/execution",
-    status: "planned",
-    phase: "Phase 2",
+    status: "live",
+    phase: "Live",
     scope: [
       "Outlets, recces and deployments",
       "Vendor installation with photos and GPS check",
@@ -226,7 +226,7 @@ export const EXTERNAL_REPORTING = {
 export type PortalDef = { key: string; name: string; href: string; colour: string; icon: string; status: "live" | "planned"; summary: string };
 export const PORTALS: PortalDef[] = [
   {
-    key: "client", name: "Client Portal", href: "/client-portal", colour: "#4896F7", icon: "storefront", status: "planned",
+    key: "client", name: "Client Portal", href: "/client-portal", colour: "#4896F7", icon: "storefront", status: "live",
     summary: "Clients follow their campaigns, approve briefs and estimates, see delivery and installation progress, and view spend, savings, sustainability and effectiveness.",
   },
   {
