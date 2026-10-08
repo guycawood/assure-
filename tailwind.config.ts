@@ -1,16 +1,34 @@
 import type { Config } from "tailwindcss";
 
+const c = (v: string) => `hsl(var(--${v}) / <alpha-value>)`;
+
 export default {
-  content: [
-    "./src/pages/**/*.{js,ts,jsx,tsx,mdx}",
-    "./src/components/**/*.{js,ts,jsx,tsx,mdx}",
-    "./src/app/**/*.{js,ts,jsx,tsx,mdx}",
-  ],
+  content: ["./src/**/*.{ts,tsx}"],
   theme: {
     extend: {
       colors: {
-        background: "var(--background)",
-        foreground: "var(--foreground)",
+        bg: c("bg"),
+        surface: c("surface"),
+        "surface-2": c("surface-2"),
+        line: c("line"),
+        fg: c("fg"),
+        muted: c("muted"),
+        accent: c("accent"),
+        "accent-fg": c("accent-fg"),
+        "accent-soft": c("accent-soft"),
+        ok: c("ok"),
+        "ok-soft": c("ok-soft"),
+        warn: c("warn"),
+        "warn-soft": c("warn-soft"),
+        bad: c("bad"),
+        "bad-soft": c("bad-soft"),
+        info: c("info"),
+        "info-soft": c("info-soft"),
+      },
+      fontFamily: {
+        sans: ["var(--font-body)", "system-ui", "sans-serif"],
+        display: ["var(--font-display)", "Arial Narrow", "sans-serif"],
+        mono: ["var(--font-mono)", "ui-monospace", "monospace"],
       },
     },
   },
