@@ -26,7 +26,10 @@ async function build(): Promise<PGlite> {
   for (const f of readdirSync(join(root, "migrations")).filter((f) => f.endsWith(".sql")).sort()) {
     await db.exec(readFileSync(join(root, "migrations", f), "utf8"));
   }
-  await db.exec(readFileSync(join(root, "seed", "demo_data.sql"), "utf8"));
+  // Every seed file, in name order (demo_data.sql first, then one file per module).
+  for (const f of readdirSync(join(root, "seed")).filter((f) => f.endsWith(".sql")).sort()) {
+    await db.exec(readFileSync(join(root, "seed", f), "utf8"));
+  }
 
   // Demo users (after the seed, so the vendor links to DEMO-001 by email).
   for (const u of DEMO_USERS) {

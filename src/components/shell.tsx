@@ -127,14 +127,34 @@ export function Shell({ user, isAdmin, demo, badges, children }: Props) {
       </aside>
 
       {/* Main column */}
-      <div className={clsx("flex min-h-screen flex-col transition-[margin] duration-200", collapsed ? "ml-16" : "ml-60", "pr-[76px] xl:pr-[214px]")}>
-        <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b border-line bg-surface/95 px-6 backdrop-blur">
-          <div className="flex min-w-0 items-center gap-2 text-sm">
-            <span className="whitespace-nowrap text-xs font-semibold text-muted">{m.name} {nav.portal.toLowerCase().includes("portal") ? "" : "· " + nav.portal}</span>
-            <span className="text-line">/</span>
-            <span className="truncate font-bold text-fg">{page?.label ?? "Overview"}</span>
-          </div>
-          <div className="ml-auto flex shrink-0 items-center gap-2">
+      <div className={clsx("flex min-h-screen min-w-0 flex-col transition-[margin] duration-200", collapsed ? "ml-16" : "ml-60")}>
+        <header className="sticky top-0 z-30 border-b border-line bg-surface/95 backdrop-blur">
+          <div className="flex h-14 items-center gap-3 px-4">
+          {/* Module tabs: every module stands alone; the tabs are how you move between them. */}
+          <nav aria-label="Modules" className="flex min-w-0 flex-1 items-center gap-1 overflow-x-auto [scrollbar-width:none]">
+            <span className="mr-2 hidden whitespace-nowrap pl-1 text-[0.95rem] font-extrabold tracking-[-0.01em] text-brand-navy lg:block">System Guy</span>
+            {MODULES.map((x) => {
+              const active = x.key === m.key;
+              const c = x.colour === "#9DC5ED" ? "#4896F7" : x.colour;
+              return (
+                <Link
+                  key={x.key}
+                  href={x.basePath}
+                  title={`${x.name} · ${NAV[x.key].portal}${x.status === "planned" ? ` (${x.phase})` : ""}`}
+                  aria-current={active ? "page" : undefined}
+                  className={clsx("relative flex h-14 shrink-0 items-center gap-2 px-3 text-[0.82rem] font-bold transition-colors", active ? "text-brand-navy" : "text-muted hover:text-fg")}
+                >
+                  <span className="grid h-7 w-7 place-items-center rounded-lg" style={{ background: active ? x.colour + "33" : "transparent", color: c }}>
+                    <MSymbol name={x.icon} size={18} fill={active} />
+                  </span>
+                  <span className="whitespace-nowrap">{x.name}</span>
+                  {x.status === "planned" && <span className="rounded bg-surface-2 px-1 py-px text-[0.56rem] font-bold uppercase text-muted">{x.phase.replace("Phase ", "P")}</span>}
+                  {active && <span aria-hidden className="absolute inset-x-2 bottom-0 h-[3px] rounded-t" style={{ background: c }} />}
+                </Link>
+              );
+            })}
+          </nav>
+          <div className="flex shrink-0 items-center gap-2">
             {demo && <span className="hidden rounded-full bg-warn-soft px-2.5 py-0.5 text-[0.66rem] font-bold uppercase tracking-wider text-warn md:block">Demo data</span>}
             {m.key === "assure" && (
               <Link href="/vendor" className="hidden items-center gap-1.5 rounded-lg border border-line px-2.5 py-1.5 text-xs font-semibold text-fg/80 transition hover:bg-surface-2 sm:flex">
@@ -155,38 +175,16 @@ export function Shell({ user, isAdmin, demo, badges, children }: Props) {
               </form>
             </div>
           </div>
+          </div>
         </header>
-        <main className="flex min-w-0 flex-1 flex-col gap-6 p-6">{children}</main>
+        <div className="flex items-center gap-2 px-6 pt-4 text-xs">
+          <span className="font-semibold text-muted">{m.name}</span>
+          <span className="text-line">/</span>
+          <span className="font-bold text-fg">{page?.label ?? "Overview"}</span>
+        </div>
+        <main className="flex min-w-0 flex-1 flex-col gap-6 px-6 pb-8 pt-3">{children}</main>
       </div>
 
-      {/* Module dock (right) */}
-      <nav aria-label="Modules" className="fixed right-3 top-1/2 z-30 max-h-[calc(100vh-1.5rem)] -translate-y-1/2 overflow-y-auto rounded-2xl border border-line bg-surface/95 p-1.5 shadow-raised backdrop-blur-md">
-        <div className="flex flex-col gap-1">
-          <span className="hidden px-2 pb-1 pt-1 text-[0.58rem] font-bold uppercase tracking-[0.16em] text-muted/80 xl:block">System Guy</span>
-          {MODULES.map((x) => {
-            const active = x.key === m.key;
-            const c = x.colour === "#9DC5ED" ? "#4896F7" : x.colour;
-            return (
-              <Link
-                key={x.key}
-                href={x.basePath}
-                title={`${x.name} · ${NAV[x.key].portal}`}
-                aria-current={active ? "page" : undefined}
-                className={clsx("group flex items-center gap-2.5 rounded-xl px-1.5 py-1.5 transition-colors", active ? "bg-surface-2 ring-1 ring-line" : "hover:bg-surface-2/70")}
-              >
-                <span className="grid h-8 w-8 shrink-0 place-items-center rounded-lg" style={{ background: x.colour + "26", color: c }}>
-                  <MSymbol name={x.icon} size={18} fill={active} />
-                </span>
-                <span className="hidden min-w-0 flex-col pr-1 leading-none xl:flex">
-                  <Wordmark m={x} size="sm" />
-                  <span className="mt-1 whitespace-nowrap text-[0.56rem] font-semibold uppercase tracking-wider text-muted">{NAV[x.key].portal}</span>
-                </span>
-                {x.status === "planned" && <span className="hidden text-[0.55rem] font-bold uppercase text-muted/70 xl:block">{x.phase.replace("Phase ", "P")}</span>}
-              </Link>
-            );
-          })}
-        </div>
-      </nav>
     </div>
   );
 }

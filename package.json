@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "test:db": "node --test tests/db/srt.test.mjs",
+    "test:db": "node --test \"tests/db/*.test.mjs\"",
     "demo": "next dev"
   },
   "dependencies": {
