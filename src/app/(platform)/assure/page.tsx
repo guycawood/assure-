@@ -26,12 +26,16 @@ export default async function AssureHome() {
     { href: "/assure/srt/register", title: "Supplier register", body: "Every supplier against the onboarding gates, with purchasing blocks.", stat: `${compliant} of ${suppliers.length} compliant`, alert: blocked ? `${blocked} active but blocked` : null },
     { href: "/assure/scorecard", title: "Scorecard & PSL", body: "Supplier scores across Financial, Compliance and Performance, and the Preferred Supplier List.", stat: `${psl} preferred suppliers`, alert: null },
     { href: "/assure/watchtower", title: "Assure+ Watchtower", body: "Scoring methodology explained and governed, module health and change log.", stat: m ? `Methodology v${m.version}` : "No methodology", alert: null },
+    { href: "/assure/suppliers", title: "Supplier directory", body: "Search and filter every supplier, export to CSV, and open the Supplier 360 view.", stat: `${suppliers.length} suppliers`, alert: null },
+    { href: "/assure/compliance", title: "Compliance", body: "Certificates, expiry tracking and the document review queue.", stat: "Certificates and documents", alert: null },
+    { href: "/assure/quality", title: "Quality", body: "Inspections, non-conformance reports and verified corrective actions.", stat: "Inspections and NCRs", alert: null },
+    { href: "/assure/performance", title: "Performance", body: "Quarterly scores, the compliance and sustainability report, and the issues feed.", stat: "Scores and issues", alert: null },
+    { href: "/assure/contracts", title: "Contracts", body: "Draft, send, sign and amend contracts, with renewal alerts 60 days out.", stat: "Contracts and templates", alert: null },
+    { href: "/assure/reviews", title: "Business reviews", body: "QBR calendar, outcome approval and what is shared with vendors.", stat: "Reviews calendar", alert: null },
   ];
   const next = [
-    ["Performance & risk", "Monthly vendor reports, 360° reviews, financial exposure and country risk."],
-    ["Contracts", "Contract register with coverage, key clauses and renewal alerts."],
-    ["Quality", "Non-conformance register, corrective actions and the QC toolkit library."],
     ["Panel reviews", "Quarterly vendor panel review and sourcing strategy audit."],
+    ["Risk engine", "Risk scores worked out from compliance, performance, audits and commercial exposure."],
   ];
 
   return (

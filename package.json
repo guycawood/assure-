@@ -11,6 +11,7 @@
     "demo": "next dev"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.132.1",
     "@electric-sql/pglite": "^0.5.8",
     "@supabase/ssr": "^0.12.7",
     "@supabase/supabase-js": "^2.117.3",

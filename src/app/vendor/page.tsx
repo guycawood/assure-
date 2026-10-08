@@ -22,7 +22,7 @@ export const dynamic = "force-dynamic";
 export default async function VendorHome() {
   const profile = await getProfile();
   if (!profile) redirect("/login");
-  if (profile.is_admin || profile.user_type === "internal") redirect("/watchtower");
+  if (profile.is_admin || profile.user_type === "internal") redirect("/home");
 
   const supabase = await createClient();
   const [{ data: supplier }, { data: rfis }] = await Promise.all([

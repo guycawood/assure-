@@ -2,7 +2,8 @@ import Link from "next/link";
 import { ArrowRight, Check, CircleDashed } from "lucide-react";
 import { ABOUT } from "@/modules/about";
 import { PROCESS } from "@/modules/flow";
-import { HORIZONTALS, MODULES, moduleByKey, type ModuleKey } from "@/modules/registry";
+import { Architecture } from "@/components/architecture";
+import { moduleByKey, type ModuleKey } from "@/modules/registry";
 import { MSymbol } from "@/components/symbol";
 import { Card, PageHead, Pill } from "@/components/ui";
 
@@ -10,7 +11,6 @@ import { Card, PageHead, Pill } from "@/components/ui";
 export function ModuleAboutPage({ moduleKey, standalone }: { moduleKey: ModuleKey; standalone?: boolean }) {
   const m = moduleByKey(moduleKey)!;
   const a = ABOUT[moduleKey];
-  const flow = MODULES.filter((x) => !HORIZONTALS.includes(x.key));
 
   const body = (
     <>
@@ -131,25 +131,7 @@ export function ModuleAboutPage({ moduleKey, standalone }: { moduleKey: ModuleKe
       <Card className="p-5">
         <h3 className="mb-1 font-bold">Where it sits</h3>
         <p className="mb-4 text-sm text-muted">{m.flow}</p>
-        <ol className="flex flex-wrap items-center gap-2 text-sm">
-          {flow.map((x, n) => (
-            <li key={x.key} className="flex items-center gap-2">
-              <Link href={`${x.basePath}/about`} className="rounded-full border px-3 py-1 font-semibold transition hover:shadow-card"
-                style={x.key === m.key ? { background: x.colour, borderColor: x.colour, color: "#010062" } : { borderColor: x.colour }}>
-                {x.name}
-              </Link>
-              {n < flow.length - 1 && <ArrowRight size={14} className="text-muted" aria-hidden />}
-            </li>
-          ))}
-        </ol>
-        <div className="mt-2 grid gap-2 sm:grid-cols-2">
-          {HORIZONTALS.map((k) => moduleByKey(k)!).map((h) => (
-            <Link key={h.key} href={`${h.basePath}/about`} className="rounded-lg border px-3 py-1.5 text-center text-sm font-semibold transition hover:shadow-card"
-              style={{ borderColor: h.colour, background: h.key === m.key ? h.colour : h.colour + "1a", color: "#010062" }}>
-              {h.name} · across every stage
-            </Link>
-          ))}
-        </div>
+        <Architecture highlight={moduleKey} compact />
       </Card>
     </>
   );

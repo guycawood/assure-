@@ -7,6 +7,8 @@ import { clsx } from "clsx";
 import { MODULES, type ModuleDef } from "@/modules/registry";
 import { NAV, type NavItem } from "@/modules/nav";
 import { MSymbol } from "@/components/symbol";
+import { SuggestChange } from "@/components/watchtower/suggest-change";
+import { NotificationsBell, type Notice } from "@/components/notifications-bell";
 
 // Platform shell, Base44 pattern in adm Indicia dress:
 // left sidebar per module (wordmark block, grouped nav, collapse), white top bar with breadcrumb,
@@ -17,6 +19,7 @@ type Props = {
   isAdmin: boolean;
   demo: boolean;
   badges: { myTickets: number };
+  notices: Notice[];
   children: React.ReactNode;
 };
 
@@ -26,6 +29,19 @@ const initials = (s: string) => s.split(/[\s@.]+/).filter(Boolean).slice(0, 2).m
 function currentModule(path: string): ModuleDef {
   return MODULES.find((m) => path === m.basePath || path.startsWith(m.basePath + "/")) ?? MODULES[0];
 }
+
+// The System Guy home page sits above the modules: its own small sidebar, no module tab highlighted.
+const HOME: ModuleDef = { key: "watchtower", name: "System Guy", tagline: "Home", icon: "home", colour: "#010062", basePath: "/home", status: "live", phase: "Live", scope: [], flow: "" };
+const HOME_NAV = {
+  portal: "My work",
+  groups: [
+    { label: "My work", items: [{ label: "Home", href: "/home", icon: "home", exact: true } as NavItem] },
+    { label: "Across the platform", items: [
+      { label: "How it fits together", href: "/watchtower/flow", icon: "account_tree" } as NavItem,
+      { label: "Internal reporting", href: "/watchtower/reporting", icon: "monitoring" } as NavItem,
+    ] },
+  ],
+};
 
 function isActive(path: string, item: NavItem) {
   return item.exact ? path === item.href : path === item.href || path.startsWith(item.href + "/");
@@ -43,10 +59,11 @@ function Wordmark({ m, size = "lg" }: { m: ModuleDef; size?: "lg" | "sm" }) {
   );
 }
 
-export function Shell({ user, isAdmin, demo, badges, children }: Props) {
+export function Shell({ user, isAdmin, demo, badges, notices, children }: Props) {
   const path = usePathname();
-  const m = currentModule(path);
-  const nav = NAV[m.key];
+  const isHome = path === "/home";
+  const m = isHome ? HOME : currentModule(path);
+  const nav = isHome ? HOME_NAV : NAV[m.key];
   const [collapsed, setCollapsed] = useState(false);
 
   useEffect(() => {
@@ -119,7 +136,8 @@ export function Shell({ user, isAdmin, demo, badges, children }: Props) {
           })}
         </nav>
 
-        <div className="border-t border-line p-3">
+        <div className="space-y-1 border-t border-line p-3">
+          <SuggestChange module={m.key} collapsed={collapsed} />
           <button onClick={toggle} className="flex w-full items-center justify-center rounded-lg p-2 text-muted transition-colors hover:bg-surface-2 hover:text-fg" aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}>
             <MSymbol name={collapsed ? "chevron_right" : "chevron_left"} size={18} />
           </button>
@@ -132,9 +150,9 @@ export function Shell({ user, isAdmin, demo, badges, children }: Props) {
           <div className="flex h-14 items-center gap-3 px-4">
           {/* Module tabs: every module stands alone; the tabs are how you move between them. */}
           <nav aria-label="Modules" className="flex min-w-0 flex-1 items-center gap-1 overflow-x-auto [scrollbar-width:none]">
-            <span className="mr-2 hidden whitespace-nowrap pl-1 text-[0.95rem] font-extrabold tracking-[-0.01em] text-brand-navy lg:block">System Guy</span>
+            <Link href="/home" className="mr-2 hidden items-center gap-1.5 whitespace-nowrap pl-1 text-[0.95rem] font-extrabold tracking-[-0.01em] text-brand-navy lg:flex"><MSymbol name="home" size={18} fill={isHome} /> System Guy</Link>
             {MODULES.map((x) => {
-              const active = x.key === m.key;
+              const active = !isHome && x.key === m.key;
               const c = x.colour === "#9DC5ED" ? "#4896F7" : x.colour;
               return (
                 <Link
@@ -161,6 +179,7 @@ export function Shell({ user, isAdmin, demo, badges, children }: Props) {
                 <MSymbol name="open_in_new" size={15} /> Vendor portal
               </Link>
             )}
+            <NotificationsBell items={notices} />
             <div className="flex items-center gap-2 border-l border-line pl-3">
               <span className="grid h-8 w-8 place-items-center rounded-full bg-brand-navy text-[0.68rem] font-bold text-white" aria-hidden>{initials(user.name)}</span>
               <span className="hidden text-left leading-tight md:block">

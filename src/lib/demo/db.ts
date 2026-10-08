@@ -43,6 +43,10 @@ async function build(): Promise<PGlite> {
   await db.query("update public.profiles set srt_role = 'finance' where id = $1", [finance.id]);
   await db.query("update public.profiles set srt_role = 'procurement' where id = $1", [procurement.id]);
 
+  // Lena governs Assure+ libraries; Pedro raised the sample change request.
+  await db.query("insert into public.module_owners (module, user_id) values ('assure', $1) on conflict do nothing", [lead.id]);
+  await db.query("update public.change_requests set requested_by = $1 where requested_by is null", [procurement.id]);
+
   // Spread ownership and assignments so the queues look lived-in.
   await db.query(
     `update public.suppliers set

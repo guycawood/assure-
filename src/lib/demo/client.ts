@@ -1,4 +1,4 @@
-﻿import "server-only";
+import "server-only";
 import type { PGlite, Transaction } from "@electric-sql/pglite";
 import { demoDb } from "./db";
 import { DEMO_USERS } from "./config";
@@ -72,6 +72,15 @@ class Query<T = unknown> implements PromiseLike<Result<T>> {
   delete() { this.mode = "delete"; return this; }
   eq(col: string, val: unknown) { return this.cmp(col, "=", val); }
   neq(col: string, val: unknown) { return this.cmp(col, "<>", val); }
+  in(col: string, vals: unknown[]) {
+    if (!vals.length) { this.filters.push({ sql: "false", params: [] }); return this; }
+    this.filters.push({ sql: `${ident(col)} = any($?)`, params: [vals] });
+    return this;
+  }
+  is(col: string, val: null | boolean) {
+    this.filters.push({ sql: `${ident(col)} is ${val === null ? "null" : val ? "true" : "false"}`, params: [] });
+    return this;
+  }
   private cmp(col: string, op: string, val: unknown) {
     this.filters.push(val === null ? { sql: `${ident(col)} is ${op === "=" ? "" : "not "}null`, params: [] } : { sql: `${ident(col)} ${op} $?`, params: [val] });
     return this;
@@ -183,11 +192,16 @@ export function createDemoClient(cookieUserId: string | null) {
         const keys = Object.keys(args).filter((k) => args[k] !== undefined);
         const params = keys.map((k) => {
           const v = args[k];
+          // Lists of plain values are Postgres arrays (e.g. uuid[]); objects and lists of objects are jsonb.
+          if (Array.isArray(v) && v.every((x) => x === null || typeof x !== "object")) return v;
           return v !== null && typeof v === "object" ? JSON.stringify(v) : v;
         });
         const named = keys.map((k, i) => `${ident(k)} => $${i + 1}`).join(", ");
-        const res = await asUser(userId, (tx) => tx.query<{ r: unknown }>(`select public.${ident(fn)}(${named}) as r`, params, { parsers: PARSERS }));
-        return { data: res.rows[0]?.r ?? null, error: null };
+        // Like PostgREST: scalar functions return a value, set-returning functions return rows.
+        const res = await asUser(userId, (tx) => tx.query<Record<string, unknown>>(`select * from public.${ident(fn)}(${named})`, params, { parsers: PARSERS }));
+        const cols = res.fields.map((f) => f.name);
+        if (cols.length === 1 && cols[0] === fn) return { data: res.rows[0]?.[fn] ?? null, error: null };
+        return { data: res.rows, error: null };
       } catch (e) {
         return { data: null, error: toError(e) };
       }

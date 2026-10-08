@@ -1,4 +1,4 @@
-export type ModuleKey = "watchtower" | "briefing" | "sourcing" | "assure" | "logistics" | "execution" | "shopper-iq";
+export type ModuleKey = "watchtower" | "briefing" | "shopper-iq" | "rfq" | "sourcing" | "orders" | "logistics" | "execution" | "finance" | "assure";
 
 export type ModuleDef = {
   key: ModuleKey;
@@ -17,7 +17,8 @@ export type ModuleDef = {
   flow: string;
 };
 
-// Order follows the work: brief + insight → source → move → install; horizontals (Watchtower, Assure+) frame it (see TAB_ORDER).
+// System Guy architecture (Guy's diagram, 9 Oct): master Watchtower over a Watchtower per module; modules in a row;
+// Data Management, Supplier Engagement and Sustainability run as horizontal layers under every module (see LAYERS).
 export const MODULES: ModuleDef[] = [
   {
     key: "watchtower",
@@ -42,8 +43,8 @@ export const MODULES: ModuleDef[] = [
     icon: "lightbulb",
     colour: "#B776BC",
     basePath: "/briefing",
-    status: "planned",
-    phase: "Phase 3",
+    status: "live",
+    phase: "Live",
     scope: [
       "Campaigns set up centrally, briefs per market",
       "Sustainability targets captured on the brief",
@@ -58,8 +59,8 @@ export const MODULES: ModuleDef[] = [
     icon: "request_quote",
     colour: "#4896F7",
     basePath: "/sourcing",
-    status: "planned",
-    phase: "Phase 1",
+    status: "live",
+    phase: "Live",
     scope: [
       "Jobs and specs with CO2e and Impact Grade",
       "Triage on every line: Adopt, Adapt, Create or Push before any RFQ",
@@ -68,6 +69,21 @@ export const MODULES: ModuleDef[] = [
     flow: "After the brief. Calls Assure+ for vendor eligibility and award checks; hands approved estimates to Stocktool.",
   },
   {
+    key: "finance",
+    name: "Finance+",
+    tagline: "Quote approvals, billing and payments",
+    icon: "account_balance",
+    colour: "#97DBD9",
+    basePath: "/finance",
+    status: "planned",
+    phase: "Phase 2",
+    scope: [
+      "Finance approval of quotes and estimates before award",
+      "Supplier invoices matched to POs and deliveries; client billing",
+      "Payment schedules, terms and spend reporting by region and market",
+    ],
+    flow: "Approves the commercial steps (quotes, estimates) and closes the loop: invoices, billing and payment once delivery and installation are proven.",
+  },  {
     key: "assure",
     name: "Assure+",
     tagline: "Supplier relationship management",
@@ -83,9 +99,40 @@ export const MODULES: ModuleDef[] = [
       "External vendor portal: onboarding and subscription, RFQs and pricing, production updates",
       "External vendor portal: QA/QC submissions, invoices and control documents for every job",
     ],
-    flow: "A horizontal under the whole workflow: decides which vendors can quote, be awarded and be paid at every stage, and is the vendor's own window into their jobs.",
+    flow: "Manages the supply base: who can be invited to quote, awarded and paid. Vendors engage with System Guy at set points in the journey through the vendor portal.",
   },
   {
+    key: "rfq",
+    name: "RFQ+",
+    tagline: "Requests for quotation, sealed quotes and award",
+    icon: "request_quote",
+    colour: "#4896F7",
+    basePath: "/rfq",
+    status: "live",
+    phase: "Live",
+    scope: [
+      "RFQs built from triaged spec lines, sent only to eligible vendors",
+      "Minimum quotes from the sourcing control matrix, enforced",
+      "Sealed quotes, benchmark and savings, finance approval and award checks",
+    ],
+    flow: "Takes Create and Push lines from Sourcing+ triage, returns awarded prices to Sourcing+ and Order Management+.",
+  },
+  {
+    key: "orders",
+    name: "Order Management+",
+    tagline: "Estimates, purchase orders and order tracking",
+    icon: "receipt_long",
+    colour: "#78C7AE",
+    basePath: "/orders",
+    status: "live",
+    phase: "Live",
+    scope: [
+      "Client estimates with markup, savings and approval",
+      "Supplier POs with delegation-of-authority approval; vendor acceptance",
+      "Order status through production to delivery; hand-off to Stocktool",
+    ],
+    flow: "After award. Turns prices into estimates and POs and passes deliveries to Logistics+.",
+  },  {
     key: "logistics",
     name: "Logistics+",
     tagline: "Deliveries, shipments and proof of delivery",
@@ -124,8 +171,8 @@ export const MODULES: ModuleDef[] = [
     icon: "insights",
     colour: "#EE4E62",
     basePath: "/shopper-iq",
-    status: "planned",
-    phase: "Phase 3",
+    status: "live",
+    phase: "Live",
     scope: [
       "Performance taxonomy captured as work happens: campaign, job, spec, order",
       "Visual asset library with automatic metadata",
@@ -136,10 +183,54 @@ export const MODULES: ModuleDef[] = [
 ];
 
 // Workflow modules in order, then the horizontals. Shopper IQ sits next to Briefing+ (insight decides what to brief).
-// Assure+ goes last: it is a horizontal that serves every stage, not a step in the workflow.
-const TAB_ORDER: ModuleKey[] = ["watchtower", "briefing", "shopper-iq", "sourcing", "logistics", "execution", "assure"];
+// Assure+ goes last: it manages the supply base; vendors engage at set points (see LAYERS supplier touches).
+const TAB_ORDER: ModuleKey[] = ["watchtower", "briefing", "shopper-iq", "rfq", "sourcing", "orders", "logistics", "execution", "finance", "assure"];
 /** Modules that run across the whole workflow rather than being a step in it. */
-export const HORIZONTALS: ModuleKey[] = ["watchtower", "assure"];
+export const HORIZONTALS: ModuleKey[] = ["watchtower"];
 MODULES.sort((a, b) => TAB_ORDER.indexOf(a.key) - TAB_ORDER.indexOf(b.key));
 
 export const moduleByKey = (key: string) => MODULES.find((m) => m.key === key);
+
+/** Horizontal layers that run under every module (not tabs; reached from the Watchtower and the flow map). */
+export type LayerDef = { key: string; name: string; colour: string; href: string; summary: string; touches: Partial<Record<ModuleKey, string>> };
+export const LAYERS: LayerDef[] = [
+  {
+    key: "data", name: "Data Management", colour: "#EE4E62", href: "/watchtower/data",
+    summary: "One canonical record per thing, real links between modules, region and market kept separate, data-quality rules and BI-ready views.",
+    touches: { briefing: "Campaign taxonomy at source", "shopper-iq": "Effectiveness data model", rfq: "Price history and benchmarks", sourcing: "Spec library", orders: "Stocktool hand-off events", logistics: "LOCODEs and lanes", execution: "Outlet master data", finance: "Spend and savings reporting", assure: "Supplier master" },
+  },
+  {
+    key: "supplier", name: "Supplier Engagement", colour: "#6A2DD3", href: "/vendor",
+    summary: "Vendors engage at set points in the journey, not throughout: onboarding and compliance, quoting, confirming pushed prices, accepting POs and updating production, shipping and proof of delivery, installation, and invoicing. All through the vendor portal.",
+    touches: { rfq: "Quote or decline", sourcing: "Confirm pushed prices", orders: "Accept PO, update production", logistics: "Record shipment, upload POD", execution: "Install with photo and GPS", finance: "Upload invoice, see payment", assure: "Onboard, keep compliant, reviews" },
+  },
+  {
+    key: "sustainability", name: "Sustainability", colour: "#78C7AE", href: "/watchtower/sustainability",
+    summary: "Shared emission factors, substrates and Impact Grade from the Watchtower, applied the same way in every module.",
+    touches: { briefing: "Targets on the brief", "shopper-iq": "Footprint beside effectiveness", rfq: "Sustainability weighting in evaluation", sourcing: "CO2e and Impact Grade per spec", orders: "Emissions declarations on POs", logistics: "Transport CO2e per delivery", execution: "Reuse and maintenance", finance: "Carbon cost alongside spend", assure: "Audits and certificates in the score" },
+  },
+  {
+    key: "internal_reporting", name: "Internal Reporting", colour: "#9DC5ED", href: "/watchtower/reporting",
+    summary: "Management reporting across every module from one data model: pipeline, spend and savings, supplier performance, compliance, delivery and carbon, cut by region and market.",
+    touches: { briefing: "Brief volume and approval times", "shopper-iq": "Effectiveness by campaign", rfq: "Quote coverage and savings", sourcing: "Route mix (Adopt/Adapt/Create/Push)", orders: "POs awaiting approval", logistics: "OTIF and transport CO2e", execution: "Install and audit pass rates", finance: "Spend, fee and savings", assure: "Compliance and PSL" },
+  },
+];
+
+/** External reporting: what clients and vendors see through their portals. */
+export const EXTERNAL_REPORTING = {
+  name: "External Reporting",
+  colour: "#010062",
+  summary: "Client-facing reports (spend, savings, delivery, sustainability, effectiveness) and vendor-facing reports (scorecard, performance trends, compliance status), each showing only what that audience is allowed to see.",
+};
+/** External portals: how clients and vendors reach System Guy (outside the internal shell). */
+export type PortalDef = { key: string; name: string; href: string; colour: string; icon: string; status: "live" | "planned"; summary: string };
+export const PORTALS: PortalDef[] = [
+  {
+    key: "client", name: "Client Portal", href: "/client-portal", colour: "#4896F7", icon: "storefront", status: "planned",
+    summary: "Clients follow their campaigns, approve briefs and estimates, see delivery and installation progress, and view spend, savings, sustainability and effectiveness.",
+  },
+  {
+    key: "vendor", name: "Vendor Portal", href: "/vendor", colour: "#6A2DD3", icon: "handshake", status: "live",
+    summary: "Vendors register and subscribe, complete onboarding, quote, accept POs, update production, ship, install, submit QA/QC and upload invoices and control documents.",
+  },
+];
