@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { isDemoMode } from "@/lib/demo/config";
 import { RegisterForm } from "./register-form";
@@ -42,7 +43,7 @@ export default async function VendorRegister({ searchParams }: { searchParams: P
                 ? "If you've already registered, sign in to the vendor portal with your email address."
                 : "Ask your adm Indicia contact to send you a new information request."}
             </p>
-            <a href="/login" className="font-semibold text-accent underline underline-offset-2">Go to sign in</a>
+            <Link href="/login" className="font-semibold text-accent underline underline-offset-2">Go to sign in</Link>
           </div>
         )}
       </div>

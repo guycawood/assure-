@@ -351,3 +351,45 @@ test("anonymous users see nothing", async () => {
     await db.exec("reset role;");
   }
 });
+
+// ---------------------------------------------------------------------------
+// Supplier scorecard methodology (Assure+ Watchtower)
+// ---------------------------------------------------------------------------
+test("scorecard: v1 is active and its weights add up", async () => {
+  const m = await as("plain", "select id, version, status from public.scorecard_methodologies where status = 'active'");
+  assert.equal(m.rows.length, 1);
+  assert.equal(m.rows[0].version, 1);
+  const p = await as("plain", "select sum(weight)::int as s from public.scorecard_pillars where methodology_id = $1", [m.rows[0].id]);
+  assert.equal(p.rows[0].s, 100);
+  const c = await as("plain", "select pillar_key, sum(weight)::int as s from public.scorecard_criteria where methodology_id = $1 group by 1", [m.rows[0].id]);
+  for (const r of c.rows) assert.equal(r.s, 100, r.pillar_key);
+});
+
+test("scorecard: only admins can start a draft, and nobody writes the tables directly", async () => {
+  await rejects(as("lead", "select public.scorecard_create_draft()"), /Only admins/);
+  await rejects(as("admin", "update public.scorecard_criteria set weight = 50"), /permission denied/);
+  const d = await as("admin", "select public.scorecard_create_draft() as id");
+  const again = await as("admin", "select public.scorecard_create_draft() as id");
+  assert.equal(again.rows[0].id, d.rows[0].id, "returns the open draft rather than a second one");
+  const crit = await as("admin", "select count(*)::int as n from public.scorecard_criteria where methodology_id = $1", [d.rows[0].id]);
+  assert.equal(crit.rows[0].n, 16);
+});
+
+test("scorecard: draft edits are audited; activation checks weights and needs a note", async () => {
+  const { rows: [d] } = await as("admin", "select id from public.scorecard_methodologies where status = 'draft'");
+  await as("admin", `select public.scorecard_save_draft($1, '{"preferred_threshold":2.5}', '[{"key":"financial","weight":40},{"key":"compliance","weight":20}]', '[]')`, [d.id]);
+  const audit = await as("admin", "select detail from public.scorecard_audit where methodology_id = $1 and action = 'draft_edited'", [d.id]);
+  assert.equal(audit.rows.length, 1);
+  assert.equal(audit.rows[0].detail.changes.length, 2, "unchanged fields are not audited");
+
+  await rejects(as("admin", "select public.scorecard_activate($1, 'Sustainability up')", [d.id]), /add up to 95/);
+  await as("admin", `select public.scorecard_save_draft($1, '{}', '[{"key":"compliance","weight":25}]', '[{"key":"payment_terms","weight":40},{"key":"nti","weight":50}]')`, [d.id]);
+  await rejects(as("admin", "select public.scorecard_activate($1, ' ')", [d.id]), /Say what changed/);
+  await rejects(as("lead", "select public.scorecard_activate($1, 'x')", [d.id]), /Only admins/);
+  await as("admin", "select public.scorecard_activate($1, 'Sustainability to 25% as agreed')", [d.id]);
+
+  const st = await as("plain", "select version, status, preferred_threshold from public.scorecard_methodologies order by version");
+  assert.deepEqual(st.rows.map((r) => r.status), ["superseded", "active"]);
+  assert.equal(Number(st.rows[1].preferred_threshold), 2.5);
+  await rejects(as("admin", `select public.scorecard_save_draft($1, '{}', '[]', '[]')`, [d.id]), /Only a draft/);
+});

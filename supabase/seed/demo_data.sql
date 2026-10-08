@@ -116,3 +116,34 @@ select t.type, t.title || ': ' || s.name, t.description, s.id, t.gate_key, t.pri
 -- A new-vendor request that isn't a supplier yet.
 insert into public.srt_tickets (type, title, prospect_name, client, market, priority, status, source, source_ref)
 values ('new_onboarding', 'New supplier request: Coastal Foam Inserts', 'Coastal Foam Inserts', 'Unilever', 'Vietnam', 'normal', 'new', 'manual', 'demo');
+
+-- ---------------------------------------------------------------------------
+-- Supplier scorecard inputs (dummy). Deterministic per supplier number so the demo is stable;
+-- some suppliers have gaps on purpose so the missing-data rule shows up.
+-- ---------------------------------------------------------------------------
+insert into public.scorecard_inputs (supplier_id, key, value_num, value_text, source)
+select s.id, x.key, x.num, x.txt, 'demo'
+from public.suppliers s
+cross join lateral (select substring(s.supplier_code from 6)::int as n) k
+cross join lateral (values
+  ('payment_terms'::text, (array[0,30,45,60,60,90,90,120,120,150])[1 + (k.n * 7) % 10]::numeric, null::text),
+  ('nti', (array[0,2,4,5,8,10,12,15])[1 + (k.n * 5) % 8], null),
+  ('credit_check', null, (array['pass','pass','pass','watch','fail'])[1 + (k.n * 3) % 5]),
+  ('coc', null, case when k.n % 9 = 2 then 'no' else 'yes' end),
+  ('eproc', null, case when k.n % 4 = 3 then 'offline' else 'eproc' end),
+  ('csr_audit', null, (array['diamond','green','green','orange','expired','red'])[1 + (k.n * 5) % 6]),
+  ('ems_audit', null, case when k.n % 6 = 5 then null else (array['diamond','certified','green','orange','red'])[1 + (k.n * 3) % 5] end),
+  ('qms_audit', null, (array['certified','green','diamond','orange','certified'])[1 + (k.n * 7) % 5]),
+  ('fsc', null, (array['active','not_applicable','not_applicable','expired','active'])[1 + (k.n * 2) % 5]),
+  ('sedex', null, (array['active','active','expired','none'])[1 + k.n % 4]),
+  ('diverse', null, case when k.n % 7 = 0 then 'yes' else 'no' end),
+  ('renewable', null, (array['none','partial','partial','full'])[1 + (k.n * 3) % 4]),
+  ('otif', (array[99.2, 97.5, 95.4, 92.0, 88.5, 98.6, 96.1])[1 + (k.n * 3) % 7], null),
+  ('nc_spoilage', case when k.n % 5 = 0 then null else (array[0, 0, 1200, 4800, 7600, 12500])[1 + (k.n * 7) % 6] end, null),
+  ('nc_claims', case when k.n % 5 = 0 then null else (array[0, 0, 1, 2, 4, 7])[1 + (k.n * 7) % 6] end, null),
+  ('nc_settled', case when k.n % 5 = 0 then null else (array[100, 100, 98, 95, 92, 85])[1 + (k.n * 7) % 6] end, null),
+  ('nc_resolution_days', case when k.n % 5 = 0 then null else (array[3, 5, 9, 14, 22, 30])[1 + (k.n * 7) % 6] end, null),
+  ('sla_quotes', (array[98, 96, 93, 91, 85])[1 + (k.n * 3) % 5], null),
+  ('competitive_bids', case when k.n % 4 = 0 then null else (array[35, 24, 15, 8, 3, 0])[1 + (k.n * 5) % 6] end, null)
+) x(key, num, txt)
+where s.supplier_code like 'DEMO-%' and (x.num is not null or x.txt is not null);

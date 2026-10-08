@@ -26,6 +26,6 @@ export async function requireInternal(): Promise<Profile> {
 
 export async function requireAdmin(): Promise<Profile> {
   const profile = await requireInternal();
-  if (!profile.is_admin) redirect("/internal/srt");
+  if (!profile.is_admin) redirect("/assure");
   return profile;
 }

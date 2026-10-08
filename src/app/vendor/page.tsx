@@ -1,4 +1,4 @@
-﻿import type { Metadata } from "next";
+import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { getProfile } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
@@ -22,7 +22,7 @@ export const dynamic = "force-dynamic";
 export default async function VendorHome() {
   const profile = await getProfile();
   if (!profile) redirect("/login");
-  if (profile.is_admin || profile.user_type === "internal") redirect("/internal/srt");
+  if (profile.is_admin || profile.user_type === "internal") redirect("/watchtower");
 
   const supabase = await createClient();
   const [{ data: supplier }, { data: rfis }] = await Promise.all([
