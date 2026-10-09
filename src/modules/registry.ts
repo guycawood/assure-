@@ -75,8 +75,8 @@ export const MODULES: ModuleDef[] = [
     icon: "account_balance",
     colour: "#97DBD9",
     basePath: "/finance",
-    status: "planned",
-    phase: "Phase 2",
+    status: "live",
+    phase: "Live",
     scope: [
       "Finance approval of quotes and estimates before award",
       "Supplier invoices matched to POs and deliveries; client billing",

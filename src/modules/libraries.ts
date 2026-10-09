@@ -165,6 +165,14 @@ export const LIBRARY_SCHEMAS: Record<string, LibrarySchema> = {
       { key: "guidance", label: "Scoring guidance", type: "textarea", column: true },
     ],
   },
+  finance_rules: {
+    codeLabel: "Rule code", nameLabel: "Rule",
+    fields: [
+      { key: "value", label: "Value", type: "number", required: true, column: true },
+      { key: "unit", label: "Unit", type: "text", column: true },
+      { key: "note", label: "What it controls", type: "textarea", column: true },
+    ],
+  },
   execution_rules: {
     codeLabel: "Rule code", nameLabel: "Rule",
     fields: [

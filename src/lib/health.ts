@@ -14,6 +14,7 @@ const SOURCES: Partial<Record<ModuleKey, { view: string; metrics?: string[] }>> 
   orders: { view: "watchtower_health_sourcing", metrics: ["pos_awaiting_doa"] },
   logistics: { view: "watchtower_health_logistics" },
   execution: { view: "watchtower_health_execution" },
+  finance: { view: "watchtower_health_finance" },
 };
 
 export async function getHealth(supabase: Client, module: ModuleKey): Promise<HealthRow[]> {

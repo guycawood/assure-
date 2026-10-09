@@ -151,7 +151,21 @@ export const NAV: Record<ModuleKey, { portal: string; groups: NavGroup[] }> = {
       watchtower("execution"),
     ],
   },
-  finance: { portal: "Billing & payments", groups: [about("finance", "Finance+"), overview("finance"), watchtower("finance")] },
+  finance: {
+    portal: "Billing & payments",
+    groups: [
+      about("finance", "Finance+"),
+      { label: "Overview", items: [{ label: "Dashboard", href: "/finance", icon: "space_dashboard", exact: true }] },
+      { label: "Work", items: [
+        { label: "Approvals", href: "/finance/approvals", icon: "approval" },
+        { label: "Supplier invoices", href: "/finance/invoices", icon: "receipt_long" },
+        { label: "Payments", href: "/finance/payments", icon: "payments" },
+        { label: "Client billing", href: "/finance/billing", icon: "request_quote" },
+      ] },
+      { label: "Insight", items: [{ label: "Spend & savings", href: "/finance/reports", icon: "monitoring" }] },
+      watchtower("finance"),
+    ],
+  },
   assure: {
     portal: "SRM portal",
     groups: [
