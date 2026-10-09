@@ -318,3 +318,90 @@ export async function requestPlan(_: ActionResult, fd: FormData): Promise<Action
   return rpc("admin", "vendor_request_subscription", { p_tier: s(fd, "tier", 20), p_note: s(fd, "note", 1000) },
     "Request sent. adm Indicia's account team will contact you to confirm.");
 }
+
+// ---------------------------------------------------------------------------
+// Shipping & POD (Logistics+ vendor functions)
+// ---------------------------------------------------------------------------
+const int = (fd: FormData, k: string) => {
+  const v = s(fd, k, 12);
+  return v && /^\d+$/.test(v) ? Number(v) : null;
+};
+const dec = (fd: FormData, k: string) => {
+  const v = s(fd, k, 20);
+  if (v === null) return null;
+  const n = Number(v.replace(",", "."));
+  return Number.isFinite(n) ? n : NaN;
+};
+
+export async function recordShipment(_: ActionResult, fd: FormData): Promise<ActionResult> {
+  const qty = int(fd, "quantity"), weight = dec(fd, "gross_weight_kg");
+  if (!qty) return fail("Enter the quantity shipped as a whole number.");
+  if (Number.isNaN(weight) || (weight !== null && weight < 0)) return fail("Gross weight is a number of kilograms.");
+  if (!date(fd, "dispatch_date")) return fail("Enter the dispatch date.");
+  return rpc("standard", "logistics_vendor_record_shipment", {
+    p_delivery: uuid(fd, "delivery"), p_carrier_code: s(fd, "carrier_code", 40), p_service_level: s(fd, "service_level", 60),
+    p_tracking: s(fd, "tracking", 100), p_dispatch_date: date(fd, "dispatch_date"), p_quantity: qty, p_gross_weight_kg: weight, p_notes: s(fd, "notes", 1000),
+  }, "Shipment recorded. Upload the POD once it's delivered.");
+}
+
+export async function attachPod(_: ActionResult, fd: FormData): Promise<ActionResult> {
+  const v = await vendor("standard");
+  if ("error" in v) return fail(v.error);
+  const shipment = uuid(fd, "shipment");
+  if (!shipment) return fail("Shipment not found.");
+  const f = await storeFile(fd, "file", "logistics", "shipment", shipment, "POD");
+  if ("error" in f) return fail(f.error);
+  const { error } = await v.supabase.rpc("logistics_vendor_attach_pod", { p_shipment: shipment, p_file_id: f.id, p_delivered_on: date(fd, "delivered_on") });
+  if (error) return fail(error.message);
+  return done("POD uploaded. adm Indicia will check it against the checklist.");
+}
+
+// ---------------------------------------------------------------------------
+// Installations and recces (Execution+ vendor functions)
+// ---------------------------------------------------------------------------
+export async function recordInstall(_: ActionResult, fd: FormData): Promise<ActionResult> {
+  const v = await vendor("standard");
+  if ("error" in v) return fail(v.error);
+  const dep = uuid(fd, "deployment");
+  if (!dep) return fail("Deployment not found.");
+  const lat = dec(fd, "lat"), lon = dec(fd, "lon");
+  if (Number.isNaN(lat) || Number.isNaN(lon) || (lat !== null && Math.abs(lat) > 90) || (lon !== null && Math.abs(lon) > 180)) return fail("Check the GPS position: latitude and longitude are decimal degrees.");
+  const qty = int(fd, "quantity");
+  if (qty === null) return fail("Enter the installed quantity.");
+  // Photos first (only if chosen now; earlier uploads count too).
+  for (const [field, label] of [["before", "Before"], ["after", "After"]] as const) {
+    const file = fd.get(field);
+    if (file instanceof File && file.size > 0) {
+      const r = await storeFile(fd, field, "execution", "deployment", dep, label);
+      if ("error" in r) return fail(r.error);
+    }
+  }
+  const { error } = await v.supabase.rpc("execution_vendor_record_install", {
+    p_deployment: dep, p_installation_date: date(fd, "installation_date"), p_installer_name: s(fd, "installer", 200), p_quantity: qty,
+    p_lat: lat, p_lon: lon, p_notes: s(fd, "notes", 2000),
+  });
+  if (error) return fail(error.message);
+  return done("Install recorded. adm Indicia will audit it.");
+}
+
+export async function saveRecce(_: ActionResult, fd: FormData): Promise<ActionResult> {
+  const confirm = fd.get("intent") === "confirm";
+  const nums = ["available_width_cm", "available_height_cm", "available_depth_cm", "unit_width_cm", "unit_height_cm", "unit_depth_cm"];
+  const data: Record<string, string> = {};
+  for (const k of nums) {
+    const n = dec(fd, k);
+    if (Number.isNaN(n) || (n !== null && (n < 0 || n > 100000))) return fail("Measurements are numbers in centimetres.");
+    data[k] = n === null ? "" : String(n);
+  }
+  const yn = (k: string) => (["true", "false"].includes(String(fd.get(k))) ? String(fd.get(k)) : "");
+  const surface = s(fd, "surface_type", 20) ?? "";
+  if (surface && !["glass", "wall", "shelf", "floor", "ceiling", "counter", "gondola_end", "other"].includes(surface)) return fail("Choose a surface type.");
+  Object.assign(data, {
+    product_name: s(fd, "product_name", 200) ?? "", location_in_store: s(fd, "location_in_store", 200) ?? "", surface_type: surface,
+    wall_space_available: yn("wall_space_available"), power_outlet_nearby: yn("power_outlet_nearby"), survey_date: date(fd, "survey_date") ?? "", notes: s(fd, "notes", 2000) ?? "",
+  });
+  const recce = uuid(fd, "recce"), outlet = uuid(fd, "outlet");
+  if (!recce && !outlet) return fail("Choose the outlet.");
+  return rpc("standard", "execution_vendor_recce_save", { p_recce: recce, p_outlet: recce ? null : outlet, p_data: data, p_confirm: confirm },
+    confirm ? "Recce confirmed and sent to adm Indicia." : "Recce saved as a draft.");
+}

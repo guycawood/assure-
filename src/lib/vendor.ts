@@ -11,6 +11,9 @@ export const VENDOR_NAV: { label: string; items: NavLink[] }[] = [
     { label: "Quote requests", href: "/vendor/quotes", icon: "request_quote" },
     { label: "Pushed prices", href: "/vendor/pushed-prices", icon: "price_check" },
     { label: "Orders", href: "/vendor/orders", icon: "inventory_2" },
+    { label: "Shipping & POD", href: "/vendor/shipping", icon: "local_shipping" },
+    { label: "Installations", href: "/vendor/installations", icon: "construction" },
+    { label: "Recces", href: "/vendor/recces", icon: "straighten" },
   ] },
   { label: "Quality & compliance", items: [
     { label: "Certificates & documents", href: "/vendor/compliance", icon: "verified" },
@@ -78,6 +81,8 @@ const TONES: Record<string, Tone> = {
   resolved: "ok", closed: "neutral", declined: "bad", rejected: "bad", cancelled: "neutral", expired: "bad", disputed: "bad",
   in_progress: "info", acknowledged: "info", responded: "accent", in_review: "info", under_review: "info", active: "ok", removed: "neutral",
   pass: "ok", conditional_pass: "warn", fail: "bad", critical: "bad", high: "warn", major: "warn", medium: "info", minor: "neutral", low: "neutral",
+  planned: "neutral", booked: "info", dispatched: "info", in_transit: "info", delivered: "ok", received: "accent", installed: "accent",
+  audited: "ok", needs_review: "warn", passed: "ok", failed: "bad", confirmed: "ok", missing: "warn", not_received: "warn",
   done: "accent", scheduled: "info", assigned: "info", waived: "neutral", none: "neutral",
 };
 export const statusTone = (s: string | null | undefined): Tone => (s ? TONES[s] ?? "neutral" : "neutral");

@@ -205,3 +205,52 @@ test("public application: anonymous, validated, honeypot, duplicates and notific
   await rejects(as("proc", "select public.vendor_application_decide($1,'rejected','')", [id]), /reason/);
   await as("proc", "select public.vendor_application_decide($1,'reviewing',null)", [id]);
 });
+
+test("view-only vendors are blocked in every older vendor function; standard users and staff still work", async () => {
+  const VIEW = /view-only/;
+  const rnd = "00000000-0000-4000-8000-00000000dead";
+  // Gate runs before anything else, whatever the record.
+  const calls = [
+    ["select public.rfq_submit_quote($1, '[]'::jsonb, 1, null, false)", [rnd]],
+    ["select public.rfq_decline($1, 'busy')", [rnd]],
+    ["select public.triage_push_respond($1, true)", [rnd]],
+    ["select public.po_vendor_respond($1, true)", [rnd]],
+    ["select public.assure_vendor_add_certificate($1, null, null, null, null, 'files/x')", [rnd]],
+    ["select public.assure_ncr_vendor_respond($1, 'acknowledge', null, null)", [rnd]],
+    ["select public.assure_ca_set_status($1, 'done', null)", [rnd]],
+    ["select public.assure_issue_vendor_respond($1, 'acknowledge', null, null, null)", [rnd]],
+    ["select public.assure_task_set_status($1, 'completed', null)", [rnd]],
+    ["select public.assure_survey_submit($1, '{}'::jsonb, false)", [rnd]],
+    ["select public.assure_review_vendor_respond($1, 'accepted', null, null)", [rnd]],
+    ["select public.assure_pa_save(null, 'Alpha', 'A', 'a@alpha.example', null, null, '{}'::jsonb)", []],
+    ["select public.assure_pa_submit($1)", [rnd]],
+    ["select public.submit_vendor_rfi($1, '{}'::jsonb, '{}'::jsonb)", [rnd]],
+    ["select public.file_register('assure','x','1',null,'a.pdf','application/pdf',3,'YWJj',null,null)", []],
+    ["select public.logistics_vendor_record_shipment($1, null, null, null, current_date, 1)", [rnd]],
+    ["select public.logistics_vendor_attach_pod($1, $1)", [rnd]],
+    ["select public.execution_vendor_record_install($1, current_date, 'Me', 1, null, null)", [rnd]],
+    ["select public.execution_vendor_recce_save(null, $1, '{}'::jsonb)", [rnd]],
+  ];
+  for (const [sql, p] of calls) await rejects(as("vaview", sql, p), VIEW);
+  // Standard users get past the gate (and hit the function's own checks).
+  for (const [sql, p] of calls.filter(([s]) => !/assure_pa_save|file_register/.test(s))) {
+    await assert.rejects(as("vastd", sql, p), (e) => !VIEW.test(e.message), sql);
+  }
+  assert.ok((await one("vastd", "select public.file_register('assure','x','1',null,'a.pdf','application/pdf',3,'YWJj',null,null) id")).id);
+  assert.ok((await one("vastd", "select public.assure_pa_save(null, 'Alpha', 'A', 'a@alpha.example', null, null, '{}'::jsonb) id")).id);
+  // A real round trip: the standard user completes a task, the viewer can't, staff verify.
+  const task = (await one("vastd", "select public.vendor_task_add('Label check', null, 'quality', 'low', null) id")).id;
+  await rejects(as("vaview", "select public.assure_task_set_status($1,'completed',null)", [task]), VIEW);
+  await as("vastd", "select public.assure_task_set_status($1,'completed','Done')", [task]);
+  await as("agent", "select public.assure_task_set_status($1,'verified',null)", [task]);
+  assert.equal((await one("va", "select status from public.action_plan_tasks where id = $1", [task])).status, "verified");
+  // The core functions can't be called directly.
+  await rejects(as("vaview", "select public._core_assure_task_set_status($1,'completed',null)", [task]), /permission denied/);
+});
+
+test("vendor library views: POD checklist and carriers for vendors only", async () => {
+  await asSuper("insert into public.library_records (library_key, code, name, data, status) values ('pod_checklist','T-POD-1','Signature','{\"mandatory\":true}','active')");
+  assert.ok((await as("va", "select * from public.vendor_pod_checklist")).rows.some((r) => r.code === "T-POD-1" && r.mandatory === true));
+  assert.equal((await as("agent", "select * from public.vendor_pod_checklist")).rows.length, 0);
+  await rejects(asAnon("select * from public.vendor_carriers"), /permission denied/);
+});

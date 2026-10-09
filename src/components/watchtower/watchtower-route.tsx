@@ -9,6 +9,7 @@ import { LibraryView, type LibrarySearch } from "./library-view";
 import { RecordHistory } from "./record-history";
 import { ChangeRequests } from "./change-requests";
 import { AuditTrail } from "./audit-trail";
+import { getHealth } from "@/lib/health";
 
 /**
  * Serves a Watchtower under `base`:
@@ -46,10 +47,11 @@ export async function WatchtowerRoute({ module, base, slug, sp }: { module?: Mod
 async function ModuleWatchtower({ module, base }: { module: ModuleKey; base: string }) {
   const m = moduleByKey(module)!;
   const supabase = await createClient();
-  const [{ data: defs }, { data: crs }, { data: audit }] = await Promise.all([
+  const [{ data: defs }, { data: crs }, { data: audit }, health] = await Promise.all([
     supabase.from("library_definitions").select("key").eq("module", module),
     supabase.from("change_requests").select("status").eq("module", module),
     supabase.from("library_audit").select("id").eq("module", module).limit(1000),
+    getHealth(supabase, module),
   ]);
   const openCr = ((crs ?? []) as { status: string }[]).filter((c) => !["verified_complete", "rejected"].includes(c.status)).length;
   return (
@@ -63,6 +65,16 @@ async function ModuleWatchtower({ module, base }: { module: ModuleKey; base: str
         <Stat label="Open change requests" value={openCr} tone={openCr ? "warn" : undefined} hint="Awaiting review or verification" icon={<MSymbol name="rule" size={20} />} />
         <Stat label="Recorded changes" value={(audit ?? []).length} hint="In the audit trail" icon={<MSymbol name="manage_history" size={20} />} />
       </section>
+      {health.length > 0 && (
+        <section>
+          <h2 className="mb-2 font-bold">Module health</h2>
+          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+            {health.map((h) => (
+              <Stat key={h.metric} label={h.label} value={h.value} tone={h.status} hint={`Target ${h.target}`} />
+            ))}
+          </div>
+        </section>
+      )}
       {m.status === "planned" && (
         <Card className="px-5 py-3.5 text-sm text-muted">{m.name} is {m.phase.toLowerCase()} work. Its libraries can be set up now so the module starts from governed data. Health metrics appear here once it&apos;s live.</Card>
       )}

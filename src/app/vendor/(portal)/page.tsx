@@ -32,7 +32,7 @@ export default async function VendorDashboard() {
   }
   const c = ctx.company;
   const supabase = await createClient();
-  const [rfqs, pushes, pos, certs, tasks, ncrs, issues, surveys, contracts, rfis] = await Promise.all([
+  const [rfqs, pushes, pos, certs, tasks, ncrs, issues, surveys, contracts, rfis, deliveries, deployments] = await Promise.all([
     rpcList<VendorRfqRow>("rfq_vendor_list"),
     rpcList<PushRow>("triage_push_list"),
     rpcList<VendorPoRow>("po_vendor_list"),
@@ -43,6 +43,8 @@ export default async function VendorDashboard() {
     rows<{ id: string; template_name: string; due_date: string | null }>(supabase.from("vendor_survey_responses").select("id, template_name, status, due_date").in("status", ["draft", "rejected"])),
     rows<{ id: string; title: string; due_date: string | null }>(supabase.from("vendor_contracts").select("id, title, status, due_date").in("status", ["sent", "viewed", "in_review"])),
     rows<VendorRfi>(supabase.from("vendor_rfis").select(RFI_COLUMNS).order("sent_at", { ascending: false }).limit(1)),
+    rpcList<{ delivery_number: string; planned_delivery_date: string | null; remaining: number; status: string; shipments: { shipment_number: string; pod_status: string }[] }>("logistics_vendor_deliveries"),
+    rpcList<{ id: string; deployment_code: string; outlet_name: string; planned_date: string | null; stage: string }>("execution_vendor_deployments"),
   ]);
 
   const openRfqs = rfqs.filter((r) => r.open && r.invitation_status !== "declined" && r.quote_status !== "submitted");
@@ -63,6 +65,9 @@ export default async function VendorDashboard() {
     surveys.map((v) => ({ icon: "quiz", title: `Survey: ${v.template_name}`, detail: "Waiting for your answers", href: `/vendor/surveys/${v.id}`, due: v.due_date, tone: "info" as const })),
     tasks.map((k) => ({ icon: "checklist", title: k.title, detail: `Action plan · ${human(k.status)} · ${human(k.priority)} priority`, href: "/vendor/action-plans", due: k.due_date })),
     rejected.map((x) => ({ icon: "verified", title: `Re-upload ${x.cert_type_name}`, detail: "adm Indicia couldn't accept this certificate", href: "/vendor/compliance", tone: "bad" as const })),
+    deliveries.filter((d) => d.remaining > 0 && ["planned", "booked", "dispatched", "in_transit"].includes(d.status)).map((d) => ({ icon: "local_shipping", title: `Ship ${d.delivery_number}`, detail: `${d.remaining} still to ship`, href: "/vendor/shipping", due: d.planned_delivery_date, tone: "info" as const })),
+    deliveries.flatMap((d) => d.shipments.filter((s) => s.pod_status === "not_received" || s.pod_status === "rejected").map((s) => ({ icon: "receipt_long", title: `Upload POD for ${s.shipment_number}`, detail: s.pod_status === "rejected" ? "adm Indicia rejected the POD" : d.delivery_number, href: "/vendor/shipping", tone: s.pod_status === "rejected" ? "bad" as const : "warn" as const }))),
+    deployments.filter((d) => d.stage === "delivered").map((d) => ({ icon: "construction", title: `Install at ${d.outlet_name}`, detail: d.deployment_code, href: "/vendor/installations", due: d.planned_date, tone: "info" as const })),
   ).sort((a, b) => (a.due ?? "9999").localeCompare(b.due ?? "9999"));
   const openTasks = tasks.length + ncrs.filter((n) => n.acknowledgement_status === "pending").length + issues.length + surveys.length + contracts.length;
 

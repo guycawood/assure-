@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { clsx } from "clsx";
-import { requireVendorCompany, canAct } from "@/lib/vendor-data";
+import Link from "next/link";
+import { requireVendorCompany, canAct, rpcList } from "@/lib/vendor-data";
 import { createClient } from "@/lib/supabase/server";
 import { formatDate } from "@/lib/srt";
 import { human, money, orderChecklist, statusTone, type OrderDocType } from "@/lib/vendor";
@@ -28,11 +29,19 @@ export default async function OrderDetail({ params }: { params: Promise<{ id: st
   const { data, error } = await supabase.rpc("vendor_po_detail", { p_po: id });
   if (error || !data) notFound();
   const po = data as Po;
-  const [{ data: types }, files] = await Promise.all([
+  const [{ data: types }, files, deliveries] = await Promise.all([
     supabase.from("vendor_order_document_types").select("id, code, name, required_for_categories, uploaded_by").order("name"),
     getFiles("purchase_order", po.id),
+    rpcList<{ id: string; po_id: string; delivery_number: string; status: string; quantity: number; shipped: number }>("logistics_vendor_deliveries"),
   ]);
-  const checklist = orderChecklist(po.category, (types ?? []) as OrderDocType[], files.map((f) => f.label ?? ""));
+  const allTypes = (types ?? []) as OrderDocType[];
+  // The invoice is its own step; the rest are control documents.
+  const invoiceType = allTypes.find((t) => t.code === "INVOICE") ?? allTypes.find((t) => /invoice/i.test(t.name));
+  const invoiceLabel = invoiceType?.name ?? "Supplier invoice";
+  const invoices = files.filter((f) => (f.label ?? "").toLowerCase() === invoiceLabel.toLowerCase());
+  const checklist = orderChecklist(po.category, allTypes.filter((t) => t !== invoiceType), files.map((f) => f.label ?? ""));
+  const poDeliveries = deliveries.filter((d) => d.po_id === po.id);
+  const allDelivered = poDeliveries.length > 0 && poDeliveries.every((d) => d.status === "delivered");
   const act = canAct(ctx.permission);
   const accepted = po.status === "accepted";
 
@@ -43,7 +52,8 @@ export default async function OrderDetail({ params }: { params: Promise<{ id: st
         { label: "Issued", at: po.issued_at ?? po.po_date, done: true },
         { label: "Accepted", at: po.responded_at, done: accepted },
         { label: "In production", at: null, done: accepted && ["in_production", "delivered", "closed"].includes(po.job_status) },
-        { label: "Delivered", at: po.delivery_date, done: ["delivered", "closed"].includes(po.job_status), planned: true },
+        { label: "Delivered", at: po.delivery_date, done: allDelivered || ["delivered", "closed"].includes(po.job_status), planned: true },
+        { label: "Invoiced", at: invoices[0]?.created_at ?? null, done: invoices.length > 0 },
       ];
 
   return (
@@ -79,6 +89,33 @@ export default async function OrderDetail({ params }: { params: Promise<{ id: st
         {po.status === "declined" && po.decline_reason && <p className="mt-3 text-sm text-muted">You declined: {po.decline_reason}</p>}
       </Card>
 
+      {po.status !== "declined" && (
+        <Panel title="Invoice" sub="Send your invoice against this purchase order here, so it's matched to the order automatically">
+          <div className="grid gap-5 p-5 md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
+            <ol className="space-y-3 text-sm">
+              <li className="flex gap-2.5"><MSymbol name={accepted ? "check_circle" : "radio_button_unchecked"} size={20} fill={accepted} className={accepted ? "text-ok" : "text-muted"} />
+                <span><b>Accept the purchase order</b>{!accepted && <span className="block text-xs text-muted">Invoices can only be sent against an accepted order.</span>}</span></li>
+              <li className="flex gap-2.5"><MSymbol name={allDelivered ? "check_circle" : "radio_button_unchecked"} size={20} fill={allDelivered} className={allDelivered ? "text-ok" : "text-muted"} />
+                <span><b>Deliver and upload the POD</b><span className="block text-xs text-muted">{poDeliveries.length === 0 ? "No deliveries planned on this order yet." : `${poDeliveries.filter((d) => d.status === "delivered").length} of ${poDeliveries.length} deliveries complete. `}
+                  {poDeliveries.length > 0 && <Link href="/vendor/shipping" className="font-semibold text-accent hover:underline">Shipping & POD</Link>}</span></span></li>
+              <li className="flex gap-2.5"><MSymbol name={invoices.length ? "check_circle" : "radio_button_unchecked"} size={20} fill={invoices.length > 0} className={invoices.length ? "text-ok" : "text-muted"} />
+                <span><b>Upload your invoice</b><span className="block text-xs text-muted">{invoices.length ? `Uploaded ${formatDate(invoices[0].created_at)}${invoices.length > 1 ? ` (${invoices.length} files)` : ""}.` : `Quote ${po.po_number} on the invoice. Total ${money(po.total_value, po.currency)}.`}</span></span></li>
+              <li className="flex gap-2.5"><MSymbol name="radio_button_unchecked" size={20} className="text-muted" />
+                <span><b>adm Indicia checks and pays it</b><span className="block text-xs text-muted">Payment status will show here once adm Indicia&apos;s finance system is connected to the portal.</span></span></li>
+            </ol>
+            <div>
+              {accepted && act ? <FileUpload module="orders" entityType="purchase_order" entityId={po.id} supplierId={ctx.company.id} label={invoiceLabel} accept=".pdf,image/*" />
+                : <p className="rounded-lg bg-surface-2 p-3 text-sm text-muted">{!accepted ? "Accept the purchase order first." : "Your account is view-only."}</p>}
+              {invoices.length > 0 && (
+                <ul className="mt-3 space-y-1 text-sm">
+                  {invoices.map((f) => <li key={f.id}><a href={`/api/files/${f.id}`} target="_blank" rel="noreferrer" className="font-semibold text-accent hover:underline">{f.file_name}</a> <span className="text-xs text-muted">· {formatDate(f.created_at)}</span></li>)}
+                </ul>
+              )}
+            </div>
+          </div>
+        </Panel>
+      )}
+
       <div className="grid gap-6 xl:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
         <Panel title="Order lines" sub={`Total ${money(po.total_value, po.currency)} · PO date ${formatDate(po.po_date)} · delivery ${formatDate(po.delivery_date) || "to be confirmed"}`}
           actions={<Pill tone={statusTone(po.status)}>{po.status === "issued" ? "Waiting for you" : human(po.status)}</Pill>}>
@@ -96,7 +133,7 @@ export default async function OrderDetail({ params }: { params: Promise<{ id: st
           </div>
         </Panel>
 
-        <Panel title="Control documents & invoice" sub={po.category ? `Checklist for ${po.category} jobs, from adm Indicia's document library` : "From adm Indicia's document library"}>
+        <Panel title="Control documents" sub={po.category ? `Checklist for ${po.category} jobs, from adm Indicia's document library` : "From adm Indicia's document library"}>
           <ul className="divide-y divide-line">
             {checklist.map((c) => (
               <li key={c.code} className="px-5 py-3">
