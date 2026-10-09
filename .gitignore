@@ -40,3 +40,6 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# demo data store (persistent demo database + CSV mirror)
+/.demo-data/

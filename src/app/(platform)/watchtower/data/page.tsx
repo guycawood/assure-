@@ -5,6 +5,9 @@ import { createClient } from "@/lib/supabase/server";
 import { getSuppliers } from "@/lib/data";
 import { Card, PageHead, Panel, Pill, Stat } from "@/components/ui";
 import { MSymbol } from "@/components/symbol";
+import { isDemoMode } from "@/lib/demo/config";
+import { csvDir, dataDir, demoDb, lastCsvSnapshot, listTables } from "@/lib/demo/db";
+import { DemoStoreControls } from "./demo-store";
 
 export const metadata: Metadata = { title: "Data management" };
 
@@ -12,7 +15,7 @@ type Market = { code: string; name: string; region_code: string; currency: strin
 
 // Data Management layer: master data every module references, and data-quality checks that run across modules.
 export default async function DataManagement() {
-  await requireInternal();
+  const me = await requireInternal();
   const supabase = await createClient();
   const [{ data: regions }, { data: markets }, suppliers] = await Promise.all([
     supabase.from("regions").select("code, name, sort").order("sort"),
@@ -29,6 +32,8 @@ export default async function DataManagement() {
   const noMarket = suppliers.filter((s) => !s.market);
   const unknownMarket = suppliers.filter((s) => s.market && !resolve(s.market));
   const mismatch = suppliers.filter((s) => { const m = resolve(s.market); return m && s.region && m.region_code !== s.region; });
+  const demo = isDemoMode();
+  const tables = demo && me.is_admin ? await listTables(await demoDb()) : [];
   const issues = noRegion.length + noMarket.length + unknownMarket.length + mismatch.length;
   const score = suppliers.length ? Math.round(((suppliers.length * 4 - issues) / (suppliers.length * 4)) * 100) : 100;
 
@@ -49,6 +54,17 @@ export default async function DataManagement() {
         <Stat label="Regions" value={(regions ?? []).length} icon={<MSymbol name="public" size={20} />} />
         <Stat label="Markets" value={mk.length} icon={<MSymbol name="flag" size={20} />} />
       </section>
+
+      {demo && (
+        <Panel title="Demo data store" sub="Everything recorded is kept in a database on this computer and mirrored to one CSV file per table, a few seconds after each change.">
+          <div className="grid gap-2 px-5 pt-4 text-sm sm:grid-cols-3">
+            <p><span className="block text-xs font-semibold text-muted">Database</span><code className="break-all text-xs">{dataDir()}\pg</code></p>
+            <p><span className="block text-xs font-semibold text-muted">CSV files</span><code className="break-all text-xs">{csvDir()}</code></p>
+            <p><span className="block text-xs font-semibold text-muted">Last written</span>{lastCsvSnapshot() ? new Date(lastCsvSnapshot()!).toLocaleString("en-GB") : "Not yet"}</p>
+          </div>
+          {me.is_admin ? <DemoStoreControls tables={tables} /> : <p className="px-5 py-4 text-sm text-muted">Admins can write, load and reset the demo data here.</p>}
+        </Panel>
+      )}
 
       <Panel title="Data-quality checks" sub="Run live against current records. Fix issues at the source record; checks re-run on every visit.">
         <ul className="divide-y divide-line">

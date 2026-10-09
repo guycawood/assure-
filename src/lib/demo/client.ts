@@ -1,6 +1,6 @@
 import "server-only";
 import type { PGlite, Transaction } from "@electric-sql/pglite";
-import { demoDb } from "./db";
+import { demoDb, scheduleCsvSnapshot } from "./db";
 import { DEMO_USERS } from "./config";
 
 // A small stand-in for the subset of supabase-js this app uses. Every query runs
@@ -142,6 +142,7 @@ class Query<T = unknown> implements PromiseLike<Result<T>> {
     try {
       const { sql, params } = this.build();
       const res = await asUser(this.userId, (tx) => tx.query<Record<string, unknown>>(sql, params, { parsers: PARSERS }));
+      if (this.mode !== "select") scheduleCsvSnapshot();
       if (this.countMode && this.head) return { data: null, error: null, count: (res.rows[0]?.n as number) ?? 0 };
       if (this.singleMode) {
         if (res.rows.length === 0) {
@@ -199,6 +200,7 @@ export function createDemoClient(cookieUserId: string | null) {
         const named = keys.map((k, i) => `${ident(k)} => $${i + 1}`).join(", ");
         // Like PostgREST: scalar functions return a value, set-returning functions return rows.
         const res = await asUser(userId, (tx) => tx.query<Record<string, unknown>>(`select * from public.${ident(fn)}(${named})`, params, { parsers: PARSERS }));
+        scheduleCsvSnapshot();
         const cols = res.fields.map((f) => f.name);
         if (cols.length === 1 && cols[0] === fn) return { data: res.rows[0]?.[fn] ?? null, error: null };
         return { data: res.rows, error: null };
