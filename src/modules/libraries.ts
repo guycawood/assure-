@@ -191,6 +191,37 @@ export const LIBRARY_SCHEMAS: Record<string, LibrarySchema> = {
       { key: "help", label: "Help text", type: "textarea" },
     ],
   },
+  branding_methods: {
+    codeLabel: "Method code", nameLabel: "Branding method",
+    fields: [
+      { key: "process", label: "Process", type: "enum", options: opts("print", "transfer", "forming", "engraving", "stitching"), required: true, column: true, filter: true },
+      { key: "max_colours", label: "Max colours", type: "number", column: true, help: "Blank for full colour; 0 for blind (no ink)" },
+      { key: "min_qty", label: "Typical minimum quantity", type: "number", column: true },
+      { key: "typical_substrates", label: "Typical substrates", type: "list", column: true, help: "One per line, e.g. textile, paper, plastic" },
+    ],
+  },
+  aql_levels: {
+    codeLabel: "AQL code", nameLabel: "AQL level",
+    note: "Acceptance quality limits (ISO 2859-1) used to sample goods at inspection.",
+    fields: [
+      { key: "inspection_level", label: "Inspection level", type: "enum", options: opts("I", "II", "III", "S-1", "S-2", "S-3", "S-4"), required: true, column: true, filter: true },
+      { key: "critical", label: "Critical defects AQL", type: "number", column: true },
+      { key: "major", label: "Major defects AQL", type: "number", required: true, column: true },
+      { key: "minor", label: "Minor defects AQL", type: "number", column: true },
+    ],
+  },
+  incoterms: {
+    codeLabel: "Incoterm", nameLabel: "Name",
+    note: "DDP is the default for RFQs; other terms are allowed and need a named place.",
+    fields: [
+      { key: "risk_transfers", label: "Where risk passes to us", type: "textarea", column: true },
+      { key: "seller_pays_freight", label: "Supplier pays main freight", type: "boolean", column: true, filter: true },
+      { key: "seller_pays_duty", label: "Supplier pays import duty", type: "boolean", column: true },
+      { key: "needs_named_place", label: "Needs a named place", type: "boolean" },
+      { key: "sea_only", label: "Sea freight only", type: "boolean" },
+      { key: "default", label: "Default for new RFQs", type: "boolean" },
+    ],
+  },
 };
 
 export const schemaFor = (key: string): LibrarySchema => LIBRARY_SCHEMAS[key] ?? { fields: [] };

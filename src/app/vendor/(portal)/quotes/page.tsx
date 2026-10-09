@@ -11,6 +11,7 @@ function stateOf(r: VendorRfqRow): { label: string; tone: ReturnType<typeof stat
   if (r.rfq_status === "awarded") return r.quote_status === "awarded" ? { label: "Awarded to you", tone: "ok" } : { label: "Closed", tone: "neutral" };
   if (r.rfq_status === "cancelled") return { label: "Cancelled", tone: "neutral" };
   if (!r.open) return { label: r.quote_status === "submitted" ? "Closed · quote in" : "Closed", tone: "neutral" };
+  if ((r as VendorRfqRow & { requote_needed?: boolean }).requote_needed) return { label: "Spec changed: re-quote", tone: "warn" };
   if (r.quote_status === "submitted") return { label: "Quote submitted", tone: "accent" };
   if (r.quote_status === "draft") return { label: "Draft saved", tone: "warn" };
   return { label: "To quote", tone: "info" };

@@ -11,6 +11,7 @@ export const VENDOR_NAV: { label: string; items: NavLink[] }[] = [
     { label: "Quote requests", href: "/vendor/quotes", icon: "request_quote" },
     { label: "Pushed prices", href: "/vendor/pushed-prices", icon: "price_check" },
     { label: "Orders", href: "/vendor/orders", icon: "inventory_2" },
+    { label: "Invoices & payments", href: "/vendor/invoices", icon: "receipt_long" },
     { label: "Shipping & POD", href: "/vendor/shipping", icon: "local_shipping" },
     { label: "Installations", href: "/vendor/installations", icon: "construction" },
     { label: "Recces", href: "/vendor/recces", icon: "straighten" },

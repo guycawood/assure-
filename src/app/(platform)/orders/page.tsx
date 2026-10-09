@@ -5,7 +5,8 @@ import { createClient } from "@/lib/supabase/server";
 import { rows } from "@/lib/sourcing-data";
 import { money } from "@/lib/sourcing";
 import { ESTIMATE_STATUS, PO_STATUS, type Estimate, type PurchaseOrder } from "@/lib/orders";
-import { ButtonLink, PageHead, Panel, Stat } from "@/components/ui";
+import { handoffStats, ORDER_FLAG, type HandoffRow, type OrderFlag } from "@/lib/sourcing-hub";
+import { ButtonLink, PageHead, Panel, Pill, Stat } from "@/components/ui";
 import { MSymbol } from "@/components/symbol";
 import { StatusPill, Td, Th, fmtDate } from "@/components/sourcing/bits";
 
@@ -14,12 +15,15 @@ export const metadata: Metadata = { title: "Order Management+" };
 export default async function OrdersDashboard() {
   await requireInternal();
   const supabase = await createClient();
-  const [ests, pos, outbox, psa] = await Promise.all([
-    rows<Estimate>(supabase, "v_estimates", { order: [["created_at", false]], limit: 2000 }),
+  const [ests, pos, outbox, psa, handoffRows] = await Promise.all([
+    rows<Estimate & { order_flag: OrderFlag | null }>(supabase, "v_estimates", { order: [["created_at", false]], limit: 2000 }),
     rows<PurchaseOrder>(supabase, "v_purchase_orders", { order: [["created_at", false]], limit: 2000 }),
     rows<{ id: string; status: string }>(supabase, "integration_outbox", { eq: { event: "estimate.approved" }, limit: 2000 }),
     rows<{ id: string; stage: string }>(supabase, "psa_exceptions", { limit: 2000 }),
+    rows<HandoffRow>(supabase, "v_sourcing_handoff", { order: [["approved_at", false]], limit: 2000 }),
   ]);
+  const hc = handoffStats(handoffRows);
+  const flagCount = (f: OrderFlag) => ests.filter((e) => e.order_flag === f).length;
   const drafts = ests.filter((e) => e.status === "draft");
   const withClient = ests.filter((e) => e.status === "sent");
   const awaitingPo = ests.filter((e) => e.status === "approved" && !pos.some((p) => p.estimate_id === e.id && !["rejected", "cancelled", "declined"].includes(p.status)));
@@ -41,6 +45,38 @@ export default async function OrdersDashboard() {
         <Stat label="Waiting for the vendor" value={issued.length} hint="Issued, not yet accepted" icon={<MSymbol name="local_shipping" />} />
         <Stat label="Stocktool hand-offs queued" value={outbox.filter((o) => o.status === "queued").length} hint={<Link className="underline" href="/orders/outbox">See the outbox</Link>} icon={<MSymbol name="outbox" />} />
       </div>
+
+      <Panel title="Hand-off to Stocktool (hypercare)" sub="Approved estimates and where their Stocktool hand-off stands. Orders on hold are waiting for data Stocktool needs." actions={<ButtonLink href="/orders/outbox">Outbox</ButtonLink>}>
+        <div className="grid gap-3 p-5 sm:grid-cols-2 xl:grid-cols-4">
+          <Stat label="Handed to Stocktool" value={hc.handedOffPercent != null ? `${hc.handedOffPercent}%` : "—"} hint={`${hc.handedOff} of ${hc.approved} approved estimates`} tone={hc.handedOffPercent == null ? undefined : hc.handedOffPercent >= 90 ? "ok" : "warn"} icon={<MSymbol name="sync_alt" />} />
+          <Stat label="Awaiting action" value={hc.awaitingPercent != null ? `${hc.awaitingPercent}%` : "—"} hint={`${hc.awaiting} approved, not yet handed off`} tone={hc.awaiting ? "warn" : "ok"} icon={<MSymbol name="pending_actions" />} />
+          <Stat label="Approval to hand-off" value={hc.avgDaysToHandoff != null ? `${hc.avgDaysToHandoff} days` : "—"} hint="Average, estimate approved to sent to Stocktool" icon={<MSymbol name="timer" />} />
+          <Stat label="On hold for missing data" value={hc.onHold.length} tone={hc.onHold.length ? "bad" : "ok"} hint={hc.missingCounts.length ? hc.missingCounts.map((m) => `${m.field} ${m.count}`).join(" · ") : "Nothing missing"} icon={<MSymbol name="report" />} />
+        </div>
+        <div className="flex flex-wrap gap-2 border-t border-line px-5 py-3 text-sm">
+          <span className="text-muted">Order flags:</span>
+          {(Object.keys(ORDER_FLAG) as OrderFlag[]).map((f) => (
+            <Link key={f} href={`/orders/estimates?flag=${f}`}><Pill tone={ORDER_FLAG[f].tone}>{ORDER_FLAG[f].label}: {flagCount(f)}</Pill></Link>
+          ))}
+        </div>
+        {hc.onHold.length > 0 && (
+          <div className="overflow-x-auto border-t border-line">
+            <table className="w-full text-sm">
+              <thead><tr><Th>Estimate</Th><Th>Job</Th><Th>Approved</Th><Th>Waiting</Th><Th>Missing</Th><Th>Hand-off</Th></tr></thead>
+              <tbody>{hc.onHold.map((r) => (
+                <tr key={r.id}>
+                  <Td><Link className="font-semibold hover:underline" href={`/orders/estimates/${r.id}`}>{r.estimate_number}</Link><div className="text-xs text-muted">{money(r.sell_price, r.currency)}</div></Td>
+                  <Td><Link className="hover:underline" href={`/sourcing/jobs/${r.job_id}`}>{r.job_number}</Link><div className="text-xs text-muted">{r.client_name}</div></Td>
+                  <Td>{fmtDate(r.approved_at)}</Td>
+                  <Td className="tabular-nums">{r.days_since_approval != null ? `${r.days_since_approval} days` : "—"}</Td>
+                  <Td><div className="flex flex-wrap gap-1">{(r.missing_fields ?? []).map((f) => <Pill key={f} tone="bad">{f}</Pill>)}</div></Td>
+                  <Td>{r.outbox_status ? <Pill tone={r.outbox_status === "failed" ? "bad" : "info"}>{r.outbox_status}</Pill> : <Pill>Not queued</Pill>}</Td>
+                </tr>
+              ))}</tbody>
+            </table>
+          </div>
+        )}
+      </Panel>
 
       <div className="grid gap-4 xl:grid-cols-2">
         <Panel title="POs awaiting DOA approval" actions={<ButtonLink href="/orders/purchase-orders?status=pending_approval">All</ButtonLink>}>

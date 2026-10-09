@@ -9,32 +9,50 @@ import {
   computeLineBenchmark, curveScenario, FINANCE_STATUS, INVITE_STATUS, isBiddingOpen, priceDispersion, QUOTE_STATUS, rfqStatus,
   type ResponsePrice, type Rfq, type RfqInvitation, type RfqLine, type RfqResponse,
 } from "@/lib/rfq";
+import { testingLabel, type DeliveryPoint, type PointPrice, type QuoteAlternative, type QuoteLineDetail, type SpecHub } from "@/lib/sourcing-hub";
 import { Card, PageHead, Panel, Pill } from "@/components/ui";
 import { ActionForm, Field } from "@/components/sourcing/action-form";
-import { ActivityList, Facts, StatusPill, Td, Th, fmtDateTime } from "@/components/sourcing/bits";
-import { approveHighValue, awardRfq, cancelRfq, financeDecide, logQuote, sendRfq, setSuppliers } from "../actions";
+import { ActivityList, Facts, StatusPill, Td, Th, fmtDate, fmtDateTime } from "@/components/sourcing/bits";
+import { approveHighValue, awardRfq, cancelRfq, copyRfq, financeDecide, logQuote, sendRfq, setSuppliers } from "../actions";
 
 export const metadata: Metadata = { title: "RFQ" };
 
 type Eligible = { id: string; supplier_code: string | null; name: string; market: string | null; region: string | null; category: string | null; rag: string };
+type RfqHub = Rfq & {
+  incoterm_code: string | null; incoterm_place: string | null; rate_card_exception: boolean; rate_card_exception_reason: string | null;
+  copied_from_rfq_id: string | null; copied_from_rfq_number: string | null; spec_changed: boolean; spec_changed_at: string | null; requote_pending: number;
+};
+type LineHub = RfqLine & { variant_label: string | null; run_on_quantity: number | null; incoterm_id: string | null; delivery_date: string | null; spec_revision: number | null };
+type InviteHub = RfqInvitation & { requote_needed: boolean; requote_reason: string | null; requoted_at: string | null };
+type Point = DeliveryPoint & { id: string; line_id: string };
 
 export default async function RfqPage({ params }: { params: Promise<{ id: string }> }) {
   const me = await requireInternal();
   const { id } = await params;
   const supabase = await createClient();
-  const rfq = await one<Rfq>(supabase, "v_rfqs", id);
+  const rfq = await one<RfqHub>(supabase, "v_rfqs", id);
   if (!rfq) notFound();
-  const [lines, invites, responses, specs, pool, bypass, events, people, access, job] = await Promise.all([
-    rows<RfqLine>(supabase, "rfq_lines", { eq: { rfq_id: id }, order: [["line_no"]] }),
-    rows<RfqInvitation>(supabase, "v_rfq_invitations", { eq: { rfq_id: id }, order: [["supplier_name"]] }),
+  const [lines, invites, responses, specsRaw, pool, bypass, events, people, access, job, incoterms] = await Promise.all([
+    rows<LineHub>(supabase, "rfq_lines", { eq: { rfq_id: id }, order: [["line_no"]] }),
+    rows<InviteHub>(supabase, "v_rfq_invitations", { eq: { rfq_id: id }, order: [["supplier_name"]] }),
     rows<RfqResponse>(supabase, "v_rfq_responses", { eq: { rfq_id: id }, order: [["total_value"]] }),
     getSpecs(supabase, rfq.job_id), rows<Eligible>(supabase, "v_eligible_suppliers", { order: [["name"]], limit: 5000 }),
     getLibrary(supabase, "bypass_reasons"), getEvents(supabase, { entity_id: id }), getPeople(supabase),
-    getMyAccess(supabase, me.id, me.is_admin, me.srt_role), one<{ client_id: string }>(supabase, "jobs", rfq.job_id),
+    getMyAccess(supabase, me.id, me.is_admin, me.srt_role), one<{ client_id: string }>(supabase, "jobs", rfq.job_id), getLibrary(supabase, "incoterms", false),
   ]);
+  const specs = specsRaw as SpecHub[];
   const client = job ? await one<SourcingClient>(supabase, "sourcing_clients", job.client_id) : null;
   const priceRows = (await Promise.all(responses.map((r) => rows<ResponsePrice>(supabase, "rfq_response_prices", { eq: { response_id: r.id } })))).flat();
+  const [detailRows, altRows, pointPriceRows, points] = await Promise.all([
+    Promise.all(responses.map((r) => rows<QuoteLineDetail & { response_id: string }>(supabase, "rfq_response_lines", { eq: { response_id: r.id } }))).then((x) => x.flat()),
+    Promise.all(responses.map((r) => rows<QuoteAlternative>(supabase, "rfq_response_alternatives", { eq: { response_id: r.id }, order: [["alt_no"]] }))).then((x) => x.flat()),
+    Promise.all(responses.map((r) => rows<PointPrice>(supabase, "rfq_response_point_prices", { eq: { response_id: r.id } }))).then((x) => x.flat()),
+    Promise.all(lines.map((l) => rows<Point>(supabase, "rfq_line_delivery_points", { eq: { line_id: l.id }, order: [["point_no"]] }))).then((x) => x.flat()),
+  ]);
+  const incotermCode = (iid: string | null) => (iid ? incoterms.find((x) => x.id === iid)?.code ?? null : null);
+  const detailOf = (resp: string, line: string) => detailRows.find((d) => d.response_id === resp && d.line_id === line);
   const specById = new Map(specs.map((s) => [s.id, s]));
+  const lineTitle = (l: LineHub) => `${specById.get(l.spec_id)?.title ?? "Spec"}${l.variant_label ? `: ${l.variant_label}` : ""}`;
   const priceOf = (resp: string, line: string, qty: number) => priceRows.find((p) => p.response_id === resp && p.line_id === line && Number(p.quantity) === Number(qty));
   const open = isBiddingOpen(rfq);
   const allResponded = invites.length > 0 && invites.every((i) => i.status === "quoted" || i.status === "declined");
@@ -50,7 +68,15 @@ export default async function RfqPage({ params }: { params: Promise<{ id: string
         sub={`${rfq.rfq_number} · job ${rfq.job_number} · ${rfq.client_name} · ${rfq.market} (${rfq.region})`}>
         <Pill tone={rfqStatus(rfq.status).tone}>{rfq.status === "sent" && !open ? "Closed, to evaluate" : rfqStatus(rfq.status).label}</Pill>
         {rfq.high_value_alert && <Pill tone="bad">High value</Pill>}
+        {rfq.spec_changed && <Pill tone="warn">Spec changed: re-quote needed</Pill>}
+        {rfq.rate_card_exception && <Pill tone="accent">Rate-card exception</Pill>}
       </PageHead>
+      {rfq.spec_changed && rfq.status === "sent" && (
+        <Card className="border-warn/40 bg-warn-soft px-5 py-3 text-sm text-warn">
+          A spec on this RFQ was revised on {fmtDateTime(rfq.spec_changed_at)}. Invited suppliers were asked to re-quote; {rfq.requote_pending} still to respond.
+          Quotes already in were made on the revision that was sent (shown per line below).
+        </Card>
+      )}
 
       <div className="grid gap-4 xl:grid-cols-3">
         <Panel title="Controls" className="xl:col-span-2">
@@ -62,6 +88,9 @@ export default async function RfqPage({ params }: { params: Promise<{ id: string
             ["Valid quotes", `${valid.length}${rfq.min_quotes_required ? ` of ${rfq.min_quotes_required} needed` : ""}`],
             ["High-value threshold", rfq.high_value_threshold ? `${money(rfq.high_value_threshold, rfq.currency)}${rfq.high_value_alert ? (rfq.high_value_approved_by ? " · approved" : " · needs approval") : ""}` : "None for this market"],
             ["Bidding", "Sealed: suppliers never see each other"], ["Client tolerance", tolerance != null ? `±${tolerance}%` : "None"],
+            ["Incoterm", `${rfq.incoterm_code ?? "DDP (default)"}${rfq.incoterm_place ? ` · ${rfq.incoterm_place}` : ""}`],
+            ["Rate-card exception", rfq.rate_card_exception ? rfq.rate_card_exception_reason : "No"],
+            ...(rfq.copied_from_rfq_id ? [["Reorder of", <Link key="c" className="hover:underline" href={`/rfq/${rfq.copied_from_rfq_id}`}>{rfq.copied_from_rfq_number}</Link>] as [string, React.ReactNode]] : []),
           ]} />
           {rfq.min_quotes_basis && <p className="border-t border-line px-5 py-2 text-xs text-muted">{rfq.min_quotes_basis}</p>}
           {rfq.award_reason && <p className="border-t border-line px-5 py-2 text-sm">Awarded to <b>{rfq.awarded_supplier_name}</b>: {rfq.award_reason}{rfq.bypass_reason_code ? ` (bypass ${rfq.bypass_reason_code})` : ""}</p>}
@@ -85,6 +114,16 @@ export default async function RfqPage({ params }: { params: Promise<{ id: string
             {rfq.status === "sent" && (open ? <p>Bidding is open until {fmtDateTime(rfq.due_at)}. {allResponded ? "Every supplier has responded, so you can evaluate now." : "Prices stay sealed until then."}</p>
               : <p>Bidding has closed. Get Finance approval on the quote you want, then award it.</p>)}
             {rfq.status === "awarded" && <p>Awarded. The estimate is in <Link className="font-semibold underline" href="/orders/estimates">Order Management+</Link>.</p>}
+            <details className="rounded-lg border border-line p-3">
+              <summary className="cursor-pointer font-semibold">Copy for a reorder</summary>
+              <div className="mt-3">
+                <ActionForm action={copyRfq} hidden={{ id }} submit="Create the reorder RFQ" variant="secondary">
+                  <p className="text-xs text-muted">A new draft on the same job with these lines, delivery points (dates cleared), incoterm and the suppliers that are still eligible. Linked to this RFQ.</p>
+                  <Field label="Title" htmlFor="copy_title"><input id="copy_title" name="title" defaultValue={`Reorder: ${rfq.title}`} className="input" /></Field>
+                  <Field label="Quotes due" htmlFor="copy_due"><input id="copy_due" name="due_date" type="date" className="input" /></Field>
+                </ActionForm>
+              </div>
+            </details>
             {(rfq.status === "draft" || rfq.status === "sent") && (
               <details className="rounded-lg border border-line p-3">
                 <summary className="cursor-pointer font-semibold">Cancel RFQ</summary>
@@ -95,18 +134,29 @@ export default async function RfqPage({ params }: { params: Promise<{ id: string
         </Panel>
       </div>
 
-      <Panel title="Lines" sub="Quantity breaks and target prices">
-        <table className="w-full text-sm">
-          <thead><tr><Th>#</Th><Th>Spec</Th><Th>Quantity breaks</Th><Th>Target unit prices</Th><Th>Targets shown to suppliers</Th></tr></thead>
-          <tbody>{lines.map((l) => (
-            <tr key={l.id}>
-              <Td>{l.line_no}</Td>
-              <Td><Link className="font-semibold hover:underline" href={`/sourcing/specs/${l.spec_id}`}>{specById.get(l.spec_id)?.title ?? "Spec"}</Link></Td>
-              <Td className="tabular-nums">{l.quantity_breaks.map((q) => Number(q).toLocaleString("en-GB")).join(" · ")}</Td>
-              <Td className="tabular-nums">{l.target_prices ? l.target_prices.map((t) => (t == null ? "—" : unitMoney(Number(t), rfq.currency))).join(" · ") : "—"}</Td>
-              <Td>{l.show_targets ? "Yes" : "No"}</Td>
-            </tr>))}</tbody>
-        </table>
+      <Panel title="Lines" sub="Quantity breaks, targets, variants, run-on, incoterm and delivery">
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead><tr><Th>#</Th><Th>Spec / variant</Th><Th>Quantity breaks</Th><Th>Target unit prices</Th><Th>Run-on</Th><Th>Incoterm</Th><Th>Delivery</Th><Th>Spec revision</Th></tr></thead>
+            <tbody>{lines.map((l) => {
+              const s = specById.get(l.spec_id);
+              const pts = points.filter((p) => p.line_id === l.id);
+              return (
+                <tr key={l.id}>
+                  <Td>{l.line_no}</Td>
+                  <Td><Link className="font-semibold hover:underline" href={`/sourcing/specs/${l.spec_id}`}>{lineTitle(l)}</Link>
+                    {s?.spec_type === "promo_merch" && <div className="text-xs text-muted">HS {s.hs_code ?? <span className="text-bad">missing</span>}</div>}</Td>
+                  <Td className="tabular-nums">{l.quantity_breaks.map((q) => Number(q).toLocaleString("en-GB")).join(" · ")}</Td>
+                  <Td className="tabular-nums">{l.target_prices ? l.target_prices.map((t) => (t == null ? "—" : unitMoney(Number(t), rfq.currency))).join(" · ") : "—"}{l.target_prices && <div className="text-xs text-muted">{l.show_targets ? "Shown to suppliers" : "Hidden"}</div>}</Td>
+                  <Td>{l.run_on_quantity ? `Per extra ${Number(l.run_on_quantity).toLocaleString("en-GB")}` : "—"}</Td>
+                  <Td>{incotermCode(l.incoterm_id) ?? rfq.incoterm_code ?? "DDP"}</Td>
+                  <Td>{fmtDate(l.delivery_date)}{pts.length > 0 && <ul className="text-xs text-muted">{pts.map((p) => <li key={p.id}>{p.label}{p.quantity ? ` · ${Number(p.quantity).toLocaleString("en-GB")}` : ""}{p.delivery_date ? ` · ${fmtDate(p.delivery_date)}` : ""}</li>)}</ul>}</Td>
+                  <Td>{l.spec_revision != null ? <>Sent {l.spec_revision}{s && s.revision > l.spec_revision ? <div><Pill tone="warn">Now {s.revision}</Pill></div> : null}</> : s ? `Current ${s.revision}` : "—"}</Td>
+                </tr>
+              );
+            })}</tbody>
+          </table>
+        </div>
       </Panel>
 
       {rfq.status === "draft" ? (
@@ -131,7 +181,7 @@ export default async function RfqPage({ params }: { params: Promise<{ id: string
             <tbody>{invites.map((i) => (
               <tr key={i.supplier_id}>
                 <Td className="font-semibold">{i.supplier_name}</Td><Td>{i.supplier_market}{i.cross_border && <span className="text-xs text-muted"> · cross-border</span>}</Td>
-                <Td><StatusPill meta={INVITE_STATUS} value={i.status} /></Td>
+                <Td><div className="flex flex-wrap gap-1"><StatusPill meta={INVITE_STATUS} value={i.status} />{i.requote_needed ? <Pill tone="warn">Re-quote needed</Pill> : i.requoted_at ? <Pill tone="ok">Re-quoted {fmtDate(i.requoted_at)}</Pill> : null}</div></Td>
                 <Td>{i.purchasing_blocked || !i.supplier_active ? <Pill tone="bad">Blocked</Pill> : <Pill tone="ok">Eligible</Pill>}</Td>
                 <Td className="text-xs text-muted">{i.decline_reason ?? ""}</Td>
               </tr>))}</tbody>
@@ -155,7 +205,7 @@ export default async function RfqPage({ params }: { params: Promise<{ id: string
                     const target = l.target_prices?.[bi];
                     return (
                       <tr key={`${l.id}-${q}`}>
-                        <Td><span className="font-semibold">{l.line_no}. {specById.get(l.spec_id)?.title}</span><div className="text-xs text-muted">{Number(q).toLocaleString("en-GB")} units{bi === 0 ? " · main break" : ""}</div></Td>
+                        <Td><span className="font-semibold">{l.line_no}. {lineTitle(l)}</span><div className="text-xs text-muted">{Number(q).toLocaleString("en-GB")} units{bi === 0 ? " · main break" : ""}</div></Td>
                         <Td className="tabular-nums">{target != null ? unitMoney(Number(target), rfq.currency) : "—"}</Td>
                         {responses.map((r) => {
                           const p = priceOf(r.id, l.id, q);
@@ -181,6 +231,45 @@ export default async function RfqPage({ params }: { params: Promise<{ id: string
               </table>
             </div>
           )}
+        </Panel>
+      )}
+
+      {rfq.status !== "draft" && !sealed && responses.length > 0 && (detailRows.length > 0 || altRows.length > 0 || pointPriceRows.length > 0) && (
+        <Panel title="Quote details" sub="What each supplier declared per line: packing, weights, HS code and origin, lead time, run-on and sample costs, emissions, proposed spec, delivery-point prices and alternative proposals.">
+          <div className="divide-y divide-line">
+            {lines.map((l) => {
+              const s = specById.get(l.spec_id);
+              const pts = points.filter((p) => p.line_id === l.id);
+              return (
+                <div key={l.id} className="overflow-x-auto px-5 py-4">
+                  <p className="mb-2 font-semibold">{l.line_no}. {lineTitle(l)}{s?.testing_checklist?.length ? <span className="ml-2 text-xs font-normal text-muted">Tests: {s.testing_checklist.map(testingLabel).join(", ")}</span> : null}</p>
+                  <table className="w-full text-sm">
+                    <thead><tr><Th>Supplier</Th><Th>Lead time</Th><Th>Carton (cm) / units</Th><Th>Weight net / gross</Th><Th>HS · origin</Th><Th>Run-on</Th><Th>Samples</Th><Th>Emissions</Th>{pts.length > 0 && <Th>Per delivery point</Th>}<Th>Alternatives</Th></tr></thead>
+                    <tbody>{responses.map((r) => {
+                      const d = detailOf(r.id, l.id);
+                      const alts = altRows.filter((a) => a.response_id === r.id && a.line_id === l.id);
+                      const pp = pointPriceRows.filter((p) => p.response_id === r.id && pts.some((x) => x.id === p.delivery_point_id));
+                      return (
+                        <tr key={r.id}>
+                          <Td className="font-semibold">{r.supplier_name}</Td>
+                          <Td>{d?.lead_time_days != null ? `${d.lead_time_days} days` : r.lead_time_days != null ? `${r.lead_time_days} days (overall)` : "—"}</Td>
+                          <Td>{d?.carton_length_cm ? `${d.carton_length_cm} × ${d.carton_width_cm ?? "?"} × ${d.carton_height_cm ?? "?"}` : "—"}{d?.units_per_carton ? ` · ${d.units_per_carton}/ctn` : ""}</Td>
+                          <Td>{d?.net_weight_kg != null || d?.gross_weight_kg != null ? `${d?.net_weight_kg ?? "—"} / ${d?.gross_weight_kg ?? "—"} kg` : "—"}</Td>
+                          <Td>{[d?.hs_code, d?.country_of_origin].filter(Boolean).join(" · ") || "—"}</Td>
+                          <Td>{d?.run_on_price != null ? `${unitMoney(Number(d.run_on_price), rfq.currency)}${l.run_on_quantity ? ` per extra ${Number(l.run_on_quantity).toLocaleString("en-GB")}` : ""}` : "—"}</Td>
+                          <Td>{d?.sample_cost != null ? money(Number(d.sample_cost), rfq.currency, 2) : "—"}{d?.sample_lead_time_days != null ? ` · ${d.sample_lead_time_days} days` : ""}</Td>
+                          <Td>{d ? [d.recycled_content_percent != null ? `${d.recycled_content_percent}% recycled` : null, d.reusable == null ? null : d.reusable ? `reusable${d.number_of_uses ? ` ×${d.number_of_uses}` : ""}` : "single use"].filter(Boolean).join(", ") || "—" : "—"}</Td>
+                          {pts.length > 0 && <Td>{pp.length ? pp.map((p) => `${pts.find((x) => x.id === p.delivery_point_id)?.label}: ${unitMoney(Number(p.unit_price), rfq.currency)}`).join(" · ") : "Same price"}</Td>}
+                          <Td>{alts.length ? alts.map((a) => <div key={a.id ?? a.alt_no}><span className="font-semibold">{unitMoney(Number(a.unit_price), rfq.currency)}</span> @ {Number(a.quantity).toLocaleString("en-GB")}: {a.description}</div>) : "—"}
+                            {d?.proposed_spec && <div className="mt-1 text-xs"><b>Proposed spec:</b> {d.proposed_spec}</div>}</Td>
+                        </tr>
+                      );
+                    })}</tbody>
+                  </table>
+                </div>
+              );
+            })}
+          </div>
         </Panel>
       )}
 
@@ -235,7 +324,7 @@ export default async function RfqPage({ params }: { params: Promise<{ id: string
                 <Field label="Lead time (days)" htmlFor="lead_time_days"><input id="lead_time_days" name="lead_time_days" inputMode="numeric" className="input" /></Field>
                 <Field label="Notes" htmlFor="qnotes"><input id="qnotes" name="notes" className="input" /></Field>
                 {lines.flatMap((l) => l.quantity_breaks.map((q) => (
-                  <Field key={`${l.id}-${q}`} label={`${specById.get(l.spec_id)?.title ?? "Line " + l.line_no} @ ${Number(q).toLocaleString("en-GB")} (unit price)`} htmlFor={`price_${l.id}_${q}`}>
+                  <Field key={`${l.id}-${q}`} label={`${lineTitle(l)} @ ${Number(q).toLocaleString("en-GB")} (unit price)`} htmlFor={`price_${l.id}_${q}`}>
                     <input id={`price_${l.id}_${q}`} name={`price_${l.id}_${q}`} inputMode="decimal" className="input" />
                   </Field>
                 )))}

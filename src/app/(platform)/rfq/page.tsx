@@ -58,7 +58,7 @@ export default async function RfqDashboard({ searchParams }: { searchParams: Pro
                   <Td><Link className="font-semibold hover:underline" href={`/rfq/${r.id}`}>{r.rfq_number}</Link><div className="text-xs text-muted">{r.title}</div></Td>
                   <Td><Link className="hover:underline" href={`/sourcing/jobs/${r.job_id}`}>{r.job_number}</Link><div className="text-xs text-muted">{r.client_name}</div></Td>
                   <Td>{r.market} <span className="text-xs text-muted">· {r.region}</span></Td>
-                  <Td><div className="flex flex-wrap gap-1"><Pill tone={rfqStatus(r.status).tone}>{r.status === "sent" && !isBiddingOpen(r) ? "Closed, to evaluate" : rfqStatus(r.status).label}</Pill>{r.high_value_alert && <Pill tone="bad">High value</Pill>}</div></Td>
+                  <Td><div className="flex flex-wrap gap-1"><Pill tone={rfqStatus(r.status).tone}>{r.status === "sent" && !isBiddingOpen(r) ? "Closed, to evaluate" : rfqStatus(r.status).label}</Pill>{r.high_value_alert && <Pill tone="bad">High value</Pill>}{(r as Rfq & { spec_changed?: boolean }).spec_changed && r.status === "sent" && <Pill tone="warn">Spec changed: re-quote</Pill>}</div></Td>
                   <Td>{fmtDateTime(r.due_at)}</Td>
                   <Td className="tabular-nums">{money(r.estimated_value, r.currency)}</Td>
                   <Td className="tabular-nums">{r.quote_count} / {r.min_quotes_required ?? "—"} {below(r) && <Pill tone="warn">Below</Pill>}</Td>

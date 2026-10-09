@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { CONNECTIONS } from "@/modules/flow";
+import { CONNECTIONS, SOURCING_HUB_FLOW } from "@/modules/flow";
 import { EXTERNAL_REPORTING, LAYERS, PORTALS, moduleByKey } from "@/modules/registry";
 import { Architecture } from "@/components/architecture";
 import { MSymbol } from "@/components/symbol";
@@ -60,6 +60,30 @@ export default function FlowMap() {
                   <td className="td w-8 text-muted"><MSymbol name="arrow_forward" size={16} /></td>
                   <td className="td"><span className="rounded-full px-2.5 py-0.5 text-xs font-bold" style={{ background: t.colour + "40" }}>{t.name}</span></td>
                   <td className="td">{c.what}</td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </Card>
+
+      <Card className="overflow-x-auto">
+        <div className="border-b border-line px-5 py-3.5">
+          <h2 className="font-bold">Sourcing Hub end to end: today and the Wave 2 target</h2>
+          <p className="text-xs text-muted">The current Sourcing Hub process from job to local finance, and where each step lives in System Guy. Sourcing ends at estimate approval; Stocktool and NAV stay the finance records.</p>
+        </div>
+        <table className="w-full text-sm">
+          <thead><tr><th className="th">#</th><th className="th">Step</th><th className="th">Today</th><th className="th">Target (Wave 2)</th><th className="th">Module</th></tr></thead>
+          <tbody>
+            {SOURCING_HUB_FLOW.map((s) => {
+              const m = moduleByKey(s.module)!;
+              return (
+                <tr key={s.n} className="align-top">
+                  <td className="td font-mono text-xs text-muted">{s.n}</td>
+                  <td className="td font-semibold">{s.step}{s.vendor && <span className="ml-1.5 inline-flex align-middle text-brand-tech" title="Vendor engages here (vendor portal)"><MSymbol name="handshake" size={16} /></span>}</td>
+                  <td className="td text-muted">{s.today}{s.pain && <span className="mt-1 block text-xs text-warn">Gap: {s.pain}</span>}</td>
+                  <td className="td">{s.wave2}</td>
+                  <td className="td"><span className="whitespace-nowrap rounded-full px-2.5 py-0.5 text-xs font-bold" style={{ background: m.colour + "40" }}>{m.name}</span></td>
                 </tr>
               );
             })}

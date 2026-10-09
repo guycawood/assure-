@@ -26,28 +26,29 @@ type Props = {
 const STORE_KEY = "adm.sidebar.collapsed";
 const THEME_KEY = "adm.theme";
 
-// Two looks (Shopper IQ pattern): "navy" = deep New-blue with Tech-orange accents; "light" = white with Indi-blue accents.
+// Two looks (Shopper IQ pattern): "navy" = the dark look, teal #5DA4A8 with Tech-orange accents (key kept for saved
+// preferences); "light" = white with Indi-blue accents.
 const THEMES = {
   navy: {
-    aside: "bg-gradient-to-b from-brand-navy to-[#14127a] text-white",
-    card: "border-white/15 bg-white/[0.06] hover:bg-white/10",
-    cardSub: "text-white/60",
-    group: "text-white/45",
-    divider: "border-white/10",
-    item: "text-white/80 hover:bg-white/10 hover:text-white",
+    aside: "bg-gradient-to-b from-[#5DA4A8] to-[#4A8F93] text-white",
+    card: "border-white/25 bg-white/10 hover:bg-white/15",
+    cardSub: "text-white/85",
+    group: "text-white/80",
+    divider: "border-white/20",
+    item: "text-white/90 hover:bg-white/15 hover:text-white",
     itemActive: "bg-brand-tech text-brand-navy shadow-[0_4px_14px_rgba(255,176,91,0.35)]",
     badge: "bg-brand-tech text-brand-navy",
-    foot: "[&_button]:text-white/75 [&_button:hover]:bg-white/10 [&_button:hover]:text-white",
-    header: "bg-brand-navy text-white shadow-[0_2px_10px_rgba(1,0,98,0.25)]",
-    headSub: "text-white/50",
-    headMuted: "text-white/60",
-    search: "border-white/15 bg-white/10 focus-within:bg-white/15 [&_input]:text-white [&_input]:placeholder:text-white/50",
-    searchIcon: "text-brand-tech",
+    foot: "[&_button]:text-white/90 [&_button:hover]:bg-white/15 [&_button:hover]:text-white",
+    header: "bg-[#5DA4A8] text-white shadow-[0_2px_10px_rgba(39,92,95,0.3)]",
+    headSub: "text-white/85",
+    headMuted: "text-white/90",
+    search: "border-white/30 bg-white/15 focus-within:bg-white/20 [&_input]:text-white [&_input]:placeholder:text-white/80",
+    searchIcon: "text-white",
     ask: "bg-brand-tech text-brand-navy shadow-[0_4px_14px_rgba(255,176,91,0.35)]",
     plus: "text-brand-tech",
-    chip: "text-white/75 hover:bg-white/10 hover:text-white",
+    chip: "text-white/90 hover:bg-white/15 hover:text-white",
     chipActive: "bg-brand-tech text-brand-navy",
-    icon: "text-white/70 hover:bg-white/10 hover:text-white",
+    icon: "text-white/90 hover:bg-white/15 hover:text-white",
     avatar: "bg-brand-tech text-brand-navy",
     page: "bg-bg",
   },
@@ -219,8 +220,8 @@ export function Shell({ user, isAdmin, demo, badges, notices, children }: Props)
                   <MSymbol name="open_in_new" size={14} /> Vendor portal
                 </Link>
               )}
-              <button onClick={switchTheme} title={theme === "navy" ? "Switch to the light look" : "Switch to the navy look"} aria-label="Switch theme" className={clsx("grid h-9 w-9 place-items-center rounded-lg transition", T.icon)}><MSymbol name={theme === "navy" ? "light_mode" : "dark_mode"} size={19} /></button>
-              <div className={theme === "navy" ? "[&>div>button]:text-white/80 [&>div>button:hover]:bg-white/10 [&>div>button:hover]:text-white" : ""}><NotificationsBell items={notices} /></div>
+              <button onClick={switchTheme} title={theme === "navy" ? "Switch to the light look" : "Switch to the dark look"} aria-label="Switch theme" className={clsx("grid h-9 w-9 place-items-center rounded-lg transition", T.icon)}><MSymbol name={theme === "navy" ? "light_mode" : "dark_mode"} size={19} /></button>
+              <div className={theme === "navy" ? "[&>div>button]:text-white/90 [&>div>button:hover]:bg-white/15 [&>div>button:hover]:text-white" : ""}><NotificationsBell items={notices} /></div>
               <div className={clsx("flex items-center gap-2 border-l pl-3", T.divider)}>
                 <span className={clsx("grid h-8 w-8 place-items-center rounded-full text-[0.68rem] font-extrabold", T.avatar)} aria-hidden>{initials(user.name)}</span>
                 <span className="hidden text-left leading-tight lg:block">

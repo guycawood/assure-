@@ -81,6 +81,30 @@ export const PROCESS: Record<ModuleKey, ProcessStep[]> = {
   ],
 };
 
+/**
+ * The current Sourcing Hub end-to-end process (TOM E2E Process Flow, Wave 2 Overview, Hypercare deck),
+ * step by step, with where each step lives in System Guy. `today` = how it works now; `wave2` = the target state.
+ */
+export type HubStep = { n: number; step: string; today: string; wave2: string; module: ModuleKey; vendor?: boolean; pain?: string };
+
+export const SOURCING_HUB_FLOW: HubStep[] = [
+  { n: 1, step: "Create job", today: "Account team creates the job in Sourcing Hub (client, site, billing entity, budget, timings).", wave2: "Same, with the campaign link from Briefing+.", module: "sourcing" },
+  { n: 2, step: "Spec", today: "Spec form by type (2D, 3D, promo/merch, custom, design); fixed, open or ideation.", wave2: "Structured promo/merch fields, versioned specs instead of a hard lock.", module: "sourcing", pain: "Promo fields missing (components, branding method, testing, AQL, packing)." },
+  { n: 3, step: "RFQ", today: "Lines with quantity breaks, target prices and delivery dates; supplier group chosen.", wave2: "Triage first (Adopt/Adapt/Create/Push); RFQ only for Create and Push.", module: "rfq", pain: "Fewer than 6 quantity breaks and no run-ons." },
+  { n: 4, step: "Supplier quotes", today: "Suppliers quote in the Sourcing Hub supplier portal, sealed.", wave2: "Quote with alternatives, carton/weight/HS code and emissions declaration.", module: "rfq", vendor: true },
+  { n: 5, step: "Assess and award", today: "Compare quotes against benchmark and tolerance; savings recorded.", wave2: "Award checks in Assure+ (purchasing block, MSA, DOA); finance approval enforced.", module: "rfq" },
+  { n: 6, step: "Estimate", today: "Estimate with markup or margin, bypass reason if fewer quotes than required.", wave2: "Cost splits, GSC commission and client rebate; several client POs per estimate.", module: "orders" },
+  { n: 7, step: "Client PO", today: "Client PO received and attached.", wave2: "Status flags: pending estimate approval, PO pending, PO received.", module: "orders" },
+  { n: 8, step: "Supplier PO", today: "Supplier PO raised and accepted by the supplier.", wave2: "PO approved by DOA level; supplier accepts in the vendor portal.", module: "orders", vendor: true },
+  { n: 9, step: "Production and QC", today: "Production updates and QC outside the Hub (email, spreadsheets).", wave2: "Production updates and QA/QC submitted in the vendor portal; quality gates.", module: "execution", vendor: true },
+  { n: 10, step: "Proof of delivery and invoice", today: "Supplier uploads POD and invoice.", wave2: "8-point POD check in Logistics+; invoice matched to PO and POD in Finance+.", module: "logistics", vendor: true },
+  { n: 11, step: "Hand-off to Stocktool", today: "Shasta pushes article, PO and SO to Stocktool, or the manual OMC route.", wave2: "Sourcing ends at estimate approval; estimate.approved event carries the Stocktool payload.", module: "orders", pain: "Orders stall for missing HS code, weights or client PO." },
+  { n: 12, step: "CST compliance", today: "CST checks the order data before it moves on.", wave2: "Data checks run in System Guy before hand-off (data-quality rules).", module: "watchtower" },
+  { n: 13, step: "OMC delivery note", today: "OMC raises the delivery note in Stocktool.", wave2: "Delivery confirmed from verified POD.", module: "logistics" },
+  { n: 14, step: "Billing", today: "Client billed from Stocktool.", wave2: "Billing released when evidence agrees (PO, POD, installation).", module: "finance" },
+  { n: 15, step: "Local finance (NAV)", today: "Invoices and billing posted in local finance (NAV).", wave2: "Unchanged: Stocktool and NAV stay the finance records.", module: "finance" },
+];
+
 export type Connection = { from: ModuleKey; to: ModuleKey; what: string };
 
 /** Every handoff between modules: the links that make standalone modules one workflow. */

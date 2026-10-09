@@ -5,16 +5,20 @@ import { formatDate } from "@/lib/srt";
 import { daysUntil, human, money, statusTone } from "@/lib/vendor";
 import { Card, PageHead, Panel, Pill } from "@/components/ui";
 import { ActionDialog } from "@/components/vendor/action-form";
-import { QuoteForm, type QuoteLine, type QuotePrice } from "@/components/vendor/quote-form";
-import { declineRfq, saveQuote } from "../../actions";
+import { QuoteForm, SpecSummary, type QuoteAlt, type QuoteDetail, type QuoteLine, type QuotePointPrice, type QuotePrice } from "@/components/vendor/quote-form";
+import { declineRfq } from "../../actions";
+import { saveQuoteDetailed } from "../actions";
 
 export const metadata = { title: "Quote request" };
 
 type View = {
-  rfq: { id: string; rfq_number: string; title: string; due_at: string; currency: string; open: boolean; status: string; job_number: string; market: string; region: string };
+  rfq: { id: string; rfq_number: string; title: string; due_at: string; currency: string; open: boolean; status: string; job_number: string; market: string; region: string; incoterm?: string; incoterm_place?: string | null };
   lines: QuoteLine[];
-  invitation: { status: string; declined_at: string | null; decline_reason: string | null };
-  quote: { id: string; status: string; lead_time_days: number | null; notes: string | null; total_value: number | null; submitted_at: string | null; prices: QuotePrice[] } | null;
+  invitation: { status: string; declined_at: string | null; decline_reason: string | null; requote_needed?: boolean; requote_reason?: string | null };
+  quote: {
+    id: string; status: string; lead_time_days: number | null; notes: string | null; total_value: number | null; submitted_at: string | null; prices: QuotePrice[];
+    lines?: QuoteDetail[]; alternatives?: QuoteAlt[]; point_prices?: QuotePointPrice[];
+  } | null;
 };
 
 export default async function QuoteDetail({ params }: { params: Promise<{ id: string }> }) {
@@ -34,7 +38,7 @@ export default async function QuoteDetail({ params }: { params: Promise<{ id: st
   return (
     <>
       <PageHead title={v.rfq.title} crumbs={[{ label: "Quote requests", href: "/vendor/quotes" }, { label: v.rfq.rfq_number }]}
-        sub={`${v.rfq.job_number} · ${v.rfq.market} · prices in ${v.rfq.currency}`}>
+        sub={`${v.rfq.job_number} · ${v.rfq.market} · prices in ${v.rfq.currency} · ${v.rfq.incoterm ?? "DDP"}${v.rfq.incoterm_place ? ` ${v.rfq.incoterm_place}` : ""}`}>
         {editable && (
           <ActionDialog label="Decline to quote" variant="danger" title="Decline this quote request" sub="adm Indicia will see your reason." action={declineRfq} hidden={{ rfq: v.rfq.id }} submit="Decline" >
             <label className="label" htmlFor="reason">Reason</label>
@@ -52,18 +56,40 @@ export default async function QuoteDetail({ params }: { params: Promise<{ id: st
       </div>
 
       {declined && <Card className="p-4 text-sm">You declined this request on {formatDate(v.invitation.declined_at)}{v.invitation.decline_reason ? `: ${v.invitation.decline_reason}` : "."}</Card>}
+      {v.invitation.requote_needed && (
+        <Card className="border-warn/40 bg-warn-soft p-4 text-sm text-warn">
+          <b>Spec changed: please re-quote.</b> {v.invitation.requote_reason} Check the changed lines below and submit your quote again before the due date.
+        </Card>
+      )}
 
-      <Panel title="Your prices" sub={editable ? "Price at least the first quantity break of every line. Save a draft any time; submit when ready. You can resubmit until the due date." : "Read-only"}>
+      <Panel title="Your prices" sub={editable ? "Unit prices only: we calculate totals. Price at least the first quantity break of every line. Save a draft any time; submit when ready. You can resubmit until the due date." : "Read-only"}>
         <div className="p-5">
           {editable ? (
-            <QuoteForm rfqId={v.rfq.id} currency={v.rfq.currency} lines={v.lines} prices={q?.prices ?? []} leadTime={q?.lead_time_days ?? null} notes={q?.notes ?? null}
-              submitted={q?.status === "submitted"} action={saveQuote} />
+            <QuoteForm rfqId={v.rfq.id} currency={v.rfq.currency} lines={v.lines} prices={q?.prices ?? []} details={q?.lines ?? []} alternatives={q?.alternatives ?? []}
+              pointPrices={q?.point_prices ?? []} leadTime={q?.lead_time_days ?? null} notes={q?.notes ?? null}
+              submitted={q?.status === "submitted"} action={saveQuoteDetailed} />
           ) : (
             <div className="space-y-4">
               {!canAct(ctx.permission) && v.rfq.open && <p className="text-sm text-muted">Your account is view-only, so you can&apos;t change this quote.</p>}
               {v.lines.map((l) => (
                 <div key={l.id} className="rounded-xl border border-line">
-                  <p className="border-b border-line px-4 py-2.5 font-semibold">Line {l.line_no}: {l.spec.title}</p>
+                  <div className="border-b border-line px-4 py-2.5">
+                    <p className="font-semibold">Line {l.line_no}: {l.spec.title}{l.variant_label ? ` (${l.variant_label})` : ""}</p>
+                    <SpecSummary spec={l.spec} />
+                    {(() => {
+                      const d = q?.lines?.find((x) => x.line_id === l.id);
+                      const alts = q?.alternatives?.filter((a) => a.line_id === l.id) ?? [];
+                      return (
+                        <>
+                          {d && <p className="mt-1 text-xs text-muted">Your details: {[d.hs_code && `HS ${d.hs_code}`, d.country_of_origin && `origin ${d.country_of_origin}`,
+                            d.units_per_carton && `${d.units_per_carton} per carton`, d.gross_weight_kg != null && `${d.gross_weight_kg} kg gross`,
+                            d.lead_time_days != null && `${d.lead_time_days} days`, d.sample_cost != null && `samples ${money(d.sample_cost, v.rfq.currency)}`,
+                            d.run_on_price != null && `run-on ${money(d.run_on_price, v.rfq.currency)}`].filter(Boolean).join(" · ") || "none"}</p>}
+                          {alts.map((a) => <p key={a.alt_no} className="text-xs text-muted">Alternative {a.alt_no}: {a.description}: {money(a.unit_price, v.rfq.currency, 4)} at {a.quantity.toLocaleString("en-GB")}</p>)}
+                        </>
+                      );
+                    })()}
+                  </div>
                   <table className="w-full text-sm">
                     <thead><tr><th className="th">Quantity</th><th className="th">Your unit price</th><th className="th">Lead time</th></tr></thead>
                     <tbody>

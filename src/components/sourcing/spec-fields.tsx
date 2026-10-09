@@ -1,4 +1,5 @@
 import { SPEC_TYPES } from "@/lib/sourcing";
+import { SPEC_FORMS } from "@/lib/sourcing-hub";
 import type { Substrate } from "@/lib/sourcing-emissions";
 import { Field } from "./action-form";
 
@@ -26,6 +27,11 @@ export function NewSpecFields({ substrates }: { substrates: (Substrate & { statu
         </select>
       </Field>
       <SubstrateSelect substrates={substrates} />
+      <Field label="Spec form" htmlFor="spec_form" hint="Ideation = a loose brief; suppliers propose the spec">
+        <select id="spec_form" name="spec_form" defaultValue="fixed" className="input">
+          {SPEC_FORMS.map((f) => <option key={f.value} value={f.value}>{f.label}</option>)}
+        </select>
+      </Field>
       <Field label="First version name" htmlFor="version_name"><input id="version_name" name="version_name" defaultValue="Main" className="input" /></Field>
       <Field label="Quantity" htmlFor="quantity"><input id="quantity" name="quantity" required inputMode="numeric" className="input" /></Field>
       <Field label="Finished length" htmlFor="finished_length"><input id="finished_length" name="finished_length" inputMode="decimal" className="input" /></Field>

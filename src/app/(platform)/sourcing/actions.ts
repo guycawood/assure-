@@ -9,6 +9,9 @@ import { bool, friendly, id, numOrNull, str, type FormResult } from "@/lib/sourc
 import { getComponents, getEmissionLibraries, getSpec, getVersions } from "@/lib/sourcing-data";
 import { computeSpecCo2e, deriveComponentWeight, suggestHsCode } from "@/lib/sourcing-emissions";
 import { REGIONS, SPEC_TYPES, COMPONENT_TYPES } from "@/lib/sourcing";
+import {
+  SPEC_BOOL_FIELDS, SPEC_DECIMAL_FIELDS, SPEC_FORMS, SPEC_INT_FIELDS, SPEC_TEXT_FIELDS, SPEC_TRISTATE_FIELDS, TESTING_CHECKS,
+} from "@/lib/sourcing-hub";
 
 const jobSchema = z.object({
   title: z.string().min(1, "Give the job a title."),
@@ -86,9 +89,11 @@ export async function createSpec(_: FormResult, fd: FormData): Promise<FormResul
   if (!type || !SPEC_TYPE_VALUES.includes(type)) return { error: "Choose a spec type." };
   if (qty == null || !Number.isInteger(qty) || qty <= 0) return { error: "Enter the quantity as a whole number above zero." };
   const supabase = await createClient();
+  const form = str(fd, "spec_form") ?? "fixed";
+  if (!SPEC_FORMS.some((f) => f.value === form)) return { error: "Choose a spec form." };
   const { data, error } = await supabase.from("job_specs").insert({
     job_id: jobId, title, spec_type: type, description: str(fd, "description"), size_unit: str(fd, "size_unit") ?? "mm",
-    substrate_id: id(fd, "substrate_id"), brief_id: id(fd, "brief_id"), is_draft: bool(fd, "is_draft"),
+    substrate_id: id(fd, "substrate_id"), brief_id: id(fd, "brief_id"), is_draft: bool(fd, "is_draft"), spec_form: form,
   }).select("id").single();
   if (error) return { error: friendly(error) };
   const specId = (data as { id: string }).id;
@@ -122,6 +127,109 @@ export async function updateSpec(_: FormResult, fd: FormData): Promise<FormResul
   await recompute(supabase, specId);
   revalidatePath(`/sourcing/specs/${specId}`);
   return { ok: true, message: "Spec saved" };
+}
+
+/* ---------------- Structured spec fields and revisions (Sourcing Hub) ---------------- */
+
+const LABELS: Record<string, string> = {
+  substrate_weight_gsm: "substrate weight", carton_length_cm: "carton length", carton_width_cm: "carton width", carton_height_cm: "carton height",
+  recycled_content_percent: "recycled content", net_weight_kg: "net weight", gross_weight_kg: "gross weight", units_per_inner: "units per inner",
+  units_per_outer: "units per outer", number_of_uses: "number of uses", selling_unit_qty: "selling unit quantity", moq: "MOQ",
+};
+
+/** Typed values for the structured spec fields from the form (names = job_specs columns). */
+function readSpecHub(fd: FormData): { data?: Record<string, unknown>; error?: string } {
+  const data: Record<string, unknown> = {};
+  const form = str(fd, "spec_form") ?? "fixed";
+  if (!SPEC_FORMS.some((f) => f.value === form)) return { error: "Choose a spec form." };
+  data.spec_form = form;
+  for (const k of SPEC_TEXT_FIELDS) data[k] = str(fd, k);
+  data.unit_of_measure = ((data.unit_of_measure as string | null) ?? "EA").toUpperCase();
+  for (const k of SPEC_INT_FIELDS) {
+    const n = numOrNull(fd, k);
+    if (n != null && (!Number.isInteger(n) || n <= 0)) return { error: `Enter the ${LABELS[k] ?? k} as a whole number above zero.` };
+    data[k] = n;
+  }
+  for (const k of SPEC_DECIMAL_FIELDS) {
+    const n = numOrNull(fd, k);
+    if (n != null && (Number.isNaN(n) || n < 0)) return { error: `Enter the ${LABELS[k] ?? k} as a number.` };
+    data[k] = n;
+  }
+  if (data.recycled_content_percent != null && Number(data.recycled_content_percent) > 100) return { error: "Recycled content can't be more than 100%." };
+  if (data.net_weight_kg != null && data.gross_weight_kg != null && Number(data.gross_weight_kg) < Number(data.net_weight_kg)) {
+    return { error: "Gross weight can't be less than net weight." };
+  }
+  for (const k of SPEC_TRISTATE_FIELDS) {
+    const v = str(fd, k);
+    data[k] = v === "yes" ? true : v === "no" ? false : null;
+  }
+  for (const k of SPEC_BOOL_FIELDS) data[k] = bool(fd, k);
+  const checks = fd.getAll("testing_checklist").map(String);
+  if (checks.some((c) => !TESTING_CHECKS.some((t) => t.value === c))) return { error: "Choose tests from the list." };
+  data.testing_checklist = checks;
+  data.branding_method_id = id(fd, "branding_method_id");
+  data.aql_level_id = id(fd, "aql_level_id");
+  return { data };
+}
+
+/** Structured fields on a spec that is not on a live RFQ (a plain edit). */
+export async function updateSpecDetails(_: FormResult, fd: FormData): Promise<FormResult> {
+  await requireInternal();
+  const specId = id(fd);
+  if (!specId) return { error: "Spec not found." };
+  const { data, error: e } = readSpecHub(fd);
+  if (e || !data) return { error: e };
+  const supabase = await createClient();
+  const { error } = await supabase.from("job_specs").update(data).eq("id", specId);
+  if (error) return { error: friendly(error) };
+  revalidatePath(`/sourcing/specs/${specId}`);
+  return { ok: true, message: "Spec details saved" };
+}
+
+/**
+ * A spec on a sent RFQ: make a new revision (snapshot + change note). The RFQ is flagged "spec changed" and invited
+ * suppliers are asked to re-quote. On an awarded RFQ only Stocktool master data can change (checked in the database).
+ */
+export async function reviseSpec(_: FormResult, fd: FormData): Promise<FormResult> {
+  await requireInternal();
+  const specId = id(fd);
+  if (!specId) return { error: "Spec not found." };
+  const note = str(fd, "change_note");
+  if (!note) return { error: "Say what changed: the note goes to the suppliers." };
+  const { data, error: e } = readSpecHub(fd);
+  if (e || !data) return { error: e };
+  const supabase = await createClient();
+  const current = await getSpec(supabase, specId);
+  if (!current) return { error: "Spec not found." };
+  const changes: Record<string, unknown> = { ...data };
+  const title = str(fd, "title");
+  if (title) changes.title = title;
+  if (fd.has("description")) changes.description = str(fd, "description");
+  if (fd.has("hs_code")) changes.hs_code = str(fd, "hs_code");
+  // Only send what differs, so an awarded spec can still take master-data-only changes.
+  const cur = current as unknown as Record<string, unknown>;
+  for (const [k, v] of Object.entries(changes)) {
+    const was = cur[k];
+    const same = Array.isArray(v) ? JSON.stringify([...v].sort()) === JSON.stringify([...((was as string[] | null) ?? [])].sort())
+      : (v ?? null) === (was ?? null) || (typeof v === "number" && was != null && Number(was) === v);
+    if (same) delete changes[k];
+  }
+  const versions: { id: string; quantity: number }[] = [];
+  for (const [k, v] of fd.entries()) {
+    const m = /^vqty_([0-9a-f-]{36})$/i.exec(k);
+    if (!m || typeof v !== "string" || !v.trim()) continue;
+    const q = Number(v.replace(/[\s,]/g, ""));
+    if (!Number.isInteger(q) || q <= 0) return { error: "Version quantities must be whole numbers above zero." };
+    versions.push({ id: m[1], quantity: q });
+  }
+  const vers = await getVersions(supabase, specId);
+  const changedVersions = versions.filter((x) => vers.find((v) => v.id === x.id)?.quantity !== x.quantity);
+  if (changedVersions.length) changes.versions = changedVersions;
+  const { data: rev, error } = await supabase.rpc("spec_revise", { p_spec: specId, p_changes: changes, p_note: note });
+  if (error) return { error: friendly(error) };
+  revalidatePath(`/sourcing/specs/${specId}`);
+  revalidatePath("/rfq", "layout");
+  return { ok: true, message: `Revision ${rev} saved. Suppliers on open RFQs have been asked to re-quote.` };
 }
 
 export async function addVersion(_: FormResult, fd: FormData): Promise<FormResult> {

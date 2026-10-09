@@ -274,6 +274,23 @@ test("client bills from approved estimates: numbered, one live bill per estimate
   await rejects(as("finance", "select public.finance_bill_create($1, 0, null)", [draft.est]), /approved the estimate/);
 });
 
+test("Client Portal bills: the client sees its own sent and paid bills only, never drafts or cost", async () => {
+  const cu = "00000000-0000-0000-0000-0000000000c9";
+  await asSuper("insert into auth.users (id, email) values ($1, 'ap@fcl.example')", [cu]);
+  ids.fclient = cu;
+  await as("admin", "select public.client_access_grant($1, $2, 'viewer')", [cu, client.id]);
+  const sent = await makePo(sA, { value: 1000 });
+  const draft = await makePo(sA, { value: 500 });
+  const { rows: [{ id: sentBill }] } = await as("finance", "select public.finance_bill_create($1, 0, null) as id", [sent.est]);
+  await as("finance", "select public.finance_bill_create($1, 0, null)", [draft.est]);
+  await as("finance", "select public.finance_bill_send($1)", [sentBill]);
+  const bills = (await one("fclient", "select public.client_portal_bills() b")).b;
+  assert.ok(bills.some((b) => b.id === sentBill));
+  assert.ok(bills.every((b) => ["sent", "paid", "overdue"].includes(b.status)));
+  assert.ok(bills.every((b) => !("cost_amount" in b)));
+  assert.equal((await one("vA", "select public.client_portal_bills() b")).b.length, 0);
+});
+
 test("Finance+ health view and vendor isolation of internal views", async () => {
   const h = (await as("finance", "select metric, value from public.watchtower_health_finance")).rows;
   assert.ok(h.find((r) => r.metric === "pos_over_invoiced" && Number(r.value) >= 1));

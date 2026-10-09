@@ -3,14 +3,16 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { requireInternal } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
-import { getComponents, getEmissionLibraries, getEvents, getPeople, getSpec, getVersions, rows } from "@/lib/sourcing-data";
+import { getComponents, getEmissionLibraries, getEvents, getLibrary, getPeople, getSpec, getVersions, rows } from "@/lib/sourcing-data";
 import { COMPONENT_TYPES, money, ROUTES, SPEC_TYPES, specType } from "@/lib/sourcing";
 import { computeSpecCo2e, deriveComponentWeight } from "@/lib/sourcing-emissions";
+import { rfqBlockers, specForm, testingLabel, type SpecHub, type SpecRevision } from "@/lib/sourcing-hub";
 import { Card, PageHead, Panel, Pill } from "@/components/ui";
 import { ActionForm, Field } from "@/components/sourcing/action-form";
 import { ActivityList, Facts, RoutePill, Td, Th, fmtDateTime } from "@/components/sourcing/bits";
 import { SubstrateSelect } from "@/components/sourcing/spec-fields";
-import { addComponent, addVersion, deleteComponent, deleteVersion, overrideTriage, recomputeSpec, runTriage, updateSpec } from "../../actions";
+import { SpecHubFields } from "@/components/sourcing/spec-hub-fields";
+import { addComponent, addVersion, deleteComponent, deleteVersion, overrideTriage, recomputeSpec, reviseSpec, runTriage, updateSpec, updateSpecDetails } from "../../actions";
 
 export const metadata: Metadata = { title: "Spec" };
 
@@ -18,27 +20,59 @@ export default async function SpecPage({ params }: { params: Promise<{ id: strin
   await requireInternal();
   const { id } = await params;
   const supabase = await createClient();
-  const spec = await getSpec(supabase, id);
+  const spec = (await getSpec(supabase, id)) as SpecHub | null;
   if (!spec) notFound();
-  const [versions, components, libs, events, people, lines] = await Promise.all([
+  const [versions, components, libs, events, people, lines, brandingMethods, aqlLevels, revisions] = await Promise.all([
     getVersions(supabase, id), getComponents(supabase, id), getEmissionLibraries(supabase), getEvents(supabase, { entity_id: id }), getPeople(supabase),
-    rows<{ rfq_id: string }>(supabase, "rfq_lines", { eq: { spec_id: id } }),
+    rows<{ rfq_id: string; spec_revision: number | null }>(supabase, "rfq_lines", { eq: { spec_id: id } }),
+    getLibrary(supabase, "branding_methods", false), getLibrary(supabase, "aql_levels", false),
+    rows<SpecRevision>(supabase, "spec_revisions", { eq: { spec_id: id }, order: [["revision", false]] }),
   ]);
   const live = computeSpecCo2e({ spec, versions, components, substratesById: libs.substrates, factorsByCode: libs.factors, singleSubstrate: spec.substrate_id ? libs.substrates[spec.substrate_id] : null });
-  const locked = lines.length > 0;
+  // On a sent or awarded RFQ the spec can't be edited directly: changes go through a new revision.
+  const locked = !!spec.on_live_rfq;
+  const onDraftRfq = lines.length > 0 && !locked;
+  const blockers = rfqBlockers(spec);
+  const hubLibs = { brandingMethods, aqlLevels };
   const job = { id: spec.job_id, number: spec.job_number };
 
   return (
     <>
       <PageHead crumbs={[{ label: "Sourcing+", href: "/sourcing" }, { label: job.number, href: `/sourcing/jobs/${job.id}?tab=specs` }, { label: `Spec ${spec.spec_no}` }]}
-        title={spec.title} sub={`${specType(spec.spec_type)} · ${spec.total_quantity.toLocaleString("en-GB")} units · ${spec.market} (${spec.region})`}>
+        title={spec.title} sub={`${specType(spec.spec_type)} · ${specForm(spec.spec_form).label} · ${spec.total_quantity.toLocaleString("en-GB")} units · ${spec.market} (${spec.region})`}>
         {spec.is_draft && <Pill tone="warn">Draft</Pill>}
+        <Pill tone="info">Revision {spec.revision ?? 1}</Pill>
         <RoutePill route={spec.route} confidence={spec.confidence} />
       </PageHead>
-      {locked && <Card className="border-warn/40 bg-warn-soft px-5 py-3 text-sm text-warn">This spec is on an RFQ. Once the RFQ is sent the spec is locked, so every supplier quotes on the same thing.</Card>}
+      {locked && <Card className="border-warn/40 bg-warn-soft px-5 py-3 text-sm text-warn">This spec is on a sent RFQ, so suppliers are quoting on it. To change it, use <b>Revise spec</b> below: a new revision is saved with your note, the RFQ is flagged &quot;spec changed&quot; and the invited suppliers are asked to re-quote. The revision they quoted on stays on record.</Card>}
+      {onDraftRfq && <Card className="px-5 py-3 text-sm text-muted">This spec is on a draft RFQ. Edit it freely until the RFQ is sent.</Card>}
+      {blockers.length > 0 && <Card className="border-bad/30 bg-bad-soft px-5 py-3 text-sm text-bad">Before this spec can go out on an RFQ, add: {blockers.join(", ")}.</Card>}
 
       <div className="grid gap-4 xl:grid-cols-3">
         <div className="space-y-4 xl:col-span-2">
+          {locked ? (
+            <Panel title="Revise spec" sub="Saves a new revision. Only what you change is recorded. On an awarded RFQ only Stocktool article data (HS code, origin, units, weights, cartons) can change.">
+              <div className="p-5">
+                <ActionForm action={reviseSpec} hidden={{ id }} submit="Save new revision and ask suppliers to re-quote" confirm="Save a new revision? Invited suppliers on open RFQs are asked to re-quote.">
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    <Field label="Title" htmlFor="r_title" className="sm:col-span-2"><input id="r_title" name="title" defaultValue={spec.title} required className="input" /></Field>
+                    <Field label="HS code" htmlFor="r_hs"><input id="r_hs" name="hs_code" defaultValue={spec.hs_code ?? ""} className="input" /></Field>
+                    <Field label="Description" htmlFor="r_desc" className="sm:col-span-2"><textarea id="r_desc" name="description" rows={2} defaultValue={spec.description ?? ""} className="input" /></Field>
+                  </div>
+                  {versions.length > 0 && (
+                    <div className="grid gap-3 sm:grid-cols-3">
+                      {versions.map((v) => (
+                        <Field key={v.id} label={`${v.name}: quantity`} htmlFor={`vqty_${v.id}`}><input id={`vqty_${v.id}`} name={`vqty_${v.id}`} inputMode="numeric" defaultValue={v.quantity} className="input" /></Field>
+                      ))}
+                    </div>
+                  )}
+                  <SpecHubFields spec={spec} libs={hubLibs} idPrefix="rev" />
+                  <Field label="What changed (sent to the suppliers)" htmlFor="change_note"><input id="change_note" name="change_note" required className="input" placeholder="e.g. Corner radius increased to 10 mm" /></Field>
+                </ActionForm>
+              </div>
+            </Panel>
+          ) : null}
+          {!locked && (<>
           <Panel title="Item details">
             <div className="p-5">
               <ActionForm action={updateSpec} hidden={{ id }} submit="Save spec">
@@ -65,6 +99,15 @@ export default async function SpecPage({ params }: { params: Promise<{ id: strin
               </ActionForm>
             </div>
           </Panel>
+
+          <Panel title="Spec form and product details" sub="Structured fields from the Sourcing Hub spec forms: Promo & Merch detail, testing, packing, sustainability and Stocktool article data.">
+            <div className="p-5">
+              <ActionForm action={updateSpecDetails} hidden={{ id }} submit="Save details">
+                <SpecHubFields spec={spec} libs={hubLibs} idPrefix="d" />
+              </ActionForm>
+            </div>
+          </Panel>
+          </>)}
 
           <Panel title="Versions" sub="Quantities and sizes. The first version's size is used for rate-card matching.">
             <table className="w-full text-sm">
@@ -188,6 +231,33 @@ export default async function SpecPage({ params }: { params: Promise<{ id: strin
                 </>
               )}
             </div>
+          </Panel>
+
+          <Panel title="At a glance">
+            <Facts items={[
+              ["Spec form", specForm(spec.spec_form).label], ["Category", [spec.product_category, spec.product_sub_type].filter(Boolean).join(" · ") || null],
+              ["Branding", spec.branding_method_name], ["AQL", spec.aql_level_name],
+              ["Testing", (spec.testing_checklist ?? []).length ? (spec.testing_checklist ?? []).map(testingLabel).join(", ") : null],
+              ["HS code", spec.hs_code], ["Origin", spec.origin_country], ["MOQ / SU", spec.moq || spec.selling_unit_qty ? `${spec.moq ?? "—"} / ${spec.selling_unit_qty ?? "—"} ${spec.unit_of_measure ?? ""}` : null],
+              ["Weights (net / gross)", spec.net_weight_kg != null || spec.gross_weight_kg != null ? `${spec.net_weight_kg ?? "—"} / ${spec.gross_weight_kg ?? "—"} kg` : null],
+              ["Reusable", spec.reusable == null ? null : spec.reusable ? `Yes${spec.number_of_uses ? `, ${spec.number_of_uses} uses` : ""}` : "No"],
+              ["Recycled content", spec.recycled_content_percent != null ? `${spec.recycled_content_percent}%` : null],
+              ["Lighting / electronics", spec.has_lighting_electronics ? spec.lighting_electronics_detail ?? "Yes" : "No"],
+            ]} />
+          </Panel>
+
+          <Panel title="Revisions" sub="A revision is kept each time the spec goes out on an RFQ or is revised afterwards.">
+            {revisions.length === 0 ? <p className="px-5 py-4 text-sm text-muted">Revision 1. Nothing sent yet.</p> : (
+              <ol className="divide-y divide-line text-sm">
+                {revisions.map((r) => (
+                  <li key={r.id} className="px-5 py-2.5">
+                    <div className="flex items-baseline justify-between gap-2"><span className="font-semibold">Revision {r.revision}</span><span className="text-xs text-muted">{fmtDateTime(r.created_at)}</span></div>
+                    {r.change_note && <p className="text-xs">{r.change_note}</p>}
+                    {lines.some((l) => l.spec_revision === r.revision) && <p className="text-xs text-muted">Quoted on by suppliers</p>}
+                  </li>
+                ))}
+              </ol>
+            )}
           </Panel>
 
           <Panel title="History"><ActivityList events={events} people={people} /></Panel>

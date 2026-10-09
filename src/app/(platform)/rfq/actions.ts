@@ -4,24 +4,45 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { requireInternal } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
-import { friendly, id, numberList, numOrNull, str, UUID, type FormResult } from "@/lib/sourcing-actions";
+import { bool, friendly, id, numberList, numOrNull, str, UUID, type FormResult } from "@/lib/sourcing-actions";
+import { MAX_BREAKS, parseDeliveryPoints } from "@/lib/sourcing-hub";
 
-/** Lines come from the form as spec_<n>, breaks_<n>, targets_<n>, show_<n> for each selected spec. */
+/**
+ * Lines come from the form as line=<key> (key = specId, or specId:versionId for a variant line) with breaks_<key>,
+ * targets_<key>, show_<key>, notes_<key>, runon_<key>, inc_<key>, date_<key> and dps_<key> (delivery points).
+ */
 function readLines(fd: FormData): { lines?: unknown[]; error?: string } {
-  const specIds = fd.getAll("spec").map(String).filter((s) => UUID.test(s));
-  if (specIds.length === 0) return { error: "Choose at least one spec line routed to Create." };
+  const keys = fd.getAll("line").map(String).filter((k) => k.split(":").every((p) => UUID.test(p)) && k.split(":").length <= 2);
+  if (keys.length === 0) return { error: "Choose at least one spec line." };
   const lines: unknown[] = [];
-  for (const sid of specIds) {
-    const breaks = numberList(str(fd, `breaks_${sid}`));
+  for (const k of keys) {
+    const [specId, versionId] = k.split(":");
+    const breaks = numberList(str(fd, `breaks_${k}`));
     if (breaks.length === 0 || breaks.some((b) => !Number.isInteger(b) || b <= 0)) return { error: "Quantity breaks must be whole numbers above zero, separated by commas." };
-    if (breaks.length > 6) return { error: "Up to 6 quantity breaks per line." };
-    const targetsRaw = str(fd, `targets_${sid}`);
+    if (breaks.length > MAX_BREAKS) return { error: `Up to ${MAX_BREAKS} quantity breaks per line.` };
+    const targetsRaw = str(fd, `targets_${k}`);
     const targets = targetsRaw ? numberList(targetsRaw) : [];
     if (targets.some((t) => Number.isNaN(t) || t < 0)) return { error: "Target prices must be numbers." };
     if (targets.length && targets.length !== breaks.length) return { error: "Give one target price per quantity break, or leave targets empty." };
-    lines.push({ spec_id: sid, quantity_breaks: breaks, target_prices: targets, show_targets: fd.get(`show_${sid}`) === "on", notes: str(fd, `notes_${sid}`) });
+    const runOn = numOrNull(fd, `runon_${k}`);
+    if (runOn != null && (!Number.isInteger(runOn) || runOn <= 0)) return { error: "The run-on quantity must be a whole number above zero." };
+    const date = str(fd, `date_${k}`);
+    if (date && !/^\d{4}-\d{2}-\d{2}$/.test(date)) return { error: "Choose a valid delivery date." };
+    const dps = parseDeliveryPoints(str(fd, `dps_${k}`));
+    if (dps.error) return { error: dps.error };
+    lines.push({
+      spec_id: specId, spec_version_id: versionId ?? null, quantity_breaks: breaks, target_prices: targets, show_targets: fd.get(`show_${k}`) === "on",
+      notes: str(fd, `notes_${k}`), run_on_quantity: runOn, incoterm: str(fd, `inc_${k}`), delivery_date: date, delivery_points: dps.points,
+    });
   }
   return { lines };
+}
+
+function readOptions(fd: FormData) {
+  return {
+    rate_card_exception: bool(fd, "rate_card_exception"), rate_card_exception_reason: str(fd, "rate_card_exception_reason"),
+    incoterm: str(fd, "incoterm"), incoterm_place: str(fd, "incoterm_place"),
+  };
 }
 
 function dueAt(fd: FormData) {
@@ -39,7 +60,18 @@ export async function createRfq(_: FormResult, fd: FormData): Promise<FormResult
   const supabase = await createClient();
   const { data, error } = await supabase.rpc("rfq_create", {
     p_job: id(fd, "job_id"), p_title: str(fd, "title"), p_due_at: dueAt(fd), p_estimated_value: est, p_lines: lines, p_notes: str(fd, "notes"),
+    p_options: readOptions(fd),
   });
+  if (error) return { error: friendly(error) };
+  revalidatePath("/rfq", "layout");
+  redirect(`/rfq/${data}`);
+}
+
+/** Copy an RFQ for a reorder: a new linked draft with the same lines and eligible suppliers. */
+export async function copyRfq(_: FormResult, fd: FormData): Promise<FormResult> {
+  await requireInternal();
+  const supabase = await createClient();
+  const { data, error } = await supabase.rpc("rfq_copy", { p_rfq: id(fd), p_title: str(fd, "title"), p_due_at: dueAt(fd) });
   if (error) return { error: friendly(error) };
   revalidatePath("/rfq", "layout");
   redirect(`/rfq/${data}`);

@@ -101,4 +101,7 @@ export const EVENT_LABEL: Record<string, string> = {
   approved: "Approved", declined: "Declined", rejected: "Rejected", vendor_accepted: "Vendor accepted the PO", vendor_declined: "Vendor declined the PO",
   submitted: "Submitted", line_manager_approved: "Line manager approved", line_manager_rejected: "Line manager rejected", assessed: "Procurement assessed",
   applied: "Applied", settings_changed: "Settings changed", access_changed: "Access changed",
+  revised: "Spec revised (new revision)", requote_requested: "Suppliers asked to re-quote", requote_submitted: "Re-quote submitted", copied: "Copied for a reorder",
+  cost_split_set: "Cost split set", commercials_set: "Commission and rebate set", logistics_set: "Hand-off details set",
+  client_po_added: "Client PO added", client_po_removed: "Client PO removed", handoff_refreshed: "Stocktool hand-off refreshed",
 };

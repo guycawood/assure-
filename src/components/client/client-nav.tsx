@@ -12,6 +12,7 @@ const ITEMS = [
   { href: "/client-portal/briefs", label: "Briefs", icon: "description" },
   { href: "/client-portal/estimates", label: "Estimates", icon: "request_quote" },
   { href: "/client-portal/orders", label: "Orders", icon: "local_shipping" },
+  { href: "/client-portal/bills", label: "Bills", icon: "receipt_long" },
   { href: "/client-portal/reports", label: "Reports", icon: "monitoring" },
 ];
 
