@@ -85,6 +85,43 @@ export async function getHandoffsForBrief(supabase: Client, briefId: string): Pr
   return (data as Handoff[]) ?? [];
 }
 
+/** Every concept on a brief that has entered the approval flow (any session). */
+export async function getBriefConceptsInApproval(supabase: Client, briefId: string): Promise<ConceptRow[]> {
+  const { data } = await supabase.from("ideation_concepts").select("*").eq("brief_id", briefId).neq("status", "proposed").order("submitted_at", { ascending: false });
+  return (data as ConceptRow[]) ?? [];
+}
+
+/** Campaign ideation concepts in the approval flow (plus one picked concept, whatever its state). */
+export async function getCampaignConcepts(supabase: Client, pickId?: string): Promise<(ConceptRow & { objective: string | null; context: Record<string, unknown> })[]> {
+  const { data } = await supabase.from("ideation_concepts").select("*").eq("kind", "product_type").order("created_at", { ascending: false }).limit(200);
+  const rows = ((data as ConceptRow[]) ?? []).filter((c) => !c.brief_id && ((c.status && c.status !== "proposed") || c.id === pickId));
+  const sids = [...new Set(rows.map((c) => c.session_id))];
+  const { data: sess } = sids.length ? await supabase.from("ideation_sessions").select("id, objective, context").in("id", sids) : { data: [] };
+  const byId = new Map(((sess as { id: string; objective: string | null; context: Record<string, unknown> }[]) ?? []).map((s) => [s.id, s]));
+  return rows.map((c) => ({ ...c, objective: byId.get(c.session_id)?.objective ?? null, context: byId.get(c.session_id)?.context ?? {} }));
+}
+
+/** Which of these concepts the signed-in user may approve now (concept_can_decide). */
+export async function conceptDecisionRights(supabase: Client, concepts: Pick<ConceptRow, "id" | "status">[]): Promise<Record<string, boolean>> {
+  const waiting = concepts.filter((c) => c.status === "submitted_for_approval");
+  const res = await Promise.all(waiting.map((c) => supabase.rpc("concept_can_decide", { p_concept: c.id })));
+  return Object.fromEntries(waiting.map((c, i) => [c.id, res[i].data === true]));
+}
+
+/** Does a CONCEPT approval policy apply to this brief? (approval_policy_for, most specific active policy.) */
+export async function conceptPolicy(supabase: Client, b: { client_id?: string | null; market: string | null; budget_high: number | null }) {
+  const { data } = await supabase.rpc("approval_policy_for", { p_type: "CONCEPT", p_client: b.client_id ?? null, p_market: b.market, p_value: b.budget_high });
+  const row = ((data as { code: string; approver_role: string | null; client_approval_required: boolean }[] | null) ?? [])[0];
+  return row ?? null;
+}
+
+export type ConceptAudit = { id: number; concept_id: string; stage: "internal" | "client"; action: string; comments: string | null; actor_name: string | null; at: string };
+export async function getConceptAudit(supabase: Client, conceptIds: string[]): Promise<ConceptAudit[]> {
+  if (!conceptIds.length) return [];
+  const { data } = await supabase.from("concept_approvals_v").select("id, concept_id, stage, action, comments, actor_name, at").in("concept_id", conceptIds).order("at");
+  return (data as ConceptAudit[]) ?? [];
+}
+
 export async function getLatestBulkRun(supabase: Client) {
   const { data } = await supabase.from("ideation_bulk_runs").select("*").order("created_at", { ascending: false }).limit(1);
   return ((data as { id: string; brief_ids: string[]; created_at: string; created_by: string | null }[]) ?? [])[0] ?? null;

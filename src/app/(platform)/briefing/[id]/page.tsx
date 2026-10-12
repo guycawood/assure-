@@ -4,10 +4,15 @@ import { notFound } from "next/navigation";
 import { requireInternal } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { getInternalPeople } from "@/lib/data";
-import { getBrief, getBriefHistory, getCampaigns, getLatestSession, getLibrary, getSessionTranscript } from "@/lib/briefing-data";
+import {
+  conceptDecisionRights, conceptPolicy, getBrief, getBriefConceptsInApproval, getBriefHistory, getCampaigns, getConceptAudit,
+  getLatestSession, getLibrary, getSessionTranscript,
+} from "@/lib/briefing-data";
 import { getWhatWorked } from "@/lib/shopper-iq-data";
 import { isAiConfigured } from "@/lib/ai/claude";
-import { budgetRange, canIdeate, marketName } from "@/lib/briefing";
+import { budgetRange, canIdeate, marketName, type Brief } from "@/lib/briefing";
+import { ROLE_LABEL } from "@/components/approvals/labels";
+import { ConceptActions } from "../concept-actions";
 import { formatDate, personName } from "@/lib/srt";
 import { Card, PageHead, Panel, Pill } from "@/components/ui";
 import { MSymbol } from "@/components/symbol";
@@ -44,6 +49,14 @@ export default async function BriefDetail({ params, searchParams }: { params: Pr
     getWhatWorked(supabase, { client: brief.client, brand: brief.brand, market: brief.market }),
   ]);
   const transcript = session ? await getSessionTranscript(supabase, session.id) : { messages: [], concepts: [], allConcepts: [] };
+  const [inApproval, policy] = await Promise.all([
+    getBriefConceptsInApproval(supabase, id),
+    conceptPolicy(supabase, { client_id: (brief as Brief & { client_id?: string | null }).client_id ?? null, market: brief.market, budget_high: brief.budget_high }),
+  ]);
+  const [decide, audit] = await Promise.all([
+    conceptDecisionRights(supabase, [...inApproval, ...transcript.concepts]),
+    getConceptAudit(supabase, inApproval.map((c) => c.id)),
+  ]);
   const names = Object.fromEntries(people.map((p) => [p.id, personName(p)]));
   const name = (uid: string | null) => (uid ? names[uid] ?? "Someone" : "Demo data");
   const isAuthor = brief.created_by === me.id;
@@ -115,7 +128,36 @@ export default async function BriefDetail({ params, searchParams }: { params: Pr
           </Card>
 
           <IdeationPanel briefId={id} open={canIdeate(brief)} demo={!isAiConfigured()} messages={transcript.messages} concepts={transcript.concepts}
-            sentConceptIds={history.handoffs.map((h) => h.concept_id)} initialParams={session?.creative_params} />
+            sentConceptIds={history.handoffs.map((h) => h.concept_id)} initialParams={session?.creative_params}
+            decide={decide} approvalRequired={Boolean(policy)} />
+
+          {(canIdeate(brief) || inApproval.length > 0) && <div id="concepts" className="scroll-mt-20">
+            <Panel title="Concept approvals"
+              sub={policy
+                ? `Policy ${policy.code}: a concept is approved by ${policy.approver_role ? (ROLE_LABEL[policy.approver_role] ?? policy.approver_role).toLowerCase() : "a colleague"} (never the submitter)${policy.client_approval_required ? ", then by the client in the Client Portal," : ""} before it goes to Sourcing+.`
+                : "No approval policy applies to this brief, so concepts can go straight to Sourcing+. You can still ask a colleague to approve one first."}
+              actions={<Link href="/watchtower/approvals" className="text-sm font-semibold text-accent hover:underline">All approvals</Link>}>
+              {inApproval.length === 0 ? <p className="px-5 py-4 text-sm text-muted">No concept has been submitted for approval yet.</p> : (
+                <ul className="divide-y divide-line">
+                  {inApproval.map((c) => (
+                    <li key={c.id} className="grid gap-3 px-5 py-3 md:grid-cols-[minmax(0,1fr)_300px]">
+                      <div className="min-w-0 text-sm">
+                        <p className="font-semibold">{c.name}</p>
+                        {c.data?.creative_direction && <p className="text-xs text-muted">{c.data.creative_direction}</p>}
+                        <ol className="mt-1.5 space-y-0.5 text-xs text-muted">
+                          {audit.filter((a) => a.concept_id === c.id).map((a) => (
+                            <li key={a.id}>{formatDate(a.at)} · {a.stage === "client" ? "Client " : ""}{a.action.replace(/_/g, " ")}{a.actor_name ? ` by ${a.actor_name}` : ""}{a.comments ? `: ${a.comments}` : ""}</li>
+                          ))}
+                          {c.submitted_by && !audit.some((a) => a.concept_id === c.id) && <li>Submitted by {name(c.submitted_by)}</li>}
+                        </ol>
+                      </div>
+                      <ConceptActions c={c} canDecide={Boolean(decide[c.id])} approvalRequired={Boolean(policy)} />
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </Panel>
+          </div>}
 
           {history.handoffs.length > 0 && (
             <Panel title="Hand-offs to Sourcing+">

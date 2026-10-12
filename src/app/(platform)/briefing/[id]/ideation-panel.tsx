@@ -8,18 +8,22 @@ import { MSymbol } from "@/components/symbol";
 import { ConceptCard } from "@/components/briefing/concept-card";
 import { CreativeSuggestionLabel, DemoNotice } from "@/components/briefing/labels";
 import { DEFAULT_PARAMS, PARAM_LABEL, PARAM_OPTIONS, type ConceptRow, type CreativeParams, type MessageRow } from "@/lib/briefing";
-import { runBriefIdeation, sendToSourcing, type ActionResult } from "../actions";
+import { runBriefIdeation, type ActionResult } from "../actions";
+import { ConceptActions } from "../concept-actions";
 
-export function IdeationPanel({ briefId, open, demo, messages, concepts, sentConceptIds, initialParams }: {
+export function IdeationPanel({ briefId, open, demo, messages, concepts, sentConceptIds, initialParams, decide = {}, approvalRequired = false }: {
   briefId: string; open: boolean; demo: boolean; messages: MessageRow[]; concepts: ConceptRow[]; sentConceptIds: string[];
   initialParams?: Partial<CreativeParams>;
+  /** concept id -> the signed-in user may approve it now */
+  decide?: Record<string, boolean>;
+  /** a CONCEPT approval policy applies to this brief */
+  approvalRequired?: boolean;
 }) {
   const router = useRouter();
   const [params, setParams] = useState<CreativeParams>({ ...DEFAULT_PARAMS, ...initialParams });
   const [input, setInput] = useState("");
   const [pending, start] = useTransition();
   const [res, setRes] = useState<ActionResult | null>(null);
-  const [sending, setSending] = useState<string | null>(null);
   const lastDemo = concepts.some((c) => c.demo) || (demo && concepts.length === 0);
 
   const run = (direction: string, fresh = false) => start(async () => {
@@ -28,12 +32,6 @@ export function IdeationPanel({ briefId, open, demo, messages, concepts, sentCon
     setRes(r.ok && !r.message.startsWith("Demo") ? null : r);
     if (r.ok) { setInput(""); router.refresh(); }
   });
-  const send = (conceptId: string) => {
-    const note = window.prompt("Anything Sourcing+ should know about this concept? (optional)");
-    if (note === null) return;
-    setSending(conceptId);
-    start(async () => { const r = await sendToSourcing(conceptId, note); setRes(r); setSending(null); if (r.ok) router.refresh(); });
-  };
 
   if (!open) {
     return (
@@ -82,9 +80,7 @@ export function IdeationPanel({ briefId, open, demo, messages, concepts, sentCon
                 return (
                   <ConceptCard key={c.id} concept={c.data} top={c.is_top}
                     actions={sent ? <Pill tone="ok"><MSymbol name="check" size={13} /> Sent to Sourcing+</Pill> : (
-                      <button className={clsx(btn.primary, "w-full")} disabled={pending} onClick={() => send(c.id)}>
-                        <MSymbol name="send" size={16} /> {sending === c.id ? "Sending…" : "Send to Sourcing+"}
-                      </button>
+                      <ConceptActions c={c} canDecide={Boolean(decide[c.id])} approvalRequired={approvalRequired} />
                     )} />
                 );
               })}

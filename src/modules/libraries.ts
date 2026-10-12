@@ -222,6 +222,31 @@ export const LIBRARY_SCHEMAS: Record<string, LibrarySchema> = {
       { key: "default", label: "Default for new RFQs", type: "boolean" },
     ],
   },
+  approval_policies: {
+    codeLabel: "Policy code", nameLabel: "Approval point", groupBy: "module",
+    note: "Who approves what across the platform. The most specific active policy applies (client, then market, then the highest value threshold met). SLA days drive overdue flags in the approvals inbox.",
+    fields: [
+      { key: "module", label: "Module", type: "enum", options: opts("watchtower", "briefing", "shopper-iq", "sourcing", "rfq", "orders", "logistics", "execution", "finance", "assure"), required: true, column: true, filter: true },
+      { key: "approval_type", label: "Approval type", type: "text", required: true, column: true, help: "Code used by the module, e.g. BRIEF, CONCEPT, PO_DOA" },
+      { key: "description", label: "What is approved", type: "textarea", column: true },
+      { key: "approver_role", label: "Who approves", type: "enum", required: true, column: true, filter: true, options: [
+        { value: "admin", label: "Admin" }, { value: "internal", label: "Anyone at adm Indicia" }, { value: "named_person", label: "Named person" },
+        { value: "srt_agent", label: "SRT agent or lead" }, { value: "srt_lead", label: "SRT lead" }, { value: "finance", label: "Finance" },
+        { value: "procurement", label: "Procurement" }, { value: "procurement_head", label: "Procurement head" }, { value: "sourcing_lead", label: "Sourcing lead" },
+        { value: "doa", label: "Delegated authority (DOA)" }, { value: "module_owner", label: "Module owner" }, { value: "briefing_lead", label: "Briefing lead" },
+        { value: "client_approver", label: "Client approver" }, { value: "vendor", label: "Vendor" },
+      ] },
+      { key: "min_value", label: "Applies from value", type: "number", column: true, help: "Blank for any value" },
+      { key: "currency", label: "Currency", type: "enum", options: opts("GBP", "EUR", "USD", "SGD") },
+      { key: "client_code", label: "Client (code)", type: "text", column: true, help: "Blank for every client" },
+      { key: "market", label: "Market", type: "text", column: true, help: "Two-letter code; blank for every market" },
+      { key: "maker_checker", label: "Maker-checker", type: "boolean", column: true, filter: true, help: "The approver can never be the requester" },
+      { key: "client_approval_required", label: "Client must approve too", type: "boolean", column: true, filter: true },
+      { key: "sla_days", label: "SLA", type: "number", unit: "days", column: true },
+      { key: "decided_in", label: "Decided by (function)", type: "text" },
+      { key: "where_in_ui", label: "Where it is decided", type: "text" },
+    ],
+  },
 };
 
 export const schemaFor = (key: string): LibrarySchema => LIBRARY_SCHEMAS[key] ?? { fields: [] };

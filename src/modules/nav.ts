@@ -28,6 +28,8 @@ export const NAV: Record<ModuleKey, { portal: string; groups: NavGroup[] }> = {
       about("watchtower", "Watchtower"),
       { label: "Oversight", items: [
         { label: "System health", href: "/watchtower", icon: "monitoring", exact: true },
+        { label: "Approvals", href: "/watchtower/approvals", icon: "approval" },
+        { label: "End-to-end journey", href: "/watchtower/journey", icon: "route" },
         { label: "How modules connect", href: "/watchtower/flow", icon: "account_tree" },
         { label: "Change requests", href: "/watchtower/change-requests", icon: "rule" },
         { label: "Core principles", href: "/watchtower/libraries/core_principles", icon: "verified" },

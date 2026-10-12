@@ -239,6 +239,41 @@ export async function createBriefFromSuggestions(sessionId: string, conceptIds: 
   redirect(`/briefing/${data as string}?from=ideation`);
 }
 
+// ---------------------------------------------------------------------------
+// Concept approval (approver, maker-checker and client sign-off are enforced in the database)
+// ---------------------------------------------------------------------------
+export async function submitConcept(conceptId: string, note: string): Promise<ActionResult> {
+  await requireInternal();
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("concept_submit", { p_concept: conceptId, p_note: note.trim() || null });
+  if (error) return { ok: false, message: error.message };
+  done();
+  revalidatePath("/watchtower/approvals");
+  return { ok: true, message: "Submitted for approval. A colleague with the approval role will decide it." };
+}
+
+export async function decideConcept(conceptId: string, decision: "approved" | "changes_requested", comments: string): Promise<ActionResult> {
+  await requireInternal();
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("concept_decide", { p_concept: conceptId, p_decision: decision, p_comments: comments.trim() || null });
+  if (error) return { ok: false, message: error.message };
+  done();
+  revalidatePath("/watchtower/approvals");
+  return { ok: true, message: decision === "approved" ? "Approved." : "Changes requested: returned to the submitter." };
+}
+
+export async function createBriefsFromConcept(conceptId: string, markets: string[]): Promise<ActionResult & { ids?: string[] }> {
+  await requireInternal();
+  const clean = [...new Set(markets.map((m) => m.trim().toUpperCase()).filter((m) => /^[A-Z]{2}$/.test(m)))];
+  if (!clean.length) return { ok: false, message: "Choose at least one market." };
+  const supabase = await createClient();
+  const { data, error } = await supabase.rpc("campaign_concept_to_briefs", { p_concept: conceptId, p_markets: clean });
+  if (error) return { ok: false, message: error.message };
+  done();
+  const ids = (data as string[] | null) ?? [];
+  return { ok: true, message: `${ids.length} draft brief${ids.length === 1 ? "" : "s"} created. Check each one, then submit it for approval.`, ids };
+}
+
 export async function sendToSourcing(conceptId: string, note: string): Promise<ActionResult> {
   await requireInternal();
   const supabase = await createClient();

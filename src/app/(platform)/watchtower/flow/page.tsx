@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { CONNECTIONS, SOURCING_HUB_FLOW } from "@/modules/flow";
 import { EXTERNAL_REPORTING, LAYERS, PORTALS, moduleByKey } from "@/modules/registry";
 import { Architecture } from "@/components/architecture";
@@ -16,6 +17,12 @@ export default function FlowMap() {
         title="How System Guy fits together"
         sub="Every module stands alone with its own Watchtower, governed by the master Watchtower. Data Management, Supplier Engagement, Sustainability and Internal Reporting run under every module. Clients and vendors come in through their own portals, with External Reporting tailored to each."
       />
+
+      <Card className="flex flex-wrap items-center gap-3 px-5 py-3.5 text-sm">
+        <MSymbol name="route" size={20} className="text-accent" />
+        <span>Want to walk the whole process step by step, with who approves what?</span>
+        <Link href="/watchtower/journey" className="ml-auto font-semibold text-accent hover:underline">Open the end-to-end journey</Link>
+      </Card>
 
       <Card className="p-5"><Architecture /></Card>
 

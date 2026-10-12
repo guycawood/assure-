@@ -6,10 +6,11 @@ import { personName, ticketRef, formatDate, type Ticket } from "@/lib/srt";
 import { MODULES } from "@/modules/registry";
 import { Card, Panel, Pill } from "@/components/ui";
 import { MSymbol } from "@/components/symbol";
+import { getInbox } from "@/components/approvals/data";
+import { typeLabel } from "@/components/approvals/labels";
 
 export const metadata: Metadata = { title: "Home" };
 
-type Brief = { id: string; brief_code: string; title: string; status: string; approval_status: string | null; created_by: string | null };
 type Client = Awaited<ReturnType<typeof createClient>>;
 
 async function count(supabase: Client, table: string, filter?: (q: ReturnType<Client["from"]>) => unknown): Promise<number> {
@@ -29,9 +30,9 @@ export default async function Home() {
   const me = await requireInternal();
   const supabase = await createClient();
   const today = new Date().toISOString().slice(0, 10);
-  const [ticketsRes, briefsRes, crRes, governRes, markets, briefsInFlight, openRfqs, estAwait, poDoa, inTransit, awaitInstall, pods] = await Promise.all([
+  const [ticketsRes, approvals, crRes, governRes, markets, briefsInFlight, openRfqs, estAwait, poDoa, inTransit, awaitInstall, pods] = await Promise.all([
     supabase.from("srt_tickets").select("*").eq("assignee", me.id).neq("status", "resolved").order("due_date", { nullsFirst: false }).limit(6),
-    supabase.from("briefs").select("id, brief_code, title, status, approval_status, created_by").eq("status", "submitted").limit(50),
+    getInbox(supabase, "mine"),
     supabase.from("change_requests").select("id, module, status").in("status", ["logged", "under_review", "needs_clarification", "implemented_pending_verification"]),
     supabase.from("module_owners").select("module").eq("user_id", me.id),
     count(supabase, "markets"),
@@ -44,7 +45,7 @@ export default async function Home() {
     count(supabase, "shipments", (q) => (q as never as { eq: (c: string, v: string) => unknown }).eq("pod_status", "received")),
   ]);
   const tickets = (ticketsRes.data ?? []) as Ticket[];
-  const toApprove = ((briefsRes.data ?? []) as Brief[]).filter((b) => b.created_by !== me.id && b.approval_status !== "approved");
+  const overdueApprovals = approvals.rows.filter((a) => a.status === "overdue").length;
   const governs = new Set(((governRes.data ?? []) as { module: string }[]).map((g) => g.module));
   const crs = ((crRes.data ?? []) as { module: string }[]).filter((c) => me.is_admin || governs.has(c.module));
   const first = personName(me).split(" ")[0];
@@ -113,13 +114,15 @@ export default async function Home() {
             </ul>
           )}
         </Panel>
-        <Panel title="Briefs waiting for review" actions={<Link href="/briefing" className="text-sm font-semibold text-accent hover:underline">All</Link>}>
-          {toApprove.length === 0 ? <p className="px-5 py-4 text-sm text-muted">No briefs waiting for you.</p> : (
+        <Panel title="My approvals" sub={approvals.rows.length ? `${approvals.rows.length} waiting${overdueApprovals ? `, ${overdueApprovals} overdue` : ""}` : undefined}
+          actions={<Link href="/watchtower/approvals" className="text-sm font-semibold text-accent hover:underline">All</Link>}>
+          {approvals.rows.length === 0 ? <p className="px-5 py-4 text-sm text-muted">Nothing waiting for you to approve.</p> : (
             <ul className="divide-y divide-line">
-              {toApprove.slice(0, 6).map((b) => (
-                <li key={b.id} className="flex items-center gap-3 px-5 py-2.5 text-sm">
-                  <span className="font-mono text-xs text-muted">{b.brief_code}</span>
-                  <Link href={`/briefing/${b.id}`} className="min-w-0 flex-1 truncate font-semibold hover:underline">{b.title}</Link>
+              {approvals.rows.slice(0, 6).map((a) => (
+                <li key={`${a.module}:${a.approval_type}:${a.item_id}`} className="flex items-center gap-3 px-5 py-2.5 text-sm">
+                  <span className="w-24 shrink-0 truncate text-xs text-muted" title={typeLabel(a.approval_type)}>{typeLabel(a.approval_type)}</span>
+                  <Link href={a.href} className="min-w-0 flex-1 truncate font-semibold hover:underline">{a.title ?? a.ref}</Link>
+                  {a.status === "overdue" && <Pill tone="bad">Overdue</Pill>}
                 </li>
               ))}
             </ul>

@@ -1,12 +1,13 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { clsx } from "clsx";
 import { btn, Card, Pill } from "@/components/ui";
 import { MSymbol } from "@/components/symbol";
 import { BundleEcoSummary, CreativeSuggestionLabel, DemoNotice, EcoGradeBadge, EcoTagInline } from "@/components/briefing/labels";
 import { CLIENT_OPTIONS, MARKETS, SPEC_TYPE_LABEL } from "@/lib/briefing";
-import { createBriefFromSuggestions, runCampaignIdeation, type CampaignIdeationState } from "../actions";
+import { createBriefFromSuggestions, runCampaignIdeation, submitConcept, type CampaignIdeationState } from "../actions";
 
 export function CampaignIdeation() {
   const [form, setForm] = useState({ objective: "", client: "", brand: "", division: "", market: "" });
@@ -14,6 +15,8 @@ export function CampaignIdeation() {
   const [selected, setSelected] = useState<string[]>([]);
   const [pending, start] = useTransition();
   const [error, setError] = useState<string | null>(null);
+  const [submitted, setSubmitted] = useState<string[]>([]);
+  const router = useRouter();
   const set = (k: keyof typeof form, v: string) => setForm((f) => ({ ...f, [k]: v }));
 
   const generate = () => start(async () => {
@@ -27,6 +30,16 @@ export function CampaignIdeation() {
     const r = await createBriefFromSuggestions(result.sessionId, ids);
     if (r && !r.ok) setError(r.message);
   });
+  const submit = (id: string) => {
+    const note = window.prompt("Anything the approver should know? (optional)");
+    if (note === null) return;
+    start(async () => {
+      const r = await submitConcept(id, note);
+      if (!r.ok) { setError(r.message); return; }
+      setSubmitted((s) => [...s, id]);
+      router.refresh();
+    });
+  };
   const toggle = (id: string) => setSelected((s) => (s.includes(id) ? s.filter((x) => x !== id) : [...s, id]));
   const suggestions = result?.suggestions ?? [];
   const picks = suggestions.filter((s) => selected.includes(s.concept_id));
@@ -103,7 +116,12 @@ export function CampaignIdeation() {
                     <EcoGradeBadge eco={s.eco} />
                     <div className="mt-auto flex items-center justify-between gap-2 pt-1" onClick={(e) => e.stopPropagation()}>
                       <span className="text-[0.7rem] text-muted">{s.product_type_id ? "In the touchpoint taxonomy" : "Not in the taxonomy yet"}</span>
-                      <button className={btn.primary} disabled={pending} onClick={() => use([s.concept_id])}><MSymbol name="add" size={16} /> Use this</button>
+                      <span className="flex flex-wrap justify-end gap-2">
+                        {submitted.includes(s.concept_id) ? <Pill tone="warn">Submitted for approval</Pill> : (
+                          <button className={btn.secondary} disabled={pending} onClick={() => submit(s.concept_id)}><MSymbol name="approval" size={16} /> Submit for approval</button>
+                        )}
+                        <button className={btn.primary} disabled={pending} onClick={() => use([s.concept_id])}><MSymbol name="add" size={16} /> Use this</button>
+                      </span>
                     </div>
                   </div>
                 );

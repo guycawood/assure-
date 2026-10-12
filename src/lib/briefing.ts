@@ -144,7 +144,27 @@ export type ConceptRow = {
   id: string; session_id: string; message_id: number; brief_id: string | null; kind: "spec_concept" | "product_type"; idx: number;
   is_top: boolean; name: string; data: SpecConcept & ProductTypeSuggestion; substrate_record_id: string | null;
   touchpoint_record_id: string | null; model: string; prompt_version: string; demo: boolean; created_at: string;
+  // Approval (20261021000002). Optional so older reads still type-check.
+  status?: ConceptStatus; submitted_by?: string | null; submitted_at?: string | null; submit_note?: string | null;
+  decided_by?: string | null; decided_at?: string | null; decision_comments?: string | null;
+  client_approval_required?: boolean; client_status?: ConceptClientStatus; client_comments?: string | null; client_decided_at?: string | null;
 };
+export type ConceptStatus = "proposed" | "submitted_for_approval" | "approved" | "changes_requested" | "sent_to_sourcing";
+export type ConceptClientStatus = "not_required" | "pending" | "approved" | "changes_requested";
+export const CONCEPT_STATUS: Record<ConceptStatus, { label: string; tone: "neutral" | "warn" | "ok" | "bad" | "info" | "accent" }> = {
+  proposed: { label: "Proposed", tone: "neutral" },
+  submitted_for_approval: { label: "Waiting for approval", tone: "warn" },
+  approved: { label: "Approved", tone: "ok" },
+  changes_requested: { label: "Changes requested", tone: "bad" },
+  sent_to_sourcing: { label: "Sent to Sourcing+", tone: "info" },
+};
+/** Can this concept go to Sourcing+ now? (The database re-checks; this only decides which button to show.) */
+export function conceptReadyToSend(c: Pick<ConceptRow, "status" | "client_approval_required" | "client_status">, approvalRequired: boolean): boolean {
+  const status = c.status ?? "proposed";
+  if (status === "sent_to_sourcing") return false;
+  if (status === "proposed" && !approvalRequired) return true;
+  return status === "approved" && (!c.client_approval_required || c.client_status === "approved");
+}
 export type MessageRow = { id: number; session_id: string; role: "user" | "assistant"; content: string; model: string | null; prompt_version: string | null; demo: boolean; created_at: string };
 export type CreativeParams = { innovation: string; sustainability: string; budget: string; format?: string };
 export const DEFAULT_PARAMS: CreativeParams = { innovation: "balanced", sustainability: "medium", budget: "respect" };
