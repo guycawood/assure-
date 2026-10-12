@@ -16,7 +16,7 @@ export default async function NewJobPage({ searchParams }: { searchParams: Promi
   const [clients, entities] = await Promise.all([getClients(supabase), getBillingEntities(supabase)]);
   return (
     <>
-      <PageHead crumbs={[{ label: "Sourcing+", href: "/sourcing" }, { label: "Jobs", href: "/sourcing/jobs" }, { label: "New job" }]} title="Open a job"
+      <PageHead crumbs={[{ label: "Sourcing", href: "/sourcing" }, { label: "Jobs", href: "/sourcing/jobs" }, { label: "New job" }]} title="Open a job"
         sub="The job number is given automatically when you save. Add specs next, then triage them." />
       <Card className="max-w-3xl p-5">
         <ActionForm action={createJob} submit="Open job" pendingLabel="Opening…">

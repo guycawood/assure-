@@ -8,7 +8,7 @@ import { ButtonLink, PageHead, Panel, Stat } from "@/components/ui";
 import { MSymbol } from "@/components/symbol";
 import { StatusPill, Td, Th, fmtDate } from "@/components/sourcing/bits";
 
-export const metadata: Metadata = { title: "Logistics+" };
+export const metadata: Metadata = { title: "Logistics" };
 
 export default async function LogisticsDashboard() {
   await requireInternal();
@@ -26,7 +26,7 @@ export default async function LogisticsDashboard() {
 
   return (
     <>
-      <PageHead title="Logistics+" sub="Deliveries per destination for every supplier PO, shipments and proof of delivery checked against the 8-point list, and the transport CO2e of each delivery.">
+      <PageHead title="Logistics" sub="Deliveries per destination for every supplier PO, shipments and proof of delivery checked against the 8-point list, and the transport CO2e of each delivery.">
         <ButtonLink href="/logistics/plan">Plan from a PO</ButtonLink>
         <ButtonLink href="/logistics/deliveries" variant="primary">Deliveries</ButtonLink>
       </PageHead>

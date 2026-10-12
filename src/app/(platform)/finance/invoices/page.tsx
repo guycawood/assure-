@@ -33,7 +33,7 @@ export default async function InvoicesPage({ searchParams }: { searchParams: Pro
   return (
     <>
       <PageHead crumbs={[{ label: "Finance+", href: "/finance" }, { label: "Supplier invoices" }]} title="Supplier invoices"
-        sub="Vendors upload invoices against accepted POs in the vendor portal. Each is matched against the PO value, the deliveries and PODs in Logistics+, and the installs in Execution+." />
+        sub="Vendors upload invoices against accepted POs in the vendor portal. Each is matched against the PO value, the deliveries and PODs in Logistics, and the installs in Execution." />
       <FilterLinks base="/finance/invoices" param="status" current={current[0]} options={FILTERS.map(([k, l, f]) => ({ key: k, label: l, count: all.filter((i) => f(i.status)).length }))} />
       <Card className="min-w-0 overflow-x-auto">
         {list.length === 0 ? <Empty title="No invoices here" /> : (

@@ -24,7 +24,7 @@ export default async function ReccesPage({ searchParams }: { searchParams: Promi
   const fit = candidate ? countFitting(all, candidate) : null;
   return (
     <>
-      <PageHead crumbs={[{ label: "Execution+", href: "/execution" }, { label: "Recces" }]} title="Recces"
+      <PageHead crumbs={[{ label: "Execution", href: "/execution" }, { label: "Recces" }]} title="Recces"
         sub="Site surveys: the space that exists, the surface it mounts on and the unit size. Units that fit are worked out from the measurements, never typed in." />
       <nav className="flex flex-wrap gap-2 text-sm">
         {[["", "All"], ...Object.entries(RECCE_STATUS).map(([k, v]) => [k, v.label])].map(([k, l]) => (

@@ -2,7 +2,7 @@ import "server-only";
 import { rows, one, type Client } from "@/lib/sourcing-data";
 import type { Audit, CloseCheck, Criterion, Deployment, Gate, Outlet, Recce, Ticket, Visit } from "@/lib/execution";
 
-// Server-side reads for Execution+, as the signed-in user under RLS (internal only).
+// Server-side reads for Execution, as the signed-in user under RLS (internal only).
 
 type Eq = Record<string, string>;
 export const getOutlets = (s: Client, eq: Eq = {}) => rows<Outlet>(s, "v_outlets", { eq, order: [["name", true]], limit: 5000 });

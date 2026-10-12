@@ -34,7 +34,7 @@ export default async function NcrPage({ params }: { params: Promise<{ id: string
   return (
     <>
       <PageHead title={n.title} sub={`${n.ncr_ref} · raised ${formatDate(n.created_at)}${n.raised_by ? ` by ${who(n.raised_by)}` : ""}`}
-        crumbs={[{ label: "Assure+", href: "/assure" }, { label: "Quality", href: "/assure/quality" }, { label: n.ncr_ref }]}>
+        crumbs={[{ label: "SRM", href: "/assure" }, { label: "Quality", href: "/assure/quality" }, { label: n.ncr_ref }]}>
         <Pill tone={open ? "warn" : "neutral"}>{n.status}</Pill>
       </PageHead>
       <div className="grid gap-4 xl:grid-cols-3">

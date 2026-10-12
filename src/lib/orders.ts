@@ -1,4 +1,4 @@
-// Order Management+ pure logic: estimate maths (markup or margin, savings), PO and PSA status metadata.
+// Order Management pure logic: estimate maths (markup or margin, savings), PO and PSA status metadata.
 import type { Tone } from "@/lib/srt";
 
 export type PricingMode = "markup" | "margin";

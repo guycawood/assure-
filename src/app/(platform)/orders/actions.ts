@@ -112,6 +112,11 @@ export async function createPo(_: FormResult, fd: FormData): Promise<FormResult>
 export async function approvePo(_: FormResult, fd: FormData) {
   return call("po_approve", { p_po: id(fd), p_note: str(fd, "note") }, [`/orders/purchase-orders/${id(fd)}`], "PO approved and issued to the vendor");
 }
+export async function etenderPo(_: FormResult, fd: FormData) {
+  const approve = str(fd, "decision") === "approve";
+  return call("po_etender_decide", { p_po: id(fd), p_approve: approve, p_note: str(fd, "note") }, [`/orders/purchase-orders/${id(fd)}`],
+    approve ? "E-tender approval given; the PO now goes to DOA approval" : "PO rejected at e-tender");
+}
 export async function rejectPo(_: FormResult, fd: FormData) {
   return call("po_reject", { p_po: id(fd), p_reason: str(fd, "reason") }, [`/orders/purchase-orders/${id(fd)}`], "PO rejected");
 }

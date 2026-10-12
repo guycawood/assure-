@@ -24,7 +24,7 @@ export function ConceptStatusPill({ c }: { c: C }) {
 
 /**
  * The buttons a concept card shows for the signed-in user: submit for approval, approve / request changes (only when
- * the database says this person may decide), send to Sourcing+ (brief concepts) or create briefs per market (campaign).
+ * the database says this person may decide), send to Sourcing (brief concepts) or create briefs per market (campaign).
  */
 export function ConceptActions({ c, canDecide, approvalRequired, mode = "brief" }: { c: C; canDecide: boolean; approvalRequired: boolean; mode?: "brief" | "campaign" }) {
   const router = useRouter();
@@ -44,7 +44,7 @@ export function ConceptActions({ c, canDecide, approvalRequired, mode = "brief" 
     if (why && why.trim()) run(() => decideConcept(c.id, "changes_requested", why));
   };
   const send = () => {
-    const note = window.prompt("Anything Sourcing+ should know about this concept? (optional)");
+    const note = window.prompt("Anything Sourcing should know about this concept? (optional)");
     if (note !== null) run(() => sendToSourcing(c.id, note));
   };
 
@@ -69,7 +69,7 @@ export function ConceptActions({ c, canDecide, approvalRequired, mode = "brief" 
         )}
         {status === "submitted_for_approval" && !canDecide && <p className="text-xs text-muted">A colleague with the approval role decides this (never the person who submitted it).</p>}
         {ready && (
-          <button className={clsx(btn.primary, "flex-1")} disabled={pending} onClick={send}><MSymbol name="send" size={16} /> Send to Sourcing+</button>
+          <button className={clsx(btn.primary, "flex-1")} disabled={pending} onClick={send}><MSymbol name="send" size={16} /> Send to Sourcing</button>
         )}
         {mode === "campaign" && status === "approved" && !picking && (
           <button className={clsx(btn.primary, "flex-1")} disabled={pending} onClick={() => setPicking(true)}><MSymbol name="add" size={16} /> Create briefs for markets</button>

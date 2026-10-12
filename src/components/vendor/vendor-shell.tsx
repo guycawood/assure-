@@ -8,8 +8,8 @@ import { MSymbol } from "@/components/symbol";
 import { NotificationsBell, type Notice } from "@/components/notifications-bell";
 import { VENDOR_NAV, type NavLink } from "@/lib/vendor";
 
-// The vendor portal has its own shell (never the internal one): white left sidebar with the Assure+ vendor wordmark
-// and the company name, and a top bar with notifications, the person and sign out. Assure+ green is the accent.
+// The vendor portal has its own shell (never the internal one): white left sidebar with the SRM vendor wordmark
+// and the company name, and a top bar with notifications, the person and sign out. SRM green is the accent.
 
 const ACCENT = "#2E9E8F";
 const STORE_KEY = "adm.vendor.sidebar.collapsed";

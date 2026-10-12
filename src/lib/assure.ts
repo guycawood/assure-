@@ -1,4 +1,4 @@
-// Assure+ SRM: pure types, labels and calculations shared by the internal pages. No I/O.
+// SRM: pure types, labels and calculations shared by the internal pages. No I/O.
 import type { Tone } from "@/lib/srt";
 
 export type Opt = { value: string; label: string; tone?: Tone };

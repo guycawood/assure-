@@ -1,4 +1,4 @@
-// Forms shared by the Assure+ pages and the Supplier 360 tabs. Server components that render a client ActionForm.
+// Forms shared by the SRM pages and the Supplier 360 tabs. Server components that render a client ActionForm.
 import {
   addCertificate, addDocument, createContract, createTask, logActivity, logInspection, raiseNcr, recordPerformance, reviewCertificate,
   reviewDocument, saveProfile, saveReview, setRiskLevel, setTaskStatus,

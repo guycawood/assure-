@@ -34,7 +34,7 @@ export default async function ReviewQueue({ searchParams }: { searchParams: Prom
   return (
     <>
       <PageHead title="Document review queue" sub="Check what vendors and colleagues have uploaded. Verify it, or reject it with a reason the vendor can act on."
-        crumbs={[{ label: "Assure+", href: "/assure" }, { label: "Compliance", href: "/assure/compliance" }, { label: "Review queue" }]} />
+        crumbs={[{ label: "SRM", href: "/assure" }, { label: "Compliance", href: "/assure/compliance" }, { label: "Review queue" }]} />
       <section className="grid gap-3 sm:grid-cols-4">
         <Stat label="Documents to check" value={docs.length} />
         <Stat label="Certificates to check" value={certs.length} />

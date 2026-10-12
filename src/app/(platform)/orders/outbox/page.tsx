@@ -16,7 +16,7 @@ export default async function OutboxPage() {
   const list = await rows<Row>(supabase, "integration_outbox", { eq: { module: "sourcing" }, order: [["created_at", false]], limit: 500 });
   return (
     <>
-      <PageHead crumbs={[{ label: "Order Management+", href: "/orders" }, { label: "Stocktool hand-off" }]} title="Stocktool hand-off"
+      <PageHead crumbs={[{ label: "Order Management", href: "/orders" }, { label: "Stocktool hand-off" }]} title="Stocktool hand-off"
         sub="Sourcing ends at client approval of the estimate: an estimate.approved event with the article, PO and SO details is queued here for Stocktool. The connector delivers it once the API is agreed." />
       <Card className="min-w-0 overflow-x-auto">
         {list.length === 0 ? <Empty title="Nothing queued"><p>Events appear when a client approves an estimate.</p></Empty> : (

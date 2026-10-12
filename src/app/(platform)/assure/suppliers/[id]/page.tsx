@@ -7,6 +7,7 @@ import { formatEur, RAG_LABEL } from "@/lib/srt";
 import { RISK, SUPPLIER_STATUS, SUPPLIER_TIER } from "@/lib/assure";
 import { ButtonLink, Card, PageHead, Pill, RagDot } from "@/components/ui";
 import { OptPill, Tabs } from "@/components/assure/bits";
+import { ApprovalRequests } from "@/components/approvals/requests";
 import {
   ActivityTab, CommercialTab, ComplianceTab, ContractsTab, DocumentsTab, OnboardingTab, OverviewTab, PerformanceTab, QualityTab, ReviewsTab, TasksTab,
 } from "./tabs";
@@ -27,7 +28,7 @@ const TABS = [
   { key: "activity", label: "Activity" },
 ];
 
-// Supplier 360: one supplier across every Assure+ function. Onboarding gates are the SRT desk's view of the same record.
+// Supplier 360: one supplier across every SRM function. Onboarding gates are the SRT desk's view of the same record.
 export default async function SupplierPage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ tab?: string }> }) {
   const me = await requireInternal();
   const { id } = await params;
@@ -44,7 +45,7 @@ export default async function SupplierPage({ params, searchParams }: { params: P
       <PageHead
         title={s.name}
         sub={[s.supplier_code, s.region, s.market, s.category, s.client].filter(Boolean).join(" · ")}
-        crumbs={[{ label: "Assure+", href: "/assure" }, { label: "Suppliers", href: "/assure/suppliers" }, { label: s.name }]}
+        crumbs={[{ label: "SRM", href: "/assure" }, { label: "Suppliers", href: "/assure/suppliers" }, { label: s.name }]}
       >
         <ButtonLink href={`/assure/srt/tickets/new?supplier=${s.id}`}>Raise SRT ticket</ButtonLink>
       </PageHead>
@@ -57,6 +58,8 @@ export default async function SupplierPage({ params, searchParams }: { params: P
         {s.purchasing_blocked ? <Pill tone="bad">Purchasing blocked</Pill> : <Pill tone="ok">Purchasing allowed</Pill>}
         <span className="ml-auto text-muted">YTD spend <b className="text-fg">{formatEur(s.ytd_spend)}</b></span>
       </Card>
+
+      <ApprovalRequests entityIds={s.id} types={["FAST_TRACK", "SUPPLIER_REACTIVATE"]} meId={me.id} />
 
       <Tabs tabs={TABS} active={active} base={`/assure/suppliers/${s.id}`} />
 

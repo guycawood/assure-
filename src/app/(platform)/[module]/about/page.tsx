@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { moduleByKey } from "@/modules/registry";
 import { ModuleAboutPage } from "../../module-about";
 
-// About pages for modules without their own folder (the planned ones). Assure+ and Watchtower have their own.
+// About pages for modules without their own folder (the planned ones). SRM and Watchtower have their own.
 type Props = { params: Promise<{ module: string }> };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {

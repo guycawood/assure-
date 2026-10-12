@@ -1,4 +1,4 @@
-// Execution+ pure logic and labels (no I/O). Ported from the Base44 recceCalc.js and retailMetrics.ts; the database
+// Execution pure logic and labels (no I/O). Ported from the Base44 recceCalc.js and retailMetrics.ts; the database
 // computes the stored values (units_fit, GPS distance, audit score) with the same formulas.
 import type { Tone } from "@/lib/srt";
 import { haversineKm } from "@/lib/sourcing-emissions";

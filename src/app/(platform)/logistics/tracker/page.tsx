@@ -24,7 +24,7 @@ export default async function TrackerPage({ searchParams }: { searchParams: Prom
   const count = (k: string) => active.filter((x) => x.stage === k).length;
   return (
     <>
-      <PageHead crumbs={[{ label: "Logistics+", href: "/logistics" }, { label: "Tracker" }]} title="Shipment tracker"
+      <PageHead crumbs={[{ label: "Logistics", href: "/logistics" }, { label: "Tracker" }]} title="Shipment tracker"
         sub="Where every open shipment sits on the journey from planned to POD verified, and where the goods are from the recorded legs." />
       <div className="grid gap-3 sm:grid-cols-3 xl:grid-cols-6">
         {STAGE_KEYS.slice(1).map((k) => (

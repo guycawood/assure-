@@ -38,7 +38,7 @@ export default async function RetailGradePage({ searchParams }: { searchParams: 
 
   return (
     <>
-      <PageHead crumbs={[{ label: "Execution+", href: "/execution" }, { label: "Retail Grade" }]} title="Retail Grade"
+      <PageHead crumbs={[{ label: "Execution", href: "/execution" }, { label: "Retail Grade" }]} title="Retail Grade"
         sub="How well displays are executed in store: audit scores against the governed display criteria, by outlet, market, campaign or supplier, with the in-store measures from Retail+ alongside." />
       <form method="get" className="flex flex-wrap gap-2">
         <select name="by" defaultValue={by} className="input w-auto" aria-label="Group by">{["outlet", "market", "region", "campaign", "supplier"].map((x) => <option key={x} value={x}>By {x}</option>)}</select>

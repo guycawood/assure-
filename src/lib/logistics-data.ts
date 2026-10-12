@@ -3,7 +3,7 @@ import { rows, one, type Client } from "@/lib/sourcing-data";
 import type { Delivery, EmissionSnapshot, Leg, Shipment, SupplierOtif } from "@/lib/logistics";
 import type { LibraryRecord } from "@/lib/sourcing";
 
-// Server-side reads for Logistics+, as the signed-in user under RLS (internal only), through views that join names.
+// Server-side reads for Logistics, as the signed-in user under RLS (internal only), through views that join names.
 
 export const getDeliveries = (s: Client, eq: Record<string, string> = {}) =>
   rows<Delivery>(s, "v_deliveries", { eq, order: [["planned_delivery_date", true]], limit: 5000 });

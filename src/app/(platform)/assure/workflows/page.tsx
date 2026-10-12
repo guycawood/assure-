@@ -49,7 +49,7 @@ export default async function WorkflowsPage({ searchParams }: { searchParams: Pr
   const n = (st: string) => instances.filter((w) => w.status === st).length;
   return (
     <>
-      <PageHead title="Workflows" sub="Multi-step approvals for a supplier. Each step needs the right role, and nobody approves two steps in a row." crumbs={[{ label: "Assure+", href: "/assure" }, { label: "Workflows" }]} />
+      <PageHead title="Workflows" sub="Multi-step approvals for a supplier. Each step needs the right role, and nobody approves two steps in a row." crumbs={[{ label: "SRM", href: "/assure" }, { label: "Workflows" }]} />
       <section className="grid gap-3 sm:grid-cols-4">
         <Stat label="In progress" value={n("in_progress")} />
         <Stat label="On hold" value={n("on_hold")} tone={n("on_hold") ? "warn" : undefined} />

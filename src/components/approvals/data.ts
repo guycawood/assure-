@@ -9,6 +9,8 @@ export type ApprovalRow = {
   requested_by: string | null; requested_by_name: string | null; requested_at: string | null; age_days: number | null;
   amount: number | null; currency: string | null; client: string | null; market: string | null; region: string | null;
   status: "pending" | "overdue"; approver_rule: string | null; href: string; can_decide: boolean; maker_checker: boolean;
+  /** Market name from the market master (market itself is the code). */
+  market_name: string | null;
 };
 
 export type PolicyRow = { id: string; code: string | null; name: string; version: number; data: Record<string, unknown> };

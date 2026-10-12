@@ -53,7 +53,7 @@ function Check({ ok, title, children }: { ok: boolean | undefined; title: string
   );
 }
 
-/** The three-way match result with evidence links to Order Management+, Logistics+ and Execution+. */
+/** The three-way match result with evidence links to Order Management, Logistics and Execution. */
 export function MatchPanel({ status, details, poId, poNumber, jobId }: { status: MatchStatus; details: MatchDetails; poId: string; poNumber: string; jobId: string }) {
   if (status === "not_run" || !details.amount) {
     return <p className="px-5 py-4 text-sm text-muted">The match hasn&apos;t been run yet. Run it to compare the invoice with the PO and the delivery and install records.</p>;
@@ -77,7 +77,7 @@ export function MatchPanel({ status, details, poId, poNumber, jobId }: { status:
         </p>
         {Number(a.remaining_to_invoice) > 0 && <p>{money(a.remaining_to_invoice, a.currency)} of the PO is still to be invoiced.</p>}
       </Check>
-      <Check ok={d?.ok} title="2. Delivered, with proof of delivery verified (Logistics+)">
+      <Check ok={d?.ok} title="2. Delivered, with proof of delivery verified (Logistics)">
         {!d || d.count === 0 ? <p>No deliveries are recorded against this PO.</p> : (
           <>
             <p>{d.delivered} of {d.count} deliveries delivered; {d.pods_unverified} POD(s) not verified.</p>
@@ -92,7 +92,7 @@ export function MatchPanel({ status, details, poId, poNumber, jobId }: { status:
           </>
         )}
       </Check>
-      <Check ok={dep?.ok} title="3. Installed and audited (Execution+)">
+      <Check ok={dep?.ok} title="3. Installed and audited (Execution)">
         {!dep || !dep.applies ? <p>No installs on this PO, so this check doesn&apos;t apply.</p> : (
           <>
             <p>{dep.done} of {dep.count} installs are installed (audit not failed) or audited and passed.</p>
@@ -104,7 +104,7 @@ export function MatchPanel({ status, details, poId, poNumber, jobId }: { status:
                 </li>
               ))}
             </ul>
-            <p className="mt-1"><Link className="text-accent hover:underline" href={`/execution/jobs/${jobId}`}>Job close check in Execution+</Link></p>
+            <p className="mt-1"><Link className="text-accent hover:underline" href={`/execution/jobs/${jobId}`}>Job close check in Execution</Link></p>
           </>
         )}
       </Check>

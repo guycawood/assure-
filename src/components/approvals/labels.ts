@@ -1,8 +1,8 @@
 // Labels shared by the approvals pages (pure, no I/O).
 
 export const MODULE_LABEL: Record<string, string> = {
-  watchtower: "Watchtower", briefing: "Briefing+", "shopper-iq": "Shopper IQ", sourcing: "Sourcing+", rfq: "RFQ+",
-  orders: "Order Management+", logistics: "Logistics+", execution: "Execution+", finance: "Finance+", assure: "Assure+",
+  watchtower: "Watchtower", briefing: "Briefing+", "shopper-iq": "Shopper IQ", sourcing: "Sourcing", rfq: "Sourcing",
+  orders: "Order Management", logistics: "Logistics", execution: "Execution", finance: "Finance+", assure: "SRM",
 };
 
 export const TYPE_LABEL: Record<string, string> = {
@@ -16,6 +16,13 @@ export const TYPE_LABEL: Record<string, string> = {
   CERTIFICATE: "Certificate", DOCUMENT: "Control document", PRE_ASSESSMENT_VM: "Pre-assessment (vendor manager)",
   PRE_ASSESSMENT_PROCUREMENT: "Pre-assessment (procurement)", REVIEW_OUTCOMES: "Review outcomes", SURVEY_REVIEW: "Survey response",
   WORKFLOW_STEP: "Workflow step", CA_VERIFY: "Corrective action", VENDOR_APPLICATION: "Vendor application", SUBSCRIPTION: "Vendor plan change",
+  SCORECARD: "Scorecard methodology", ACCESS_USER: "User access change", ACCESS_SOURCING: "Sourcing access / DOA change", CLIENT_ACCESS: "Client approver rights",
+  RFQ_AWARD: "RFQ award", RFQ_BYPASS: "Bypass award", RATE_CARD_EXCEPTION: "Rate-card exception", TRIAGE_OVERRIDE: "Triage override",
+  SOURCING_SETTINGS: "Sourcing settings", ESTIMATE_CONFIRM: "Client approval confirmation", PO_ETENDER: "PO e-tender approval",
+  PAYMENT_RELEASE: "Payment release", BILL_CANCEL: "Cancel sent bill", DELIVERY_CONFIRM: "Delivery without POD", JOB_CLOSE: "Job close with overrides",
+  RECCE_READY: "Production-ready recce", FAST_TRACK: "Fast-track onboarding", SUPPLIER_REACTIVATE: "Supplier reactivation",
+  CONTRACT_APPROVE: "Contract approval", INSPECTION_CHANGE: "Inspection result change", NCR_CLOSE: "NCR close", ISSUE_RESOLVE: "Issue resolution",
+  PAYMENT_TERMS: "Non-standard payment terms", SIQ_EFFECTIVENESS: "Result verification", SIQ_ASSET: "Asset rights sign-off",
 };
 
 export const typeLabel = (t: string) => TYPE_LABEL[t] ?? t.replace(/_/g, " ").toLowerCase().replace(/^./, (c) => c.toUpperCase());
@@ -25,6 +32,7 @@ export const ROLE_LABEL: Record<string, string> = {
   admin: "Admin", internal: "Anyone at adm Indicia", named_person: "The named person", srt_agent: "SRT agent or lead", srt_lead: "SRT lead",
   finance: "Finance", procurement: "Procurement", procurement_head: "Procurement head", sourcing_lead: "Sourcing lead",
   doa: "Delegated authority (DOA)", module_owner: "Module owner", briefing_lead: "Briefing lead", client_approver: "Client approver", vendor: "Vendor",
+  quality: "Quality role", logistics_lead: "Logistics lead", line_manager: "Line manager",
 };
 
 export function money(v: number | null | undefined, currency: string | null | undefined): string {

@@ -10,7 +10,7 @@ import { ButtonLink, PageHead, Panel, Pill, Stat } from "@/components/ui";
 import { MSymbol } from "@/components/symbol";
 import { StatusPill, Td, Th, fmtDate } from "@/components/sourcing/bits";
 
-export const metadata: Metadata = { title: "Order Management+" };
+export const metadata: Metadata = { title: "Order Management" };
 
 export default async function OrdersDashboard() {
   await requireInternal();
@@ -33,7 +33,7 @@ export default async function OrdersDashboard() {
 
   return (
     <>
-      <PageHead title="Order Management+" sub="Estimates to the client, supplier purchase orders with delegation-of-authority approval, vendor acceptance and the hand-off to Stocktool.">
+      <PageHead title="Order Management" sub="Estimates to the client, supplier purchase orders with delegation-of-authority approval, vendor acceptance and the hand-off to Stocktool.">
         <ButtonLink href="/orders/estimates">Estimates</ButtonLink>
         <ButtonLink href="/orders/purchase-orders" variant="primary">Purchase orders</ButtonLink>
       </PageHead>

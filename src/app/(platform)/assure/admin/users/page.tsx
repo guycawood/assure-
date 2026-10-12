@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getSuppliers } from "@/lib/data";
 import { SRT_ROLES, type Profile } from "@/lib/srt";
 import { Card, PageHead } from "@/components/ui";
+import { ApprovalRequests } from "@/components/approvals/requests";
 import { AccessRow } from "./access-row";
 
 export const metadata: Metadata = { title: "User access" };
@@ -19,6 +20,7 @@ export default async function UsersPage() {
   return (
     <>
       <PageHead title="User access" sub="People appear here after their first sign-in. Staff with an adm-indicia.com email join as internal; vendors are linked to their company by email." />
+      <ApprovalRequests types={["ACCESS_USER"]} meId={me.id} title="Access changes waiting for a second admin" history={5} />
       <Card className="p-4 text-sm">
         <p className="mb-2 font-semibold">SRT roles</p>
         <ul className="grid gap-1 sm:grid-cols-2">

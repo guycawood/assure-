@@ -21,7 +21,7 @@ export default async function VisitsPage({ searchParams }: { searchParams: Promi
   const today = new Date().toISOString().slice(0, 10);
   return (
     <>
-      <PageHead crumbs={[{ label: "Execution+", href: "/execution" }, { label: "Visits" }]} title="Visits"
+      <PageHead crumbs={[{ label: "Execution", href: "/execution" }, { label: "Visits" }]} title="Visits"
         sub="Field visits that install, fix, audit or survey, with an outcome for every one: a single forward view of site activity." />
       <nav className="flex flex-wrap gap-2 text-sm">
         {[["open", "Upcoming"], ["completed", "Completed"], ["cancelled", "Cancelled"], ["all", "All"]].map(([k, l]) => (

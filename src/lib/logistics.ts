@@ -1,4 +1,4 @@
-// Logistics+ pure logic and labels (no I/O). Ported from the Base44 podConfig.js and shipmentMilestones.js.
+// Logistics pure logic and labels (no I/O). Ported from the Base44 podConfig.js and shipmentMilestones.js.
 import type { Tone } from "@/lib/srt";
 import { transportKgCo2e } from "@/lib/sourcing-emissions";
 

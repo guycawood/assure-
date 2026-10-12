@@ -36,7 +36,7 @@ export default async function WorkflowPage({ params }: { params: Promise<{ id: s
 
   return (
     <>
-      <PageHead title={w.name} sub={optLabel(WORKFLOW_TYPES, w.workflow_type)} crumbs={[{ label: "Assure+", href: "/assure" }, { label: "Workflows", href: "/assure/workflows" }, { label: w.name }]}>
+      <PageHead title={w.name} sub={optLabel(WORKFLOW_TYPES, w.workflow_type)} crumbs={[{ label: "SRM", href: "/assure" }, { label: "Workflows", href: "/assure/workflows" }, { label: w.name }]}>
         <OptPill list={WORKFLOW_STATUS} value={w.status} />
       </PageHead>
       <div className="grid gap-4 xl:grid-cols-3">

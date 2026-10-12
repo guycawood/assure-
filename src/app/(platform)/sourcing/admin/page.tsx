@@ -6,9 +6,10 @@ import { money, REGIONS, type SourcingClient, type BillingEntity } from "@/lib/s
 import { PageHead, Panel, Pill } from "@/components/ui";
 import { ActionForm, Field } from "@/components/sourcing/action-form";
 import { ActivityList, Td, Th } from "@/components/sourcing/bits";
+import { ApprovalRequests } from "@/components/approvals/requests";
 import { saveBillingEntity, saveClient, setAccess, updateSettings } from "../actions";
 
-export const metadata: Metadata = { title: "Sourcing+ admin" };
+export const metadata: Metadata = { title: "Sourcing admin" };
 
 export default async function SourcingAdmin() {
   const me = await requireInternal();
@@ -25,8 +26,9 @@ export default async function SourcingAdmin() {
 
   return (
     <>
-      <PageHead crumbs={[{ label: "Sourcing+", href: "/sourcing" }, { label: "Admin" }]} title="Sourcing+ admin"
+      <PageHead crumbs={[{ label: "Sourcing", href: "/sourcing" }, { label: "Admin" }]} title="Sourcing admin"
         sub="Client commercial rules, billing entities, who can approve what, and the triage rules. Governed libraries (control matrix, rate cards, thresholds, DOA) are changed in the Watchtower." />
+      <ApprovalRequests types={["ACCESS_SOURCING", "SOURCING_SETTINGS"]} meId={me.id} title="Access and settings changes waiting for approval" history={5} />
 
       <Panel title="Clients and commercial rules" sub="Minimum quotes, markup, quote tolerance, savings target and e-tender threshold per client">
         <div className="overflow-x-auto">
@@ -55,7 +57,7 @@ export default async function SourcingAdmin() {
         <details className="border-t border-line px-5 py-3"><summary className="cursor-pointer text-sm font-semibold">Add a billing entity</summary><div className="mt-3 max-w-3xl"><EntityForm /></div></details>
       </Panel>
 
-      <Panel title="People and approval authority" sub="Sourcing leads approve high-value RFQs and route lines away from RFQ; Finance approves quotes; DOA level decides which POs someone can approve. Admins and Sourcing+ owners can change this.">
+      <Panel title="People and approval authority" sub="Sourcing leads approve high-value RFQs and route lines away from RFQ; Finance approves quotes; DOA level decides which POs someone can approve. Admins and Sourcing owners can change this.">
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead><tr><Th>Person</Th><Th>Access</Th></tr></thead>

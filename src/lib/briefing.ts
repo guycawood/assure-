@@ -156,9 +156,9 @@ export const CONCEPT_STATUS: Record<ConceptStatus, { label: string; tone: "neutr
   submitted_for_approval: { label: "Waiting for approval", tone: "warn" },
   approved: { label: "Approved", tone: "ok" },
   changes_requested: { label: "Changes requested", tone: "bad" },
-  sent_to_sourcing: { label: "Sent to Sourcing+", tone: "info" },
+  sent_to_sourcing: { label: "Sent to Sourcing", tone: "info" },
 };
-/** Can this concept go to Sourcing+ now? (The database re-checks; this only decides which button to show.) */
+/** Can this concept go to Sourcing now? (The database re-checks; this only decides which button to show.) */
 export function conceptReadyToSend(c: Pick<ConceptRow, "status" | "client_approval_required" | "client_status">, approvalRequired: boolean): boolean {
   const status = c.status ?? "proposed";
   if (status === "sent_to_sourcing") return false;

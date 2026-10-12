@@ -1,4 +1,4 @@
-// RFQ+ pure logic: benchmark (computeLineBenchmark), price dispersion and price-curve scenarios (white paper,
+// RFQs pure logic: benchmark (computeLineBenchmark), price dispersion and price-curve scenarios (white paper,
 // Data Intelligence pillar). Mirrors rfq_line_benchmark() in the database, which is what the award uses.
 import type { Tone } from "@/lib/srt";
 

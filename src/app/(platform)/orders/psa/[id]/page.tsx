@@ -25,13 +25,15 @@ export default async function PsaDetail({ params }: { params: Promise<{ id: stri
   const supabase = await createClient();
   const x = await one<Psa>(supabase, "v_psa_exceptions", id);
   if (!x) notFound();
-  const [events, people, access] = await Promise.all([getEvents(supabase, { entity_id: id }), getPeople(supabase), getMyAccess(supabase, me.id, me.is_admin, me.srt_role)]);
+  const [events, people, access, { data: lmOptions }] = await Promise.all([getEvents(supabase, { entity_id: id }), getPeople(supabase), getMyAccess(supabase, me.id, me.is_admin, me.srt_role),
+    supabase.rpc("psa_line_manager_options", { p_id: id })]);
+  const managers = ((lmOptions as { id: string; name: string }[] | null) ?? []);
   const stageIdx = PSA_STAGES.findIndex((s) => s.value === x.stage);
   const isProcurement = me.srt_role === "procurement" || access.is_lead;
 
   return (
     <>
-      <PageHead crumbs={[{ label: "Order Management+", href: "/orders" }, { label: "PSA exceptions", href: "/orders/psa" }, { label: x.reference }]} title={x.title}
+      <PageHead crumbs={[{ label: "Order Management", href: "/orders" }, { label: "PSA exceptions", href: "/orders/psa" }, { label: x.reference }]} title={x.title}
         sub={`${x.reference} · ${money(x.fee, x.currency, 2)} · raised by ${x.requester_name ?? "—"}`}>
         <Pill tone={psaStage(x.stage).tone}>{psaStage(x.stage).label}</Pill>
       </PageHead>
@@ -55,7 +57,7 @@ export default async function PsaDetail({ params }: { params: Promise<{ id: stri
             <div className="space-y-3 p-5 text-sm">
               {x.stage === "draft" && (x.requester === me.id ? (
                 <ActionForm action={submitPsa} hidden={{ id }} submit="Send to line manager">
-                  <Field label="Your line manager" htmlFor="line_manager"><select id="line_manager" name="line_manager" className="input">{[...people.entries()].filter(([uid]) => uid !== me.id).map(([uid, n]) => <option key={uid} value={uid}>{n}</option>)}</select></Field>
+                  <Field label="Your line manager" htmlFor="line_manager" hint="Only people who hold a line-manager role under the approval policy are listed."><select id="line_manager" name="line_manager" className="input">{managers.map((m) => <option key={m.id} value={m.id}>{m.name}</option>)}</select></Field>
                 </ActionForm>
               ) : <p className="text-muted">Waiting for the requester to submit.</p>)}
               {x.stage === "line_manager" && (x.line_manager === me.id ? (

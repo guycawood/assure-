@@ -280,5 +280,5 @@ export async function sendToSourcing(conceptId: string, note: string): Promise<A
   const { error } = await supabase.rpc("brief_handoff_create", { p_concept: conceptId, p_note: note || null });
   if (error) return { ok: false, message: error.message };
   done();
-  return { ok: true, message: "Sent to Sourcing+. It will appear in their queue to open as a job." };
+  return { ok: true, message: "Sent to Sourcing. It will appear in their queue to open as a job." };
 }

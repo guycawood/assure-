@@ -6,6 +6,7 @@ import { z } from "zod";
 import { requireInternal } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { bool, friendly, id, numOrNull, str, type FormResult } from "@/lib/sourcing-actions";
+import { sentForApproval } from "@/components/approvals/pending";
 import { getComponents, getEmissionLibraries, getSpec, getVersions } from "@/lib/sourcing-data";
 import { computeSpecCo2e, deriveComponentWeight, suggestHsCode } from "@/lib/sourcing-emissions";
 import { REGIONS, SPEC_TYPES, COMPONENT_TYPES } from "@/lib/sourcing";
@@ -355,10 +356,10 @@ export async function overrideTriage(_: FormResult, fd: FormData): Promise<FormR
   const { error } = await supabase.rpc("spec_triage_override", { p_spec: id(fd), p_route: str(fd, "route"), p_reason: str(fd, "reason") });
   if (error) return { error: friendly(error) };
   revalidatePath("/sourcing", "layout");
-  return { ok: true, message: "Route changed" };
+  return { ok: true, message: (await sentForApproval(supabase, "TRIAGE_OVERRIDE", id(fd) ?? "")) ?? "Route changed" };
 }
 
-/** Adopt / Adapt / accepted Push lines on a job become estimates (one per supplier) in Order Management+. */
+/** Adopt / Adapt / accepted Push lines on a job become estimates (one per supplier) in Order Management. */
 export async function estimateFromTriage(_: FormResult, fd: FormData): Promise<FormResult> {
   await requireInternal();
   const supabase = await createClient();
@@ -366,7 +367,7 @@ export async function estimateFromTriage(_: FormResult, fd: FormData): Promise<F
   if (error) return { error: friendly(error) };
   revalidatePath("/sourcing", "layout");
   revalidatePath("/orders", "layout");
-  return { ok: true, message: `${data} estimate(s) drafted in Order Management+` };
+  return { ok: true, message: `${data} estimate(s) drafted in Order Management` };
 }
 
 /* ---------------- Admin (clients, billing entities, access, settings) ---------------- */
@@ -413,7 +414,7 @@ export async function setAccess(_: FormResult, fd: FormData): Promise<FormResult
   });
   if (error) return { error: friendly(error) };
   revalidatePath("/sourcing/admin");
-  return { ok: true, message: "Access saved" };
+  return { ok: true, message: (await sentForApproval(supabase, "ACCESS_SOURCING", id(fd, "user_id") ?? "")) ?? "Access saved" };
 }
 
 export async function updateSettings(_: FormResult, fd: FormData): Promise<FormResult> {
@@ -425,5 +426,5 @@ export async function updateSettings(_: FormResult, fd: FormData): Promise<FormR
   });
   if (error) return { error: friendly(error) };
   revalidatePath("/sourcing/admin");
-  return { ok: true, message: "Settings saved" };
+  return { ok: true, message: (await sentForApproval(supabase, "SOURCING_SETTINGS", "settings")) ?? "Settings saved" };
 }

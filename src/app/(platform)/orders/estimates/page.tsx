@@ -21,7 +21,7 @@ export default async function EstimatesPage({ searchParams }: { searchParams: Pr
   if (sp.flag) list = list.filter((e) => e.order_flag === sp.flag);
   return (
     <>
-      <PageHead crumbs={[{ label: "Order Management+", href: "/orders" }, { label: "Estimates" }]} title="Estimates" sub="What the client is charged: the supplier cost plus markup or margin, with the savings achieved." />
+      <PageHead crumbs={[{ label: "Order Management", href: "/orders" }, { label: "Estimates" }]} title="Estimates" sub="What the client is charged: the supplier cost plus markup or margin, with the savings achieved." />
       <form method="get" className="flex gap-2">
         <select name="status" defaultValue={sp.status ?? ""} className="input w-auto" aria-label="Status"><option value="">All statuses</option>{Object.entries(ESTIMATE_STATUS).map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}</select>
         <select name="flag" defaultValue={sp.flag ?? ""} className="input w-auto" aria-label="Order flag"><option value="">Any order flag</option>{Object.entries(ORDER_FLAG).map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}</select>

@@ -23,7 +23,7 @@ export default async function SpecsPage({ searchParams }: { searchParams: Promis
 
   return (
     <>
-      <PageHead crumbs={[{ label: "Sourcing+", href: "/sourcing" }, { label: "Specs" }]} title="All specs" sub="Every spec across every job, with its material, weight, CO2e and route." />
+      <PageHead crumbs={[{ label: "Sourcing", href: "/sourcing" }, { label: "Specs" }]} title="All specs" sub="Every spec across every job, with its material, weight, CO2e and route." />
       <form method="get" className="flex flex-wrap items-center gap-2">
         <input name="q" defaultValue={sp.q ?? ""} placeholder="Search title, job, client, material" className="input w-64" aria-label="Search specs" />
         <select name="type" defaultValue={sp.type ?? ""} className="input w-auto" aria-label="Type"><option value="">All types</option>{SPEC_TYPES.map((t) => <option key={t.value} value={t.value}>{t.label}</option>)}</select>

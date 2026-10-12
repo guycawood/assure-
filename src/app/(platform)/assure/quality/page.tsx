@@ -7,6 +7,7 @@ import { getLibrary, getLibraryNames, rows, supplierOptions } from "@/lib/assure
 import { ACK_STATUS, INSPECTION_RESULT, INSPECTION_TYPES, NCR_SEVERITY, optLabel, passRate, type Inspection, type Ncr } from "@/lib/assure";
 import { personName } from "@/lib/srt";
 import { Card, Empty, PageHead, Panel, Pill, Stat } from "@/components/ui";
+import { ApprovalRequests } from "@/components/approvals/requests";
 import { Chips, Date_, OptPill, SupplierLink } from "@/components/assure/bits";
 import { ActionForm, Select } from "@/components/assure/action-form";
 import { InspectionForm, NcrForm } from "@/components/assure/forms";
@@ -15,7 +16,7 @@ import { setInspectionResult } from "../srm-actions";
 export const metadata: Metadata = { title: "Quality" };
 
 export default async function QualityPage({ searchParams }: { searchParams: Promise<{ result?: string; ncr?: string }> }) {
-  await requireInternal();
+  const me = await requireInternal();
   const sp = await searchParams;
   const supabase = await createClient();
   const [insp, ncrs, suppliers, cats, catNames, people] = await Promise.all([
@@ -37,7 +38,8 @@ export default async function QualityPage({ searchParams }: { searchParams: Prom
 
   return (
     <>
-      <PageHead title="Quality" sub="Inspections, non-conformance reports and corrective actions across all suppliers." crumbs={[{ label: "Assure+", href: "/assure" }, { label: "Quality" }]} />
+      <PageHead title="Quality" sub="Inspections, non-conformance reports and corrective actions across all suppliers." crumbs={[{ label: "SRM", href: "/assure" }, { label: "Quality" }]} />
+      <ApprovalRequests types={["INSPECTION_CHANGE"]} meId={me.id} title="Inspection results waiting for a second person" />
       <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
         <Stat label="Inspections" value={insp.length} />
         <Stat label="Pass rate" value={rate === null ? "—" : `${rate}%`} hint="Of inspections with a result" tone={rate === null ? undefined : rate >= 90 ? "ok" : rate >= 75 ? "warn" : "bad"} />

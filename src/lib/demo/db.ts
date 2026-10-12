@@ -39,13 +39,13 @@ async function wireDemoUsers(db: PGlite) {
   }
   const [admin, lead, agent, finance, procurement, head] = DEMO_USERS;
   await db.query("update public.profiles set srt_role = 'head' where id = $1", [head.id]);
-  await db.query("update public.profiles set is_admin = true where id = $1", [admin.id]);
+  await wireAdmins(db);
   await db.query("update public.profiles set srt_role = 'lead' where id = $1", [lead.id]);
   await db.query("update public.profiles set srt_role = 'agent' where id = $1", [agent.id]);
   await db.query("update public.profiles set srt_role = 'finance' where id = $1", [finance.id]);
   await db.query("update public.profiles set srt_role = 'procurement' where id = $1", [procurement.id]);
 
-  // Lena governs Assure+ libraries; Pedro raised the sample change request.
+  // Lena governs SRM libraries; Pedro raised the sample change request.
   await db.query("insert into public.module_owners (module, user_id) values ('assure', $1) on conflict do nothing", [lead.id]);
   await db.query("update public.change_requests set requested_by = $1 where requested_by is null", [procurement.id]);
 
@@ -119,6 +119,13 @@ async function catchUp(db: PGlite) {
   for (const u of DEMO_USERS) {
     await db.query("insert into auth.users (id, email, raw_user_meta_data) values ($1, $2, $3) on conflict (id) do nothing", [u.id, u.email, JSON.stringify({ full_name: u.name })]);
   }
+  await wireAdmins(db);
+}
+
+/** Every demo user whose role starts with "Admin" is a platform admin (two, so maker-checker approvals can complete). */
+async function wireAdmins(db: PGlite) {
+  const ids = DEMO_USERS.filter((u) => u.role.startsWith("Admin")).map((u) => u.id);
+  await db.query("update public.profiles set is_admin = true where id = any($1::uuid[])", [ids]);
 }
 
 async function build(): Promise<PGlite> {

@@ -50,7 +50,7 @@ export default async function PerformanceReport({ searchParams }: { searchParams
   return (
     <>
       <PageHead title="Compliance & sustainability report" sub="Scores over time against the thresholds you choose. More than 10 points under either threshold is below; up to 10 under is watch."
-        crumbs={[{ label: "Assure+", href: "/assure" }, { label: "Performance", href: "/assure/performance" }, { label: "Report" }]} />
+        crumbs={[{ label: "SRM", href: "/assure" }, { label: "Performance", href: "/assure/performance" }, { label: "Report" }]} />
       <section className="grid gap-3 sm:grid-cols-4">
         <Stat label="Average compliance" value={avg(inLatest.map((r) => r.compliance_score)) ?? "—"} hint={`${latestPeriod ?? "No data"} · threshold ${ct}`} />
         <Stat label="Average sustainability" value={avg(inLatest.map((r) => r.sustainability_score)) ?? "—"} hint={`${latestPeriod ?? "No data"} · threshold ${st}`} />

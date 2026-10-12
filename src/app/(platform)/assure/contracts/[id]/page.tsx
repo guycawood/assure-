@@ -8,6 +8,7 @@ import { getSupplier, rows } from "@/lib/assure-data";
 import { CONTRACT_STATUS, DOCUMENT_TYPES, isContractExpiring, NEGOTIATION_ACTION, optLabel, type Contract, type ContractParty } from "@/lib/assure";
 import { formatDate, personName, timeAgo } from "@/lib/srt";
 import { Empty, PageHead, Panel, Pill } from "@/components/ui";
+import { ApprovalRequests } from "@/components/approvals/requests";
 import { Date_, Facts, OptPill, SupplierLink } from "@/components/assure/bits";
 import { ActionForm, Field, Select } from "@/components/assure/action-form";
 import { addNegotiation, addParty, commentContract, contractAction, removeParty, signParty, updateContract } from "../../srm-actions";
@@ -18,7 +19,7 @@ type Neg = { id: string; clause: string; complexity: string; risk: string; actio
 type Act = { id: number; event_type: string; description: string | null; actor: string | null; created_at: string };
 
 export default async function ContractPage({ params }: { params: Promise<{ id: string }> }) {
-  await requireInternal();
+  const me = await requireInternal();
   const { id } = await params;
   const supabase = await createClient();
   const { data } = await supabase.from("contracts").select("*").eq("id", id).maybeSingle();
@@ -44,10 +45,11 @@ export default async function ContractPage({ params }: { params: Promise<{ id: s
   return (
     <>
       <PageHead title={c.title} sub={`${c.contract_ref} · v${c.version} · ${optLabel(DOCUMENT_TYPES, c.document_type)}`}
-        crumbs={[{ label: "Assure+", href: "/assure" }, { label: "Contracts", href: "/assure/contracts" }, { label: c.contract_ref }]}>
+        crumbs={[{ label: "SRM", href: "/assure" }, { label: "Contracts", href: "/assure/contracts" }, { label: c.contract_ref }]}>
         <OptPill list={CONTRACT_STATUS} value={c.status} />
         {isContractExpiring(c) && <Pill tone="warn">Renewal due</Pill>}
       </PageHead>
+      <ApprovalRequests entityIds={c.id} types={["CONTRACT_APPROVE"]} meId={me.id} title="Internal approval before sending" />
 
       <Panel title="Actions">
         <div className="flex flex-wrap gap-2 p-4">

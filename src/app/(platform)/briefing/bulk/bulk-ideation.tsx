@@ -111,7 +111,7 @@ export function BulkIdeation({ eligible, saved, savedRunAt }: { eligible: Eligib
                   {col?.state === "running" && <Card className="flex items-center justify-center gap-2 p-6 text-xs text-muted"><MSymbol name="progress_activity" size={17} className="animate-spin" /> Ideating…</Card>}
                   {col?.state === "error" && <Card className="p-4 text-xs text-bad">{col.message}</Card>}
                   {col?.state === "done" && !concepts.length && <Card className="p-4 text-xs text-muted">Saved. Refreshing…</Card>}
-                  {concepts.map((c) => <ConceptCard key={c.id} concept={c.data} top={c.is_top} compact actions={<Link href={`/briefing/${id}`} className="text-xs font-semibold text-accent hover:underline">Open the brief to refine or send to Sourcing+ →</Link>} />)}
+                  {concepts.map((c) => <ConceptCard key={c.id} concept={c.data} top={c.is_top} compact actions={<Link href={`/briefing/${id}`} className="text-xs font-semibold text-accent hover:underline">Open the brief to refine or send to Sourcing →</Link>} />)}
                   {!col && !concepts.length && <Pill>No concepts</Pill>}
                 </div>
               );

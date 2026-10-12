@@ -53,7 +53,7 @@ export default async function EstimatePage({ params }: { params: Promise<{ id: s
 
   return (
     <>
-      <PageHead crumbs={[{ label: "Order Management+", href: "/orders" }, { label: "Estimates", href: "/orders/estimates" }, { label: e.estimate_number }]}
+      <PageHead crumbs={[{ label: "Order Management", href: "/orders" }, { label: "Estimates", href: "/orders/estimates" }, { label: e.estimate_number }]}
         title={`Estimate ${e.estimate_number}`} sub={`${e.job_number} · ${e.job_title} · ${e.client_name} · supplier ${e.supplier_name}`}>
         <StatusPill meta={ESTIMATE_STATUS} value={e.status} />
         {flag && <Pill tone={flag.tone}>{flag.label}</Pill>}

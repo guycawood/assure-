@@ -8,7 +8,7 @@ import { ButtonLink, PageHead, Panel, Stat } from "@/components/ui";
 import { MSymbol } from "@/components/symbol";
 import { StatusPill, Td, Th, fmtDate } from "@/components/sourcing/bits";
 
-export const metadata: Metadata = { title: "Execution+" };
+export const metadata: Metadata = { title: "Execution" };
 
 export default async function ExecutionDashboard() {
   await requireInternal();
@@ -23,7 +23,7 @@ export default async function ExecutionDashboard() {
 
   return (
     <>
-      <PageHead title="Execution+" sub="Outlets, recces, installs with photo and GPS evidence, audits scored against the governed display criteria, maintenance and the quality gates that close a job.">
+      <PageHead title="Execution" sub="Outlets, recces, installs with photo and GPS evidence, audits scored against the governed display criteria, maintenance and the quality gates that close a job.">
         <ButtonLink href="/execution/outlets">Outlets</ButtonLink>
         <ButtonLink href="/execution/deployments" variant="primary">Deployments</ButtonLink>
       </PageHead>

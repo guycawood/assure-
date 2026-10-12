@@ -7,7 +7,7 @@ type Client = Awaited<ReturnType<typeof createClient>>;
 /** Standard health row every module Watchtower exposes (view watchtower_health_<module>). */
 export type HealthRow = { module: string; metric: string; label: string; value: number; target: number; status: "ok" | "warn" | "bad" };
 
-// Which view (and which of its metrics) feeds each module. Sourcing's view covers RFQ+ and Order Management+ too.
+// Which view (and which of its metrics) feeds each module. Sourcing's view covers RFQs and Order Management too.
 const SOURCES: Partial<Record<ModuleKey, { view: string; metrics?: string[] }>> = {
   sourcing: { view: "watchtower_health_sourcing", metrics: ["triage_no_rfq_share", "savings_vs_target"] },
   rfq: { view: "watchtower_health_sourcing", metrics: ["rfqs_below_min_quotes", "high_value_awaiting_approval"] },

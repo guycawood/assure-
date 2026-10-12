@@ -53,7 +53,7 @@ export default async function InvoicePage({ params }: { params: Promise<{ id: st
       </Card>
 
       <div className="grid gap-4 xl:grid-cols-[1.4fr_1fr]">
-        <Panel title="Three-way match" sub="Worked out by the server from the PO, Logistics+ and Execution+ records"
+        <Panel title="Three-way match" sub="Worked out by the server from the PO, Logistics and Execution records"
           actions={canAct && ["submitted", "matching"].includes(inv.status) ? <ActionForm action={matchInvoice} hidden={{ id: inv.id }} submit={inv.match_status === "not_run" ? "Run the match" : "Run again"} variant="secondary" inline /> : undefined}>
           <MatchPanel status={inv.match_status} details={inv.match_details} poId={inv.po_id} poNumber={inv.po_number} jobId={inv.job_id} />
           {inv.override_reason && (

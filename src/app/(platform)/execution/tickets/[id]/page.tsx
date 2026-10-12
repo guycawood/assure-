@@ -25,7 +25,7 @@ export default async function TicketPage({ params }: { params: Promise<{ id: str
   const next = TICKET_NEXT[t.status] ?? [];
   return (
     <>
-      <PageHead crumbs={[{ label: "Execution+", href: "/execution" }, { label: "Maintenance", href: "/execution/tickets" }, { label: t.ticket_code }]}
+      <PageHead crumbs={[{ label: "Execution", href: "/execution" }, { label: "Maintenance", href: "/execution/tickets" }, { label: t.ticket_code }]}
         title={`Ticket ${t.ticket_code}`} sub={`${cap(t.issue_type)} at ${t.outlet_name} · ${cap(t.severity)} severity`}>
         <StatusPill meta={TICKET_STATUS} value={t.status} />
       </PageHead>

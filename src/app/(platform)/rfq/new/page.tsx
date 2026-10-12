@@ -58,7 +58,7 @@ export default async function NewRfqPage({ searchParams }: { searchParams: Promi
   await requireInternal();
   const sp = await searchParams;
   const supabase = await createClient();
-  const crumbs = [{ label: "RFQ+", href: "/rfq" }, { label: "New RFQ" }];
+  const crumbs = [{ label: "RFQs", href: "/rfq" }, { label: "New RFQ" }];
 
   if (!sp.job) {
     const [jobs, specs] = await Promise.all([getJobs(supabase), getSpecs(supabase)]);
@@ -67,7 +67,7 @@ export default async function NewRfqPage({ searchParams }: { searchParams: Promi
       <>
         <PageHead crumbs={crumbs} title="New RFQ" sub="Pick the job. Spec lines that triage routed to Create can go out to RFQ; others need a rate-card exception." />
         <Card className="divide-y divide-line">
-          {withCreate.length === 0 ? <p className="px-5 py-6 text-sm text-muted">No job has Create lines waiting. Triage specs in <Link className="underline" href="/sourcing/triage">Sourcing+</Link> first.</p> :
+          {withCreate.length === 0 ? <p className="px-5 py-6 text-sm text-muted">No job has Create lines waiting. Triage specs in <Link className="underline" href="/sourcing/triage">Sourcing</Link> first.</p> :
             withCreate.map((j) => (
               <Link key={j.id} href={`/rfq/new?job=${j.id}`} className="flex items-center justify-between px-5 py-3 text-sm hover:bg-surface-2">
                 <span><span className="font-semibold">{j.job_number}</span> · {j.title} <span className="text-muted">({j.client_name}, {j.market})</span></span>

@@ -7,9 +7,9 @@ import { getInputsBySupplier, getMethodology } from "@/lib/scorecard-data";
 import { scoreSupplier } from "@/lib/scorecard";
 import { Card, PageHead, Pill } from "@/components/ui";
 
-export const metadata: Metadata = { title: "Assure+" };
+export const metadata: Metadata = { title: "SRM" };
 
-// Assure+ home: every SRM function in one place. The SRT desk is one of them.
+// SRM home: every SRM function in one place. The SRT desk is one of them.
 export default async function AssureHome() {
   await requireInternal();
   const supabase = await createClient();
@@ -25,7 +25,7 @@ export default async function AssureHome() {
     { href: "/assure/srt", title: "SRT desk", body: "Onboarding tickets, gates, vendor information requests and Procurement head approval.", stat: `${open.length} open tickets`, alert: overdue ? `${overdue} overdue` : null },
     { href: "/assure/srt/register", title: "Supplier register", body: "Every supplier against the onboarding gates, with purchasing blocks.", stat: `${compliant} of ${suppliers.length} compliant`, alert: blocked ? `${blocked} active but blocked` : null },
     { href: "/assure/scorecard", title: "Scorecard & PSL", body: "Supplier scores across Financial, Compliance and Performance, and the Preferred Supplier List.", stat: `${psl} preferred suppliers`, alert: null },
-    { href: "/assure/watchtower", title: "Assure+ Watchtower", body: "Scoring methodology explained and governed, module health and change log.", stat: m ? `Methodology v${m.version}` : "No methodology", alert: null },
+    { href: "/assure/watchtower", title: "SRM Watchtower", body: "Scoring methodology explained and governed, module health and change log.", stat: m ? `Methodology v${m.version}` : "No methodology", alert: null },
     { href: "/assure/suppliers", title: "Supplier directory", body: "Search and filter every supplier, export to CSV, and open the Supplier 360 view.", stat: `${suppliers.length} suppliers`, alert: null },
     { href: "/assure/compliance", title: "Compliance", body: "Certificates, expiry tracking and the document review queue.", stat: "Certificates and documents", alert: null },
     { href: "/assure/quality", title: "Quality", body: "Inspections, non-conformance reports and verified corrective actions.", stat: "Inspections and NCRs", alert: null },
@@ -40,7 +40,7 @@ export default async function AssureHome() {
 
   return (
     <>
-      <PageHead title="Assure+" sub="Supplier relationship management: who we buy from, whether they can be used, and how well they perform." />
+      <PageHead title="SRM" sub="Supplier relationship management: who we buy from, whether they can be used, and how well they perform." />
       <section className="grid gap-3 md:grid-cols-2">
         {live.map((f) => (
           <Link key={f.href} href={f.href} className="group">
@@ -56,7 +56,7 @@ export default async function AssureHome() {
         ))}
       </section>
       <section>
-        <h2 className="mb-2 font-display text-lg font-semibold">Coming to Assure+</h2>
+        <h2 className="mb-2 font-display text-lg font-semibold">Coming to SRM</h2>
         <div className="grid gap-3 md:grid-cols-4">
           {next.map(([t, b]) => (
             <Card key={t} className="p-3 text-sm">

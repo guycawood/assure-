@@ -48,7 +48,7 @@ export default async function JobPage({ params, searchParams }: { params: Promis
 
   return (
     <>
-      <PageHead crumbs={[{ label: "Sourcing+", href: "/sourcing" }, { label: "Jobs", href: "/sourcing/jobs" }, { label: job.job_number }]}
+      <PageHead crumbs={[{ label: "Sourcing", href: "/sourcing" }, { label: "Jobs", href: "/sourcing/jobs" }, { label: job.job_number }]}
         title={job.title} sub={`${job.job_number} · ${job.client_name} · ${job.market} (${job.region})`}>
         <JobStatusPill status={job.status} />
         <ButtonLink href={`${base}?tab=specs`} variant="primary">Add spec</ButtonLink>
@@ -137,7 +137,7 @@ export default async function JobPage({ params, searchParams }: { params: Promis
           {createLines.length > 0 && (
             <Card className="flex flex-wrap items-center justify-between gap-3 px-5 py-4">
               <p className="text-sm">{createLines.length} line(s) are routed <RoutePill route="create" /> and need quotes.</p>
-              <ButtonLink href={`/rfq/new?job=${id}`} variant="primary">Create an RFQ in RFQ+</ButtonLink>
+              <ButtonLink href={`/rfq/new?job=${id}`} variant="primary">Create an RFQ</ButtonLink>
             </Card>
           )}
           <Panel title="Add a spec">
@@ -147,7 +147,7 @@ export default async function JobPage({ params, searchParams }: { params: Promis
       )}
 
       {tab === "rfqs" && (
-        <Panel title="RFQs" sub="Managed in RFQ+" actions={<ButtonLink href={`/rfq/new?job=${id}`} variant="primary">New RFQ</ButtonLink>}>
+        <Panel title="RFQs" sub="Sealed quote events for this job" actions={<ButtonLink href={`/rfq/new?job=${id}`} variant="primary">New RFQ</ButtonLink>}>
           {rfqs.length === 0 ? <p className="px-5 py-6 text-sm text-muted">No RFQs for this job.</p> : (
             <table className="w-full text-sm">
               <thead><tr><Th>RFQ</Th><Th>Status</Th><Th>Due</Th><Th>Suppliers</Th><Th>Quotes</Th><Th>Minimum</Th><Th>Awarded to</Th></tr></thead>
@@ -163,7 +163,7 @@ export default async function JobPage({ params, searchParams }: { params: Promis
       )}
 
       {tab === "estimate" && (
-        <Panel title="Estimates" sub="Managed in Order Management+">
+        <Panel title="Estimates" sub="Managed in Order Management">
           {estimates.length === 0 ? <p className="px-5 py-6 text-sm text-muted">No estimates yet. Awarding an RFQ, or Adopt / Adapt / accepted Push lines, create one.</p> : (
             <table className="w-full text-sm">
               <thead><tr><Th>Estimate</Th><Th>Supplier</Th><Th>Source</Th><Th>Cost</Th><Th>Sell</Th><Th>Saving vs target</Th><Th>Status</Th></tr></thead>
@@ -182,7 +182,7 @@ export default async function JobPage({ params, searchParams }: { params: Promis
       )}
 
       {tab === "po" && (
-        <Panel title="Supplier POs" sub="Managed in Order Management+">
+        <Panel title="Supplier POs" sub="Managed in Order Management">
           {pos.length === 0 ? <p className="px-5 py-6 text-sm text-muted">No purchase orders yet.</p> : (
             <table className="w-full text-sm">
               <thead><tr><Th>PO</Th><Th>Supplier</Th><Th>Value</Th><Th>DOA level needed</Th><Th>Status</Th><Th>Delivery</Th></tr></thead>

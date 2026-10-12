@@ -10,12 +10,13 @@ import { Card, PageHead, Panel } from "@/components/ui";
 import { Facts, StatusPill, fmtDate, fmtDateTime } from "@/components/sourcing/bits";
 import { ActionForm, Field } from "@/components/sourcing/action-form";
 import { FinanceActivity } from "@/components/finance/bits";
+import { ApprovalRequests } from "@/components/approvals/requests";
 import { billPaid, cancelBill, sendBill } from "../../actions";
 
 export const metadata: Metadata = { title: "Client bill" };
 
 export default async function BillPage({ params }: { params: Promise<{ id: string }> }) {
-  await requireInternal();
+  const me = await requireInternal();
   const { id } = await params;
   if (!UUID.test(id)) notFound();
   const supabase = await createClient();
@@ -29,6 +30,7 @@ export default async function BillPage({ params }: { params: Promise<{ id: strin
         title={`Bill ${b.bill_number}`} sub={`${b.client_name} · ${b.job_number} · ${b.job_title}`}>
         <StatusPill meta={BILL_STATUS} value={b.status} />
       </PageHead>
+      <ApprovalRequests entityIds={b.id} types={["BILL_CANCEL"]} meId={me.id} title="Cancellation waiting for a second finance user" />
       <Card>
         <Facts items={[
           ["Client", `${b.client_name} (${b.client_code})`],

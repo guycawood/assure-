@@ -9,6 +9,7 @@ import { RECCE_STATUS, cap } from "@/lib/execution";
 import { FileList } from "@/components/file-list";
 import { FileUpload } from "@/components/file-upload";
 import { PageHead, Panel } from "@/components/ui";
+import { ApprovalRequests } from "@/components/approvals/requests";
 import { ActionForm, Field } from "@/components/sourcing/action-form";
 import { Facts, StatusPill, fmtDate } from "@/components/sourcing/bits";
 import { RecceFields, UnitsFit } from "@/components/execution/units-fit";
@@ -17,7 +18,7 @@ import { saveRecce, setRecceStatus } from "../../actions";
 export const metadata: Metadata = { title: "Recce" };
 
 export default async function RecceDetail({ params }: { params: Promise<{ id: string }> }) {
-  await requireInternal();
+  const me = await requireInternal();
   const { id } = await params;
   const supabase = await createClient();
   const r = await getRecce(supabase, id);
@@ -26,10 +27,11 @@ export default async function RecceDetail({ params }: { params: Promise<{ id: st
   const dims = (a: (number | null | undefined)[]) => (a.some((x) => x != null) ? a.map((x) => x ?? "–").join(" × ") + " cm" : "—");
   return (
     <>
-      <PageHead crumbs={[{ label: "Execution+", href: "/execution" }, { label: "Recces", href: "/execution/recces" }, { label: r.recce_code }]}
+      <PageHead crumbs={[{ label: "Execution", href: "/execution" }, { label: "Recces", href: "/execution/recces" }, { label: r.recce_code }]}
         title={`Recce ${r.recce_code}`} sub={`${r.outlet_name} (${r.outlet_code}) · ${r.market} · ${r.region}`}>
         <StatusPill meta={RECCE_STATUS} value={r.status} />
       </PageHead>
+      <ApprovalRequests entityIds={id} types={["RECCE_READY"]} meId={me.id} title="Production-ready sign-off" />
       <div className="grid gap-4 xl:grid-cols-3">
         <div className="min-w-0 space-y-4 xl:col-span-2">
           <Panel title="Survey">
@@ -71,7 +73,7 @@ export default async function RecceDetail({ params }: { params: Promise<{ id: st
           </Panel>
           {r.status === "production_ready" && (
             <Panel title="Next: specify it">
-              <p className="px-5 py-4 text-sm">Build the spec to {r.recommended_width_cm} × {r.recommended_height_cm}{r.recommended_depth_cm ? ` × ${r.recommended_depth_cm}` : ""} cm for {r.units_fit ?? "?"} unit(s) per outlet{r.job_id ? <> on <Link className="underline" href={`/sourcing/jobs/${r.job_id}`}>{r.job_number}</Link> in Sourcing+</> : " in Sourcing+"}.</p>
+              <p className="px-5 py-4 text-sm">Build the spec to {r.recommended_width_cm} × {r.recommended_height_cm}{r.recommended_depth_cm ? ` × ${r.recommended_depth_cm}` : ""} cm for {r.units_fit ?? "?"} unit(s) per outlet{r.job_id ? <> on <Link className="underline" href={`/sourcing/jobs/${r.job_id}`}>{r.job_number}</Link> in Sourcing</> : " in Sourcing"}.</p>
             </Panel>
           )}
         </div>

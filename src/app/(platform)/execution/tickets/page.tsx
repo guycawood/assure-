@@ -21,7 +21,7 @@ export default async function TicketsPage({ searchParams }: { searchParams: Prom
   const sevTone = (s: string) => (s === "critical" || s === "high" ? "bad" : s === "medium" ? "warn" : "neutral");
   return (
     <>
-      <PageHead crumbs={[{ label: "Execution+", href: "/execution" }, { label: "Maintenance" }]} title="Maintenance tickets"
+      <PageHead crumbs={[{ label: "Execution", href: "/execution" }, { label: "Maintenance" }]} title="Maintenance tickets"
         sub="Faults on installed displays, from report to resolution with a root cause, so quality trends show up by installer and outlet. Failed audits open a ticket automatically." />
       <nav className="flex flex-wrap gap-2 text-sm">
         {[["live", "Not closed"], ...Object.entries(TICKET_STATUS).map(([k, v]) => [k, v.label]), ["all", "All"]].map(([k, l]) => (

@@ -6,6 +6,7 @@ import { byId, getInternalPeople } from "@/lib/data";
 import { optLabel, PA_ACTION_LABEL, PA_STATUS, paActions, PAYMENT_TERMS, SUPPLIER_TIER, type PreAssessment, type PreAssessmentReview } from "@/lib/assure";
 import { formatDate, formatEur, personName } from "@/lib/srt";
 import { PageHead, Panel, Pill } from "@/components/ui";
+import { ApprovalRequests } from "@/components/approvals/requests";
 import { Facts, OptPill, SupplierLink } from "@/components/assure/bits";
 import { Pipeline } from "@/components/assure/pipeline";
 import { ActionForm, Field, Select } from "@/components/assure/action-form";
@@ -40,9 +41,10 @@ export default async function PreAssessmentDetail({ params }: { params: Promise<
   return (
     <>
       <PageHead title={a.company_name} sub={[a.major_category, a.head_office_country, a.region].filter(Boolean).join(" · ")}
-        crumbs={[{ label: "Assure+", href: "/assure" }, { label: "Pre-assessments", href: "/assure/pre-assessments" }, { label: a.company_name }]}>
+        crumbs={[{ label: "SRM", href: "/assure" }, { label: "Pre-assessments", href: "/assure/pre-assessments" }, { label: a.company_name }]}>
         <OptPill list={PA_STATUS} value={a.status} />
       </PageHead>
+      <ApprovalRequests entityIds={a.id} types={["PAYMENT_TERMS"]} meId={me.id} title="Payment terms waiting for Finance" />
       <Pipeline status={a.status} />
 
       <div className="grid gap-4 xl:grid-cols-3">

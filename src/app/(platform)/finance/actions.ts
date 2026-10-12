@@ -6,6 +6,7 @@ import { requireInternal } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { friendly, id, numOrNull, str, type FormResult } from "@/lib/sourcing-actions";
 import { parseInstalments } from "@/lib/finance-logic";
+import { sentForApproval } from "@/components/approvals/pending";
 
 async function call(fn: string, args: Record<string, unknown>, message: string): Promise<FormResult> {
   await requireInternal();
@@ -17,7 +18,7 @@ async function call(fn: string, args: Record<string, unknown>, message: string):
 }
 
 /* ---------- Approvals ---------- */
-// Quotes use RFQ+'s own decision function, so RFQ+ and Finance+ never disagree.
+// Quotes use the RFQ decision function, so Sourcing and Finance+ never disagree.
 export async function decideQuote(_: FormResult, fd: FormData) {
   const approve = str(fd, "decision") === "approve";
   const res = await call("rfq_finance_decide", { p_response: id(fd), p_approve: approve, p_notes: str(fd, "notes") }, approve ? "Quote approved" : "Quote declined");
@@ -79,6 +80,8 @@ export async function sendBill(_: FormResult, fd: FormData) {
 export async function billPaid(_: FormResult, fd: FormData) {
   return call("finance_bill_mark_paid", { p_bill: id(fd), p_reference: str(fd, "reference") }, "Bill marked paid");
 }
-export async function cancelBill(_: FormResult, fd: FormData) {
-  return call("finance_bill_cancel", { p_bill: id(fd), p_reason: str(fd, "reason") }, "Bill cancelled");
+export async function cancelBill(_: FormResult, fd: FormData): Promise<FormResult> {
+  const res = await call("finance_bill_cancel", { p_bill: id(fd), p_reason: str(fd, "reason") }, "Bill cancelled");
+  if (!res.ok) return res;
+  return { ok: true, message: (await sentForApproval(await createClient(), "BILL_CANCEL", id(fd) ?? "")) ?? res.message };
 }

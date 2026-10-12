@@ -27,8 +27,8 @@ export default async function PerformancePage() {
   const tone = (v: number | null) => (v == null ? "neutral" : v >= 95 ? "ok" : v >= 80 ? "warn" : "bad");
   return (
     <>
-      <PageHead crumbs={[{ label: "Logistics+", href: "/logistics" }, { label: "OTIF and CO2e" }]} title="OTIF and transport CO2e"
-        sub="On time = delivered on or before the planned date. In full = everything planned was shipped. Failed deliveries count against both. The Assure+ scorecard reads the same figures." />
+      <PageHead crumbs={[{ label: "Logistics", href: "/logistics" }, { label: "OTIF and CO2e" }]} title="OTIF and transport CO2e"
+        sub="On time = delivered on or before the planned date. In full = everything planned was shipped. Failed deliveries count against both. The SRM scorecard reads the same figures." />
       <Card className="min-w-0 overflow-x-auto">
         {otif.length === 0 ? <Empty title="No completed deliveries yet" /> : (
           <table className="w-full text-sm">

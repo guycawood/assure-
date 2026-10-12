@@ -52,7 +52,7 @@ export default async function TrainingPage({ searchParams }: { searchParams: Pro
 
   return (
     <>
-      <PageHead title="Training" sub="Walkthroughs, videos and FAQs, plus who has completed what. Start a module before marking it complete." crumbs={[{ label: "Assure+", href: "/assure" }, { label: "Training" }]} />
+      <PageHead title="Training" sub="Walkthroughs, videos and FAQs, plus who has completed what. Start a module before marking it complete." crumbs={[{ label: "SRM", href: "/assure" }, { label: "Training" }]} />
       <Tabs tabs={[{ key: "library", label: "Library", count: mods.filter((m) => m.active).length }, { key: "mine", label: "My progress", count: mine.length }, { key: "tracker", label: "Team tracker" }]} active={tab} base="/assure/training" />
 
       {tab === "library" && (

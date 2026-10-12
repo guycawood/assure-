@@ -32,7 +32,7 @@ export default async function NewDeliveryPage({ searchParams }: { searchParams: 
 
   return (
     <>
-      <PageHead crumbs={[{ label: "Logistics+", href: "/logistics" }, { label: "Plan from a PO", href: "/logistics/plan" }, { label: "Add a destination" }]}
+      <PageHead crumbs={[{ label: "Logistics", href: "/logistics" }, { label: "Plan from a PO", href: "/logistics/plan" }, { label: "Add a destination" }]}
         title={`Add a destination to ${po.po_number}`} sub={`${po.supplier_name} · ${po.job_number}. One delivery is one destination for one spec version.`} />
       <Panel title="Delivery">
         <div className="p-5">

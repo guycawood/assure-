@@ -28,7 +28,7 @@ export default async function JobsPage({ searchParams }: { searchParams: Promise
 
   return (
     <>
-      <PageHead crumbs={[{ label: "Sourcing+", href: "/sourcing" }, { label: "Jobs" }]} title="Jobs" sub="Every job bag: its specs, RFQs, estimate and POs hang off it.">
+      <PageHead crumbs={[{ label: "Sourcing", href: "/sourcing" }, { label: "Jobs" }]} title="Jobs" sub="Every job bag: its specs, RFQs, estimate and POs hang off it.">
         <ButtonLink href="/sourcing/jobs/new" variant="primary">New job</ButtonLink>
       </PageHead>
 

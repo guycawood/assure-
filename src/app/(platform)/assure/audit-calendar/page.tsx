@@ -48,7 +48,7 @@ export default async function AuditCalendar({ searchParams }: { searchParams: Pr
   return (
     <>
       <PageHead title="Audit calendar" sub="Certificate expiries, NCR deadlines, action-plan due dates and contract end dates."
-        crumbs={[{ label: "Assure+", href: "/assure" }, { label: "Audit calendar" }]} />
+        crumbs={[{ label: "SRM", href: "/assure" }, { label: "Audit calendar" }]} />
       <section className="grid gap-3 sm:grid-cols-3">
         <Stat label={`Events in ${monthLabel(month)}`} value={inMonth.length} />
         <Stat label="Critical" value={critical} tone={critical ? "bad" : undefined} hint="Expired certificates, critical NCRs, high-priority tasks" />

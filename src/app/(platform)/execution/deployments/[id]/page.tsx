@@ -33,7 +33,7 @@ export default async function DeploymentPage({ params }: { params: Promise<{ id:
 
   return (
     <>
-      <PageHead crumbs={[{ label: "Execution+", href: "/execution" }, { label: "Deployments", href: "/execution/deployments" }, { label: d.deployment_code }]}
+      <PageHead crumbs={[{ label: "Execution", href: "/execution" }, { label: "Deployments", href: "/execution/deployments" }, { label: d.deployment_code }]}
         title={`Deployment ${d.deployment_code}`} sub={`${d.spec_title} at ${d.outlet_name} · ${d.supplier_name} · ${d.job_number} (${d.client_name})`}>
         <StatusPill meta={STAGE} value={d.stage} /><StatusPill meta={AUDIT_STATUS} value={d.audit_status} />
       </PageHead>
@@ -84,7 +84,7 @@ export default async function DeploymentPage({ params }: { params: Promise<{ id:
               </div>
             </Panel>
           )}
-          <Panel title="Audits" sub="Scored against the display criteria in the Execution+ Watchtower; weights must total 100%.">
+          <Panel title="Audits" sub="Scored against the display criteria in the Execution Watchtower; weights must total 100%.">
             {audits.length === 0 ? <p className="px-5 py-4 text-sm text-muted">Not audited yet.</p> : (
               <ul className="divide-y divide-line">
                 {audits.map((a) => (

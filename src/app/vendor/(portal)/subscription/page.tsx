@@ -22,7 +22,7 @@ export default async function SubscriptionPage() {
 
   return (
     <>
-      <PageHead title="Subscription" sub="Your Assure+ plan with adm Indicia. Ask for a different plan here; our account team confirms every change with you, and only adm Indicia can change your plan." />
+      <PageHead title="Subscription" sub="Your SRM plan with adm Indicia. Ask for a different plan here; our account team confirms every change with you, and only adm Indicia can change your plan." />
       <Card className="flex flex-wrap items-center gap-4 border-accent/30 bg-accent-soft/40 p-5">
         <span className="grid h-11 w-11 place-items-center rounded-xl bg-surface text-accent"><MSymbol name="workspace_premium" size={24} /></span>
         <div className="min-w-0 flex-1">

@@ -29,7 +29,7 @@ export default async function DeliveriesPage({ searchParams }: { searchParams: P
 
   return (
     <>
-      <PageHead crumbs={[{ label: "Logistics+", href: "/logistics" }, { label: "Deliveries" }]} title="Deliveries"
+      <PageHead crumbs={[{ label: "Logistics", href: "/logistics" }, { label: "Deliveries" }]} title="Deliveries"
         sub="One row per destination per spec version on a supplier PO. Shipped quantity can never exceed what was planned." />
       <form method="get" className="flex flex-wrap gap-2">
         <input name="q" defaultValue={sp.q ?? ""} placeholder="Search number, job, destination…" className="input w-56" aria-label="Search" />

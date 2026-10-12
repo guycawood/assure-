@@ -30,7 +30,7 @@ export default async function ReviewsPage({ searchParams }: { searchParams: Prom
   return (
     <>
       <PageHead title="Business reviews" sub="Plan QBRs, check-ins, escalations and renewals. Vendors only see reviews you share, and never the outcomes or notes."
-        crumbs={[{ label: "Assure+", href: "/assure" }, { label: "Business reviews" }]} />
+        crumbs={[{ label: "SRM", href: "/assure" }, { label: "Business reviews" }]} />
       <section className="grid gap-3 sm:grid-cols-4">
         <Stat label="This month" value={inMonth.length} />
         <Stat label="Coming up (30 days)" value={reviews.filter((r) => r.status === "scheduled" && r.meeting_date >= today && r.meeting_date <= new Date(Date.now() + 30 * 86400000).toISOString().slice(0, 10)).length} />

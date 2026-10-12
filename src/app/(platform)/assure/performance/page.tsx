@@ -45,7 +45,7 @@ export default async function PerformancePage({ searchParams }: { searchParams: 
   return (
     <>
       <PageHead title="Supplier performance" sub="Ranked by the latest quarter's composite score (average of cost, OTIF, quality, compliance and sustainability, 0-100)."
-        crumbs={[{ label: "Assure+", href: "/assure" }, { label: "Performance" }]}>
+        crumbs={[{ label: "SRM", href: "/assure" }, { label: "Performance" }]}>
         <ButtonLink href="/assure/performance/report">Compliance & sustainability report</ButtonLink>
         <ButtonLink href="/assure/scorecard">Scorecard & PSL</ButtonLink>
       </PageHead>

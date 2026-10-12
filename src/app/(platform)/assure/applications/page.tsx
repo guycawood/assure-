@@ -28,7 +28,7 @@ export default async function Applications() {
 
   return (
     <>
-      <PageHead crumbs={[{ label: "Assure+", href: "/assure" }, { label: "Applications & plans" }]} title="Applications & plans"
+      <PageHead crumbs={[{ label: "SRM", href: "/assure" }, { label: "Applications & plans" }]} title="Applications & plans"
         sub="New vendors who applied through the public application form, and existing vendors asking to change their plan." />
 
       <Panel title={`Vendor applications · ${open.length} open`} sub="Inviting a vendor marks the application; then raise a new-vendor ticket on the SRT desk to start onboarding.">

@@ -26,7 +26,7 @@ export default async function TasksPage({ searchParams }: { searchParams: SP }) 
 
   return (
     <>
-      <PageHead title="Action plans" sub="Improvement tasks agreed with suppliers. Vendors move their tasks to completed; staff verify." crumbs={[{ label: "Assure+", href: "/assure" }, { label: "Action plans" }]} />
+      <PageHead title="Action plans" sub="Improvement tasks agreed with suppliers. Vendors move their tasks to completed; staff verify." crumbs={[{ label: "SRM", href: "/assure" }, { label: "Action plans" }]} />
       <section className="grid gap-3 sm:grid-cols-4">
         <Stat label="Open" value={list.filter((t) => t.status === "open" || t.status === "in_progress").length} />
         <Stat label="Overdue" value={list.filter((t) => isTaskOverdue(t)).length} tone="bad" />

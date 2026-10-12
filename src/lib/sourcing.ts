@@ -1,4 +1,4 @@
-// Sourcing+ shared types, labels and small pure helpers (also used by RFQ+ and Order Management+ pages).
+// Sourcing shared types, labels and small pure helpers (also used by RFQs and Order Management pages).
 import type { Tone } from "@/lib/srt";
 
 export const REGIONS = ["APAC", "EMEA", "Americas", "GSC"] as const;

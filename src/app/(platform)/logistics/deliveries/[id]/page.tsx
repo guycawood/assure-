@@ -36,7 +36,7 @@ export default async function DeliveryPage({ params }: { params: Promise<{ id: s
 
   return (
     <>
-      <PageHead crumbs={[{ label: "Logistics+", href: "/logistics" }, { label: "Deliveries", href: "/logistics/deliveries" }, { label: d.delivery_number }]}
+      <PageHead crumbs={[{ label: "Logistics", href: "/logistics" }, { label: "Deliveries", href: "/logistics/deliveries" }, { label: d.delivery_number }]}
         title={`Delivery ${d.delivery_number}`} sub={`${d.supplier_name} · ${d.po_number} · ${d.job_number} · to ${d.outlet_name ?? d.recipient_name ?? "destination not set"}, ${d.market_name ?? d.market} (${d.region})`}>
         <StatusPill meta={DELIVERY_STATUS} value={d.status} />
       </PageHead>
@@ -111,7 +111,7 @@ export default async function DeliveryPage({ params }: { params: Promise<{ id: s
               {["booked", "dispatched", "in_transit"].includes(d.status) && d.shipment_count > 0 && (
                 <ActionForm action={markDelivered} hidden={{ id }} submit="Mark delivered" confirm="Mark this delivery delivered? Transport CO2e is recorded from the factor in force on that date.">
                   <Field label="Delivered on" htmlFor="delivered_on" hint="Defaults to the latest shipment delivery date"><input id="delivered_on" name="delivered_on" type="date" max={today} className="input" /></Field>
-                  <Field label="Note" htmlFor="dnote"><input id="dnote" name="note" className="input" /></Field>
+                  <Field label="Note" htmlFor="dnote" hint="Needed when the POD isn't verified yet: then only a logistics lead can mark it delivered, and the note is the override reason."><input id="dnote" name="note" className="input" /></Field>
                 </ActionForm>
               )}
               {(NEXT_STATUS[d.status] ?? []).length > 0 && (
@@ -125,7 +125,7 @@ export default async function DeliveryPage({ params }: { params: Promise<{ id: s
               {d.status === "delivered" && <p className="text-ok">Delivered {fmtDate(d.actual_delivery_date)}. {d.in_full ? "In full." : "Not in full."}</p>}
               {open && (
                 <ActionForm action={linkOutlet} hidden={{ id }} submit="Use outlet as destination" variant="secondary">
-                  <Field label="Outlet (Execution+)" htmlFor="outlet_id" hint="Copies address, coordinates, region and market from the outlet">
+                  <Field label="Outlet (Execution)" htmlFor="outlet_id" hint="Copies address, coordinates, region and market from the outlet">
                     <select id="outlet_id" name="outlet_id" defaultValue={d.outlet_id ?? ""} className="input" required>
                       <option value="">Choose…</option>{outlets.map((o) => <option key={o.id} value={o.id}>{o.name} · {o.outlet_code} ({o.market})</option>)}
                     </select>

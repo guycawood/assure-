@@ -5,6 +5,7 @@ import { createClient } from "@/lib/supabase/server";
 import { fmtDate } from "@/lib/client-portal";
 import { Card, Empty, PageHead, Panel, Pill, Stat } from "@/components/ui";
 import { ClientActionForm } from "@/components/client/forms";
+import { ApprovalRequests } from "@/components/approvals/requests";
 import { backfillClientLinks, grantClientAccess, revokeClientAccess } from "./actions";
 
 export const metadata: Metadata = { title: "Client access" };
@@ -34,6 +35,7 @@ export default async function ClientAccessPage() {
         sub="Client users see only the accounts listed here in the Client Portal. Approvers can approve or decline estimates; viewers can follow progress and comment. adm Indicia staff can preview any client read-only."
       />
       {error && <Card className="p-4 text-sm text-bad">{error.message}</Card>}
+      <ApprovalRequests types={["CLIENT_ACCESS"]} meId={me.id} title="Approver rights waiting for a second admin" history={5} />
 
       <section className="grid gap-4 sm:grid-cols-3">
         <Stat label="Client users" value={people} />

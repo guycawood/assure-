@@ -81,7 +81,7 @@ export default async function ApprovalsPage({ searchParams }: { searchParams: Pr
           <Filter name="module" label="Module" value={sp.module} options={uniq(rows.map((r) => r.module)).map((m) => [m, moduleLabel(m)])} />
           <Filter name="type" label="Type" value={sp.type} options={uniq(rows.map((r) => r.approval_type)).map((t) => [t, typeLabel(t)])} />
           <Filter name="region" label="Region" value={sp.region} options={uniq(rows.map((r) => r.region)).map((x) => [x, x])} />
-          <Filter name="market" label="Market" value={sp.market} options={uniq(rows.map((r) => r.market)).map((x) => [x, x])} />
+          <Filter name="market" label="Market" value={sp.market} options={uniq(rows.map((r) => r.market)).map((x) => [x, rows.find((r) => r.market === x)?.market_name ?? x])} />
           <label className="flex items-center gap-2 pb-2 text-sm"><input type="checkbox" name="overdue" value="1" defaultChecked={Boolean(sp.overdue)} /> Overdue only</label>
           <button className={btn.primary}><MSymbol name="filter_list" size={17} /> Filter</button>
           <Link href={link({ module: undefined, type: undefined, region: undefined, market: undefined, overdue: undefined })} className="pb-2 text-sm font-semibold text-accent hover:underline">Clear</Link>
@@ -168,7 +168,7 @@ function Row({ r }: { r: ApprovalRow }) {
       <td className="td whitespace-nowrap">{moduleLabel(r.module)}</td>
       <td className="td whitespace-nowrap">{r.requested_by_name ?? <span className="text-muted">Vendor or system</span>}<p className="text-xs text-muted">{ageText(r.age_days)}</p></td>
       <td className="td text-right tabular-nums">{r.amount != null ? money(r.amount, r.currency) : "–"}</td>
-      <td className="td">{[r.client, [r.market, r.region].filter(Boolean).join(" · ")].filter(Boolean).join(" · ") || "–"}</td>
+      <td className="td">{[r.client, [r.market_name ?? r.market, r.region].filter(Boolean).join(" · ")].filter(Boolean).join(" · ") || "–"}</td>
       <td className="td text-xs">{r.approver_rule}{r.maker_checker && <span className="text-muted"> · second person</span>}</td>
       <td className="td whitespace-nowrap text-right">
         <Link href={r.href} className={r.can_decide ? btn.primary : btn.secondary}>{r.can_decide ? "Decide" : "Open"}</Link>

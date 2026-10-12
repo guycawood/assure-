@@ -6,6 +6,8 @@ export type EffectivenessRow = {
   p2p_stage_id: string | null; p2p_stage_code: string | null; p2p_stage_name: string | null; channel: string | null;
   period_start: string | null; period_end: string | null; spend: number; currency: string; units: number | null;
   execution_score: number | null; uplift_pct: number | null; uplift_source: string; notes: string | null; created_at: string;
+  /** Verified by a second person before clients see it (pending / verified / rejected). */
+  verification_status?: "pending" | "verified" | "rejected"; can_verify?: boolean;
 };
 
 export type AssetRow = {
@@ -13,6 +15,8 @@ export type AssetRow = {
   client: string | null; brief_id: string | null; region: string | null; market: string | null; brand: string | null;
   touchpoint_id: string | null; touchpoint_name: string | null; p2p_stage_name: string | null; file_name: string | null;
   file_url: string | null; metadata: Record<string, unknown>; metadata_source: string; created_at: string;
+  /** Rights/brand sign-off before Briefing+ reuses the asset. */
+  rights_status?: "pending" | "approved" | "rejected"; can_signoff?: boolean;
 };
 
 export const ASSET_TYPES = [

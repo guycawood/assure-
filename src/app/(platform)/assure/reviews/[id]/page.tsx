@@ -28,7 +28,7 @@ export default async function ReviewPage({ params }: { params: Promise<{ id: str
   return (
     <>
       <PageHead title={r.title} sub={`${optLabel(REVIEW_TYPES, r.review_type)} · ${formatDate(r.meeting_date)}`}
-        crumbs={[{ label: "Assure+", href: "/assure" }, { label: "Business reviews", href: "/assure/reviews" }, { label: r.title }]}>
+        crumbs={[{ label: "SRM", href: "/assure" }, { label: "Business reviews", href: "/assure/reviews" }, { label: r.title }]}>
         {r.shared_with_vendor ? <Pill tone="info">Shared with vendor</Pill> : <Pill>Internal only</Pill>}
         <OptPill list={BR_STATUS} value={r.status} />
       </PageHead>

@@ -6,6 +6,7 @@ import { requireInternal } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { bool, friendly, id, numberList, numOrNull, str, UUID, type FormResult } from "@/lib/sourcing-actions";
 import { MAX_BREAKS, parseDeliveryPoints } from "@/lib/sourcing-hub";
+import { sentForApproval } from "@/components/approvals/pending";
 
 /**
  * Lines come from the form as line=<key> (key = specId, or specId:versionId for a variant line) with breaks_<key>,
@@ -100,8 +101,11 @@ async function simple(fn: string, args: Record<string, unknown>, path: string, m
 export async function approveHighValue(_: FormResult, fd: FormData) {
   return simple("rfq_approve_high_value", { p_rfq: id(fd), p_note: str(fd, "note") }, `/rfq/${id(fd)}`, "High-value RFQ approved");
 }
-export async function sendRfq(_: FormResult, fd: FormData) {
-  return simple("rfq_send", { p_rfq: id(fd) }, `/rfq/${id(fd)}`, "RFQ sent to suppliers");
+export async function sendRfq(_: FormResult, fd: FormData): Promise<FormResult> {
+  const res = await simple("rfq_send", { p_rfq: id(fd) }, `/rfq/${id(fd)}`, "RFQ sent to suppliers");
+  if (!res.ok) return res;
+  const note = await sentForApproval(await createClient(), "RATE_CARD_EXCEPTION", id(fd) ?? "");
+  return note ? { ok: true, message: `Not sent yet: the rate-card exception needs approval. ${note} Then send the RFQ.` } : res;
 }
 export async function cancelRfq(_: FormResult, fd: FormData) {
   return simple("rfq_cancel", { p_rfq: id(fd), p_reason: str(fd, "reason") }, `/rfq/${id(fd)}`, "RFQ cancelled");
@@ -131,5 +135,6 @@ export async function awardRfq(_: FormResult, fd: FormData): Promise<FormResult>
   if (error) return { error: friendly(error) };
   revalidatePath("/rfq", "layout");
   revalidatePath("/orders", "layout");
+  if (!data) return { ok: true, message: (await sentForApproval(supabase, "RFQ_BYPASS", id(fd) ?? "")) ?? "Sent for approval." };
   redirect(`/orders/estimates/${data}`);
 }

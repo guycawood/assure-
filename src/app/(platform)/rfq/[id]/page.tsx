@@ -12,6 +12,7 @@ import {
 import { testingLabel, type DeliveryPoint, type PointPrice, type QuoteAlternative, type QuoteLineDetail, type SpecHub } from "@/lib/sourcing-hub";
 import { Card, PageHead, Panel, Pill } from "@/components/ui";
 import { ActionForm, Field } from "@/components/sourcing/action-form";
+import { ApprovalRequests } from "@/components/approvals/requests";
 import { ActivityList, Facts, StatusPill, Td, Th, fmtDate, fmtDateTime } from "@/components/sourcing/bits";
 import { approveHighValue, awardRfq, cancelRfq, copyRfq, financeDecide, logQuote, sendRfq, setSuppliers } from "../actions";
 
@@ -64,13 +65,14 @@ export default async function RfqPage({ params }: { params: Promise<{ id: string
 
   return (
     <>
-      <PageHead crumbs={[{ label: "RFQ+", href: "/rfq" }, { label: rfq.rfq_number }]} title={rfq.title}
+      <PageHead crumbs={[{ label: "RFQs", href: "/rfq" }, { label: rfq.rfq_number }]} title={rfq.title}
         sub={`${rfq.rfq_number} · job ${rfq.job_number} · ${rfq.client_name} · ${rfq.market} (${rfq.region})`}>
         <Pill tone={rfqStatus(rfq.status).tone}>{rfq.status === "sent" && !open ? "Closed, to evaluate" : rfqStatus(rfq.status).label}</Pill>
         {rfq.high_value_alert && <Pill tone="bad">High value</Pill>}
         {rfq.spec_changed && <Pill tone="warn">Spec changed: re-quote needed</Pill>}
         {rfq.rate_card_exception && <Pill tone="accent">Rate-card exception</Pill>}
       </PageHead>
+      <ApprovalRequests entityIds={rfq.id} types={["RFQ_BYPASS", "RATE_CARD_EXCEPTION"]} meId={me.id} />
       {rfq.spec_changed && rfq.status === "sent" && (
         <Card className="border-warn/40 bg-warn-soft px-5 py-3 text-sm text-warn">
           A spec on this RFQ was revised on {fmtDateTime(rfq.spec_changed_at)}. Invited suppliers were asked to re-quote; {rfq.requote_pending} still to respond.
@@ -113,7 +115,7 @@ export default async function RfqPage({ params }: { params: Promise<{ id: string
             )}
             {rfq.status === "sent" && (open ? <p>Bidding is open until {fmtDateTime(rfq.due_at)}. {allResponded ? "Every supplier has responded, so you can evaluate now." : "Prices stay sealed until then."}</p>
               : <p>Bidding has closed. Get Finance approval on the quote you want, then award it.</p>)}
-            {rfq.status === "awarded" && <p>Awarded. The estimate is in <Link className="font-semibold underline" href="/orders/estimates">Order Management+</Link>.</p>}
+            {rfq.status === "awarded" && <p>Awarded. The estimate is in <Link className="font-semibold underline" href="/orders/estimates">Order Management</Link>.</p>}
             <details className="rounded-lg border border-line p-3">
               <summary className="cursor-pointer font-semibold">Copy for a reorder</summary>
               <div className="mt-3">
@@ -160,7 +162,7 @@ export default async function RfqPage({ params }: { params: Promise<{ id: string
       </Panel>
 
       {rfq.status === "draft" ? (
-        <Panel title="Choose suppliers" sub="Only suppliers that are active and not blocked for purchasing in Assure+ can be invited. Same-market suppliers are listed first.">
+        <Panel title="Choose suppliers" sub="Only suppliers that are active and not blocked for purchasing in SRM can be invited. Same-market suppliers are listed first.">
           <ActionForm action={setSuppliers} hidden={{ id }} submit="Save supplier selection" className="p-5">
             <div className="grid gap-1.5 sm:grid-cols-2 xl:grid-cols-3">
               {poolSorted.map((s) => (
@@ -170,14 +172,14 @@ export default async function RfqPage({ params }: { params: Promise<{ id: string
                 </label>
               ))}
             </div>
-            {pool.length === 0 && <p className="text-sm text-muted">No eligible suppliers in Assure+ right now.</p>}
+            {pool.length === 0 && <p className="text-sm text-muted">No eligible suppliers in SRM right now.</p>}
           </ActionForm>
           {invites.length > 0 && <p className="border-t border-line px-5 py-2 text-sm">{invites.length} chosen: {invites.map((i) => i.supplier_name).join(", ")}</p>}
         </Panel>
       ) : (
         <Panel title="Invited suppliers">
           <table className="w-full text-sm">
-            <thead><tr><Th>Supplier</Th><Th>Market</Th><Th>Response</Th><Th>Assure+ now</Th><Th>Note</Th></tr></thead>
+            <thead><tr><Th>Supplier</Th><Th>Market</Th><Th>Response</Th><Th>SRM now</Th><Th>Note</Th></tr></thead>
             <tbody>{invites.map((i) => (
               <tr key={i.supplier_id}>
                 <Td className="font-semibold">{i.supplier_name}</Td><Td>{i.supplier_market}{i.cross_border && <span className="text-xs text-muted"> · cross-border</span>}</Td>
@@ -224,7 +226,7 @@ export default async function RfqPage({ params }: { params: Promise<{ id: string
                   </tr>
                   <tr>
                     <Td className="font-semibold">Status</Td><Td />
-                    {responses.map((r) => <Td key={r.id}><div className="flex flex-col items-start gap-1"><StatusPill meta={QUOTE_STATUS} value={r.status} /><StatusPill meta={FINANCE_STATUS} value={r.finance_status} />{r.source === "internal_entry" && <Pill>Logged by buyer</Pill>}{(r.purchasing_blocked || !r.supplier_active) && <Pill tone="bad">Blocked in Assure+</Pill>}</div></Td>)}
+                    {responses.map((r) => <Td key={r.id}><div className="flex flex-col items-start gap-1"><StatusPill meta={QUOTE_STATUS} value={r.status} /><StatusPill meta={FINANCE_STATUS} value={r.finance_status} />{r.source === "internal_entry" && <Pill>Logged by buyer</Pill>}{(r.purchasing_blocked || !r.supplier_active) && <Pill tone="bad">Blocked in SRM</Pill>}</div></Td>)}
                     <Td /><Td />
                   </tr>
                 </tbody>
@@ -291,7 +293,7 @@ export default async function RfqPage({ params }: { params: Promise<{ id: string
               ))}
             </div>
           </Panel>
-          <Panel title="Award" sub="Checked again in the database: bidding closed, Finance approved, supplier not blocked in Assure+, minimum valid quotes (or a governed bypass reason). Losing quotes are marked not awarded.">
+          <Panel title="Award" sub="Checked again in the database: bidding closed, Finance approved, supplier not blocked in SRM, minimum valid quotes (or a governed bypass reason). Losing quotes are marked not awarded.">
             <div className="p-5">
               <ActionForm action={awardRfq} hidden={{ id }} submit="Award and draft the estimate" confirm="Award this RFQ? Every other quote is marked not awarded.">
                 <Field label="Winning quote" htmlFor="response_id">

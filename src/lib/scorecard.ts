@@ -1,5 +1,5 @@
 // Supplier scorecard engine. Pure functions: the same maths drives the scorecard, the PSL and the draft preview.
-// Scale is 0-5 everywhere. Methodology lives in the database (scorecard_* tables) and is edited in the Assure+ Watchtower.
+// Scale is 0-5 everywhere. Methodology lives in the database (scorecard_* tables) and is edited in the SRM Watchtower.
 
 export type Band = { min?: number; above?: number; max?: number; below?: number; score: number };
 export type OptionBand = { value: string; label: string; score: number | null };

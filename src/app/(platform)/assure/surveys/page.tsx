@@ -47,7 +47,7 @@ export default async function SurveysPage({ searchParams }: { searchParams: Prom
   const n = (st: string) => responses.filter((r) => r.status === st).length;
   return (
     <>
-      <PageHead title="Surveys" sub="Send questionnaires to suppliers and review their answers. Only the vendor can answer; staff review." crumbs={[{ label: "Assure+", href: "/assure" }, { label: "Surveys" }]} />
+      <PageHead title="Surveys" sub="Send questionnaires to suppliers and review their answers. Only the vendor can answer; staff review." crumbs={[{ label: "SRM", href: "/assure" }, { label: "Surveys" }]} />
       <section className="grid gap-3 sm:grid-cols-4">
         <Stat label="Sent" value={responses.length} />
         <Stat label="With the vendor" value={n("draft") + n("rejected")} />

@@ -38,7 +38,7 @@ export default async function MessagesPage({ searchParams }: { searchParams: Pro
 
   return (
     <>
-      <PageHead title="Messages" sub="Conversations with suppliers. Vendors see only their own company's threads." crumbs={[{ label: "Assure+", href: "/assure" }, { label: "Messages" }]} />
+      <PageHead title="Messages" sub="Conversations with suppliers. Vendors see only their own company's threads." crumbs={[{ label: "SRM", href: "/assure" }, { label: "Messages" }]} />
       <div className="grid gap-4 lg:grid-cols-[340px_1fr]">
         <Card className="min-w-0">
           <form method="get" className="border-b border-line p-3">

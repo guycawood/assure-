@@ -7,7 +7,8 @@ import { getEffectiveness } from "@/lib/shopper-iq-data";
 import { avgScore, fmtMoney, fmtPct, groupBy, totalSpend, UPLIFT_SOURCES } from "@/lib/shopper-iq";
 import { Card, PageHead, Panel, Pill } from "@/components/ui";
 import { EffectivenessForm } from "@/components/shopper-iq/forms";
-import { recordEffectiveness } from "../actions";
+import { ActionForm } from "@/components/sourcing/action-form";
+import { recordEffectiveness, verifyEffectiveness } from "../actions";
 
 export const metadata: Metadata = { title: "Campaign performance" };
 
@@ -40,7 +41,7 @@ export default async function CampaignPerformance({ searchParams }: { searchPara
       <Panel title="Records" sub={`${rows.length} records · ${fmtMoney(totalSpend(rows))} · avg execution ${avgScore(rows) == null ? "—" : Math.round(avgScore(rows)!)}`}>
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
-            <thead><tr><th className="th">Campaign</th><th className="th">Market</th><th className="th">Touchpoint</th><th className="th">Stage · channel</th><th className="th">Spend</th><th className="th">Execution</th><th className="th">Uplift</th></tr></thead>
+            <thead><tr><th className="th">Campaign</th><th className="th">Market</th><th className="th">Touchpoint</th><th className="th">Stage · channel</th><th className="th">Spend</th><th className="th">Execution</th><th className="th">Uplift</th><th className="th">Checked</th></tr></thead>
             <tbody>
               {rows.map((r) => (
                 <tr key={r.id}>
@@ -51,6 +52,17 @@ export default async function CampaignPerformance({ searchParams }: { searchPara
                   <td className="td tabular-nums">{fmtMoney(r.spend, r.currency)}</td>
                   <td className="td tabular-nums">{r.execution_score == null ? "—" : <Pill tone={r.execution_score >= 75 ? "ok" : r.execution_score >= 60 ? "warn" : "bad"}>{Math.round(r.execution_score)}</Pill>}</td>
                   <td className="td text-xs">{r.uplift_pct == null ? <span className="text-muted">{UPLIFT_SOURCES[r.uplift_source]}</span> : <>{fmtPct(r.uplift_pct)}<p className="text-muted">{UPLIFT_SOURCES[r.uplift_source]}</p></>}</td>
+                  <td className="td text-xs">
+                    {r.verification_status === "pending" ? <Pill tone="warn">To verify</Pill> : r.verification_status === "rejected" ? <Pill tone="bad">Rejected</Pill> : <Pill tone="ok">Verified</Pill>}
+                    {r.can_verify && (
+                      <div className="mt-1 flex flex-wrap gap-1">
+                        <ActionForm action={verifyEffectiveness} hidden={{ id: r.id, decision: "approve" }} submit="Verify" variant="secondary" inline />
+                        <ActionForm action={verifyEffectiveness} hidden={{ id: r.id, decision: "reject" }} submit="Reject" variant="danger" inline>
+                          <input name="note" required className="input w-32 py-1" placeholder="What's wrong" aria-label="Why rejected" />
+                        </ActionForm>
+                      </div>
+                    )}
+                  </td>
                 </tr>
               ))}
             </tbody>
@@ -58,7 +70,7 @@ export default async function CampaignPerformance({ searchParams }: { searchPara
         </div>
       </Panel>
 
-      <Panel title="Record effectiveness" sub="Touchpoint and stage come from the governed Watchtower taxonomy. Uplift must name its source.">
+      <Panel title="Record effectiveness" sub="Touchpoint and stage come from the governed Watchtower taxonomy. Uplift must name its source. A colleague verifies each record before clients see it.">
         <EffectivenessForm action={recordEffectiveness} defaultCampaign={campaign}
           campaigns={campaigns.map((c) => ({ id: c.id, name: c.name }))} touchpoints={touchpoints.map((t) => ({ id: t.id, name: t.name }))} stages={stages.map((t) => ({ id: t.id, name: t.name }))} />
       </Panel>

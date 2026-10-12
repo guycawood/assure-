@@ -1,6 +1,6 @@
 "use server";
 
-// Server actions for the Assure+ SRM functions (beyond the SRT desk). Every action checks the caller is staff,
+// Server actions for the SRM functions (beyond the SRT desk). Every action checks the caller is staff,
 // validates input, then calls a SQL function or a write that row-level security allows. Decisions (verify, approve,
 // transitions, signatures) always go through the audited SQL functions.
 import { revalidatePath } from "next/cache";
@@ -10,6 +10,7 @@ import { requireInternal } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { parseQuestions, parseSteps } from "@/lib/assure";
 import type { FormResult } from "@/components/assure/action-form";
+import { sentForApproval } from "@/components/approvals/pending";
 
 type DbError = { message: string; code?: string } | null;
 
@@ -59,7 +60,8 @@ export async function setSupplierStatus(_: FormResult, fd: FormData): Promise<Fo
   const { data, error } = await supabase.rpc("assure_set_supplier_status_json", { p_ids: ids, p_status: status, p_reason: s(fd, "reason") });
   if (error) return fail(error);
   revalidatePath("/assure/suppliers", "layout");
-  return { ok: true, message: `${data ?? 0} supplier${data === 1 ? "" : "s"} updated` };
+  const waiting = status === "active" ? ids.length - Number(data ?? 0) : 0;
+  return { ok: true, message: `${data ?? 0} supplier${data === 1 ? "" : "s"} updated${waiting > 0 ? `; suppliers moving back to active from suspended or offboarded wait for a second person to approve (see each supplier)` : ""}` };
 }
 
 export async function setRiskLevel(_: FormResult, fd: FormData): Promise<FormResult> {
@@ -202,7 +204,7 @@ export async function paTransition(_: FormResult, fd: FormData): Promise<FormRes
   const { error } = await supabase.rpc("assure_pa_transition", { p_id: id, p_action: action, p_notes: s(fd, "notes"), p_feedback: s(fd, "feedback"), p_terms: terms });
   if (error) return fail(error);
   revalidatePath("/assure/pre-assessments", "layout");
-  return done("Saved");
+  return done((action === "send_terms" && (await sentForApproval(supabase, "PAYMENT_TERMS", id))) || "Saved");
 }
 
 /* ---------------- Quality ---------------- */
@@ -234,7 +236,7 @@ export async function setInspectionResult(_: FormResult, fd: FormData): Promise<
   const { error } = await supabase.rpc("assure_set_inspection_result", { p_id: id, p_result: s(fd, "result"), p_note: s(fd, "note") });
   if (error) return fail(error);
   revalidatePath("/assure/quality", "layout");
-  return done("Result updated");
+  return done((await sentForApproval(supabase, "INSPECTION_CHANGE", id)) ?? "Result updated");
 }
 
 export async function raiseNcr(_: FormResult, fd: FormData): Promise<FormResult> {
@@ -409,7 +411,7 @@ export async function contractAction(_: FormResult, fd: FormData): Promise<FormR
   if (error) return fail(error);
   revalidatePath("/assure/contracts", "layout");
   if (action === "amend" && typeof data === "string") redirect(`/assure/contracts/${data}`);
-  return done("Done");
+  return done((action === "send" && (await sentForApproval(supabase, "CONTRACT_APPROVE", id))) || "Done");
 }
 
 export async function signParty(_: FormResult, fd: FormData): Promise<FormResult> {

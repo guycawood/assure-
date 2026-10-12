@@ -38,7 +38,7 @@ export default async function TemplatesPage({ searchParams }: { searchParams: Pr
   return (
     <>
       <PageHead title="Contract templates" sub="Reusable wording for new contracts. Templates in use can be made inactive instead of deleted."
-        crumbs={[{ label: "Assure+", href: "/assure" }, { label: "Contracts", href: "/assure/contracts" }, { label: "Templates" }]} />
+        crumbs={[{ label: "SRM", href: "/assure" }, { label: "Contracts", href: "/assure/contracts" }, { label: "Templates" }]} />
       <Chips param="category" options={TEMPLATE_CATEGORIES.map((c) => ({ value: c.value, label: c.label, count: all.filter((t) => t.category === c.value).length }))} active={sp.category} keep={{ category: sp.category }} />
       {list.length === 0 ? <Card><Empty title="No templates yet" /></Card> : folders.map((f) => (
         <section key={f}>

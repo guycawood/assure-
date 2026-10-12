@@ -10,7 +10,7 @@ const STAGES = [
   { key: "draft", label: "Drafted", icon: "edit_note" },
   { key: "submitted", label: "Submitted", icon: "send" },
   { key: "in_ideation", label: "Approved, in ideation", icon: "auto_awesome" },
-  { key: "spec_created", label: "Spec created in Sourcing+", icon: "note_add" },
+  { key: "spec_created", label: "Spec created in Sourcing", icon: "note_add" },
 ];
 const ORDER = STAGES.map((s) => s.key);
 

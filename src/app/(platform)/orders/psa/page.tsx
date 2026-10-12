@@ -25,7 +25,7 @@ export default async function PsaPage({ searchParams }: { searchParams: Promise<
   const list = sp.stage ? all.filter((x) => x.stage === sp.stage) : all;
   return (
     <>
-      <PageHead crumbs={[{ label: "Order Management+", href: "/orders" }, { label: "PSA exceptions" }]} title="Variable PSA exceptions"
+      <PageHead crumbs={[{ label: "Order Management", href: "/orders" }, { label: "PSA exceptions" }]} title="Variable PSA exceptions"
         sub="A request to apply a variable fee to one order: line manager verifies, regional procurement tries to protect the PSA, a delegated approver confirms, Finance applies." />
       <ol className="flex flex-wrap gap-1.5 text-xs">{PSA_STAGES.filter((s) => !["resolved", "rejected"].includes(s.value)).map((s, i) => (
         <li key={s.value}><Link href={`/orders/psa?stage=${s.value}`} className="inline-flex items-center gap-1.5 rounded-full border border-line px-2.5 py-1 font-semibold hover:bg-surface-2" title={s.description}>{i + 1}. {s.label} <Pill tone={s.tone}>{all.filter((x) => x.stage === s.value).length}</Pill></Link></li>

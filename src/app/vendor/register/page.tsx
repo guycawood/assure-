@@ -21,7 +21,7 @@ export default async function VendorRegister({ searchParams }: { searchParams: P
         <div className="flex items-center gap-3">
           <div className="grid h-9 w-9 place-items-center rounded bg-accent font-display text-lg font-bold text-accent-fg">A+</div>
           <div>
-            <h1 className="font-display text-xl font-bold leading-none">Assure+ Vendor Portal</h1>
+            <h1 className="font-display text-xl font-bold leading-none">SRM Vendor Portal</h1>
             <p className="mt-1 text-xs text-muted">adm Indicia</p>
           </div>
         </div>

@@ -16,8 +16,8 @@ export default async function PlanPage() {
   const pos = await getPlannablePos(supabase);
   return (
     <>
-      <PageHead crumbs={[{ label: "Logistics+", href: "/logistics" }, { label: "Plan from a PO" }]} title="Plan deliveries from a purchase order"
-        sub="Approved supplier POs from Order Management+. Planning creates one delivery per spec version, due on the PO delivery date and to the job's market; then add each destination's address, weight and distance." />
+      <PageHead crumbs={[{ label: "Logistics", href: "/logistics" }, { label: "Plan from a PO" }]} title="Plan deliveries from a purchase order"
+        sub="Approved supplier POs from Order Management. Planning creates one delivery per spec version, due on the PO delivery date and to the job's market; then add each destination's address, weight and distance." />
       <Card className="min-w-0 overflow-x-auto">
         {pos.length === 0 ? <Empty title="No approved purchase orders yet"><p>POs appear here once they are approved and issued to the vendor.</p></Empty> : (
           <table className="w-full text-sm">

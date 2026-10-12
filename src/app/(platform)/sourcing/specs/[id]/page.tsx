@@ -10,6 +10,7 @@ import { rfqBlockers, specForm, testingLabel, type SpecHub, type SpecRevision } 
 import { Card, PageHead, Panel, Pill } from "@/components/ui";
 import { ActionForm, Field } from "@/components/sourcing/action-form";
 import { ActivityList, Facts, RoutePill, Td, Th, fmtDateTime } from "@/components/sourcing/bits";
+import { ApprovalRequests } from "@/components/approvals/requests";
 import { SubstrateSelect } from "@/components/sourcing/spec-fields";
 import { SpecHubFields } from "@/components/sourcing/spec-hub-fields";
 import { addComponent, addVersion, deleteComponent, deleteVersion, overrideTriage, recomputeSpec, reviseSpec, runTriage, updateSpec, updateSpecDetails } from "../../actions";
@@ -17,7 +18,7 @@ import { addComponent, addVersion, deleteComponent, deleteVersion, overrideTriag
 export const metadata: Metadata = { title: "Spec" };
 
 export default async function SpecPage({ params }: { params: Promise<{ id: string }> }) {
-  await requireInternal();
+  const me = await requireInternal();
   const { id } = await params;
   const supabase = await createClient();
   const spec = (await getSpec(supabase, id)) as SpecHub | null;
@@ -38,12 +39,13 @@ export default async function SpecPage({ params }: { params: Promise<{ id: strin
 
   return (
     <>
-      <PageHead crumbs={[{ label: "Sourcing+", href: "/sourcing" }, { label: job.number, href: `/sourcing/jobs/${job.id}?tab=specs` }, { label: `Spec ${spec.spec_no}` }]}
+      <PageHead crumbs={[{ label: "Sourcing", href: "/sourcing" }, { label: job.number, href: `/sourcing/jobs/${job.id}?tab=specs` }, { label: `Spec ${spec.spec_no}` }]}
         title={spec.title} sub={`${specType(spec.spec_type)} · ${specForm(spec.spec_form).label} · ${spec.total_quantity.toLocaleString("en-GB")} units · ${spec.market} (${spec.region})`}>
         {spec.is_draft && <Pill tone="warn">Draft</Pill>}
         <Pill tone="info">Revision {spec.revision ?? 1}</Pill>
         <RoutePill route={spec.route} confidence={spec.confidence} />
       </PageHead>
+      <ApprovalRequests entityIds={id} types={["TRIAGE_OVERRIDE"]} meId={me.id} title="Route change waiting for a sourcing lead" />
       {locked && <Card className="border-warn/40 bg-warn-soft px-5 py-3 text-sm text-warn">This spec is on a sent RFQ, so suppliers are quoting on it. To change it, use <b>Revise spec</b> below: a new revision is saved with your note, the RFQ is flagged &quot;spec changed&quot; and the invited suppliers are asked to re-quote. The revision they quoted on stays on record.</Card>}
       {onDraftRfq && <Card className="px-5 py-3 text-sm text-muted">This spec is on a draft RFQ. Edit it freely until the RFQ is sent.</Card>}
       {blockers.length > 0 && <Card className="border-bad/30 bg-bad-soft px-5 py-3 text-sm text-bad">Before this spec can go out on an RFQ, add: {blockers.join(", ")}.</Card>}
@@ -201,7 +203,7 @@ export default async function SpecPage({ params }: { params: Promise<{ id: strin
                   <div className="mt-3">
                     <ActionForm action={overrideTriage} hidden={{ id }} submit="Override" variant="secondary">
                       <Field label="Route" htmlFor="route"><select id="route" name="route" className="input">{ROUTES.map((r) => <option key={r.value} value={r.value}>{r.label}</option>)}</select></Field>
-                      <Field label="Reason" htmlFor="reason" hint="Anyone can send a line to an RFQ; routing away from an RFQ needs a sourcing lead."><input id="reason" name="reason" required className="input" /></Field>
+                      <Field label="Reason" htmlFor="reason" hint="Anyone can send a line to an RFQ. Routing away from an RFQ is applied by a sourcing lead; where the approval policy says so, a second lead approves it first."><input id="reason" name="reason" required className="input" /></Field>
                     </ActionForm>
                   </div>
                 </details>

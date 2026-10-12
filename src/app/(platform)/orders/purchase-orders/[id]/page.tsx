@@ -9,7 +9,7 @@ import { PO_STATUS, type PurchaseOrder } from "@/lib/orders";
 import { PageHead, Panel, Pill } from "@/components/ui";
 import { ActionForm, Field } from "@/components/sourcing/action-form";
 import { ActivityList, Facts, StatusPill, fmtDate, fmtDateTime } from "@/components/sourcing/bits";
-import { approvePo, rejectPo } from "../../actions";
+import { approvePo, etenderPo, rejectPo } from "../../actions";
 
 export const metadata: Metadata = { title: "Purchase order" };
 
@@ -24,15 +24,19 @@ export default async function PoPage({ params }: { params: Promise<{ id: string 
     one<{ purchasing_blocked: boolean; active: boolean }>(supabase, "suppliers", p.supplier_id),
   ]);
   const blocked = !supplier || supplier.purchasing_blocked || !supplier.active;
-  const canApprove = p.status === "pending_approval" && p.created_by !== me.id && access.doa_level != null && access.doa_level >= p.required_doa_level;
+  const [{ data: etPending }, { data: etCan }] = await Promise.all([
+    supabase.rpc("po_etender_pending", { p_po: id }), supabase.rpc("po_etender_can_decide", { p_po: id }),
+  ]);
+  const canApprove = !etPending && p.status === "pending_approval" && p.created_by !== me.id && access.doa_level != null && access.doa_level >= p.required_doa_level;
   const why = p.status !== "pending_approval" ? null
+    : etPending ? "This PO is over the client's e-tender threshold: the Procurement head approves it before DOA approval."
     : p.created_by === me.id ? "You raised this PO, so someone else must approve it."
-    : access.doa_level == null ? "You have no delegated approval authority in Sourcing+."
+    : access.doa_level == null ? "You have no delegated approval authority in Sourcing."
     : access.doa_level < p.required_doa_level ? `This PO needs DOA level ${p.required_doa_level}; your level is ${access.doa_level}.` : null;
 
   return (
     <>
-      <PageHead crumbs={[{ label: "Order Management+", href: "/orders" }, { label: "Purchase orders", href: "/orders/purchase-orders" }, { label: p.po_number }]}
+      <PageHead crumbs={[{ label: "Order Management", href: "/orders" }, { label: "Purchase orders", href: "/orders/purchase-orders" }, { label: p.po_number }]}
         title={`Purchase order ${p.po_number}`} sub={`${p.supplier_name} · ${p.job_number} · ${p.client_name} · ${p.market} (${p.region})`}>
         <StatusPill meta={PO_STATUS} value={p.status} />
       </PageHead>
@@ -44,7 +48,7 @@ export default async function PoPage({ params }: { params: Promise<{ id: string 
               ["Estimate", <Link key="e" className="hover:underline" href={`/orders/estimates/${p.estimate_id}`}>{p.estimate_number}</Link>],
               ["Job", <Link key="j" className="hover:underline" href={`/sourcing/jobs/${p.job_id}`}>{p.job_number}</Link>],
               ["PO date", fmtDate(p.po_date)], ["Delivery date", fmtDate(p.delivery_date)],
-              ["Assure+ status now", blocked ? <Pill key="b" tone="bad">Blocked for purchasing</Pill> : <Pill key="ok" tone="ok">Eligible</Pill>],
+              ["SRM status now", blocked ? <Pill key="b" tone="bad">Blocked for purchasing</Pill> : <Pill key="ok" tone="ok">Eligible</Pill>],
               ["E-tender", p.exceeds_e_tender ? "Over the client's e-tender threshold: check the tender was run" : "Under threshold"],
               ["Vendor response", p.vendor_responded_at ? `${fmtDateTime(p.vendor_responded_at)}${p.vendor_decline_reason ? `: ${p.vendor_decline_reason}` : ""}` : "Not yet"],
             ]} />
@@ -63,7 +67,18 @@ export default async function PoPage({ params }: { params: Promise<{ id: string 
               {p.status === "pending_approval" && (
                 <>
                   {why && <p className="rounded-lg bg-warn-soft px-3 py-2 text-warn">{why}</p>}
-                  {blocked && <p className="rounded-lg bg-bad-soft px-3 py-2 text-bad">The supplier is blocked in Assure+; approval will be refused until that is cleared.</p>}
+                  {etPending && etCan && (
+                    <div className="space-y-2 rounded-lg border border-line p-3">
+                      <p className="font-semibold">E-tender approval</p>
+                      <ActionForm action={etenderPo} hidden={{ id, decision: "approve" }} submit="Approve e-tender">
+                        <Field label="Note (optional)" htmlFor="et_note"><input id="et_note" name="note" className="input" placeholder="e.g. tender run, framework agreement" /></Field>
+                      </ActionForm>
+                      <ActionForm action={etenderPo} hidden={{ id, decision: "reject" }} submit="Reject PO" variant="danger">
+                        <Field label="Reason" htmlFor="et_reason"><input id="et_reason" name="note" required className="input" /></Field>
+                      </ActionForm>
+                    </div>
+                  )}
+                  {blocked && <p className="rounded-lg bg-bad-soft px-3 py-2 text-bad">The supplier is blocked in SRM; approval will be refused until that is cleared.</p>}
                   {canApprove && (
                     <ActionForm action={approvePo} hidden={{ id }} submit="Approve and issue to vendor" confirm="Approve this PO and issue it to the vendor?">
                       <Field label="Note (optional)" htmlFor="note"><input id="note" name="note" className="input" /></Field>

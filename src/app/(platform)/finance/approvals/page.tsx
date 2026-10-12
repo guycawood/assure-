@@ -31,7 +31,7 @@ export default async function ApprovalsPage({ searchParams }: { searchParams: Pr
         { key: "decided", label: "Decided" },
       ]} />
 
-      <Panel title="RFQ quotes" sub="Decided with the same check RFQ+ uses; RFQ+ shows the result straight away">
+      <Panel title="RFQ quotes" sub="Decided with the same check Sourcing uses; the RFQ shows the result straight away">
         {qList.length === 0 ? <Empty title={show === "waiting" ? "No quotes waiting" : "No decisions yet"} /> : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">

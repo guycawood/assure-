@@ -18,8 +18,8 @@ export default async function PodsPage({ searchParams }: { searchParams: Promise
   const list = status === "all" ? all : all.filter((s) => s.pod_status === status);
   return (
     <>
-      <PageHead crumbs={[{ label: "Logistics+", href: "/logistics" }, { label: "Proof of delivery" }]} title="Proof of delivery"
-        sub="Every POD is checked against the 8-point list from the Logistics+ Watchtower. Whoever uploaded a POD can't verify it, and vendors never can." />
+      <PageHead crumbs={[{ label: "Logistics", href: "/logistics" }, { label: "Proof of delivery" }]} title="Proof of delivery"
+        sub="Every POD is checked against the 8-point list from the Logistics Watchtower. Whoever uploaded a POD can't verify it, and vendors never can." />
       <nav className="flex flex-wrap gap-2 text-sm">
         {[["received", "To verify"], ["rejected", "Rejected"], ["not_received", "Waiting for POD"], ["verified", "Verified"], ["all", "All"]].map(([k, l]) => (
           <Link key={k} href={`/logistics/pods?status=${k}`} className={`rounded-full border px-3 py-1 font-semibold ${status === k ? "border-accent bg-accent-soft text-accent" : "border-line text-muted hover:text-fg"}`}>

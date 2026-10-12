@@ -25,7 +25,7 @@ export default async function OutletsPage({ searchParams }: { searchParams: Prom
   const mks = [...new Set(all.map((o) => o.market))].sort();
   return (
     <>
-      <PageHead crumbs={[{ label: "Execution+", href: "/execution" }, { label: "Outlets" }]} title="Outlets"
+      <PageHead crumbs={[{ label: "Execution", href: "/execution" }, { label: "Outlets" }]} title="Outlets"
         sub="Persistent store locations reused across jobs: delivery destinations, recce sites and install points. Vendors only see outlets they have work at, or that are shared with them." />
       <form method="get" className="flex flex-wrap gap-2">
         <input name="q" defaultValue={sp.q ?? ""} placeholder="Search name, code, city…" className="input w-56" aria-label="Search" />

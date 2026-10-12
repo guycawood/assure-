@@ -8,7 +8,8 @@ import { ASSET_TYPES, METADATA_SOURCE } from "@/lib/shopper-iq";
 import { Card, Empty, PageHead, Panel, Pill } from "@/components/ui";
 import { MSymbol } from "@/components/symbol";
 import { AssetForm } from "@/components/shopper-iq/forms";
-import { addAsset } from "../actions";
+import { ActionForm } from "@/components/sourcing/action-form";
+import { addAsset, signOffAsset } from "../actions";
 
 export const metadata: Metadata = { title: "Asset library" };
 
@@ -50,7 +51,16 @@ export default async function AssetLibrary({ searchParams }: { searchParams: Pro
                   {a.market && <Pill tone="info">{a.market}{a.region ? ` · ${a.region}` : ""}</Pill>}
                   {a.touchpoint_name && <Pill tone="accent">{a.touchpoint_name}</Pill>}
                   {a.p2p_stage_name && <Pill>{a.p2p_stage_name}</Pill>}
+                  {a.rights_status === "pending" ? <Pill tone="warn">Rights sign-off needed</Pill> : a.rights_status === "rejected" ? <Pill tone="bad">Not for reuse</Pill> : null}
                 </div>
+                {a.can_signoff && (
+                  <div className="flex flex-wrap gap-1">
+                    <ActionForm action={signOffAsset} hidden={{ id: a.id, decision: "approve" }} submit="Sign off rights" variant="secondary" inline />
+                    <ActionForm action={signOffAsset} hidden={{ id: a.id, decision: "reject" }} submit="Reject" variant="danger" inline>
+                      <input name="note" required className="input w-28 py-1" placeholder="Why" aria-label="Why rejected" />
+                    </ActionForm>
+                  </div>
+                )}
                 {a.campaign_name && <p className="text-xs">Campaign: {a.campaign_id ? <Link href={`/shopper-iq/campaigns?campaign=${a.campaign_id}`} className="text-accent hover:underline">{a.campaign_name}</Link> : a.campaign_name}</p>}
                 {Object.keys(a.metadata ?? {}).length > 0 && (
                   <dl className="mt-1 space-y-0.5 text-[0.7rem]">

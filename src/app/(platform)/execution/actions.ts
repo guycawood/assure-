@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { requireInternal } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { friendly, id, numOrNull, str, type FormResult } from "@/lib/sourcing-actions";
+import { sentForApproval } from "@/components/approvals/pending";
 
 async function call(fn: string, args: Record<string, unknown>, message: string): Promise<FormResult> {
   await requireInternal();
@@ -57,8 +58,10 @@ export async function saveRecce(_: FormResult, fd: FormData): Promise<FormResult
   if (!id(fd)) return create("execution_recce_save", { p_recce: null, p_outlet: id(fd, "outlet_id"), p_data: data }, (x) => `/execution/recces/${x}`);
   return call("execution_recce_save", { p_recce: id(fd), p_outlet: null, p_data: data }, "Recce saved");
 }
-export async function setRecceStatus(_: FormResult, fd: FormData) {
-  return call("execution_recce_set_status", { p_recce: id(fd), p_status: str(fd, "status") }, "Status updated");
+export async function setRecceStatus(_: FormResult, fd: FormData): Promise<FormResult> {
+  const res = await call("execution_recce_set_status", { p_recce: id(fd), p_status: str(fd, "status") }, "Status updated");
+  if (!res.ok) return res;
+  return { ok: true, message: (await sentForApproval(await createClient(), "RECCE_READY", id(fd) ?? "")) ?? res.message };
 }
 
 /* ---------- Deployments ---------- */
@@ -113,6 +116,8 @@ export async function updateVisit(_: FormResult, fd: FormData) {
 export async function signOffGate(_: FormResult, fd: FormData) {
   return call("execution_gate_sign_off", { p_job: id(fd), p_gate: str(fd, "gate"), p_passed: str(fd, "decision") !== "fail", p_notes: str(fd, "notes") }, "Gate signed off");
 }
-export async function closeJob(_: FormResult, fd: FormData) {
-  return call("execution_close_job", { p_job: id(fd), p_override_reason: str(fd, "override_reason") }, "Job closed");
+export async function closeJob(_: FormResult, fd: FormData): Promise<FormResult> {
+  const res = await call("execution_close_job", { p_job: id(fd), p_override_reason: str(fd, "override_reason") }, "Job closed");
+  if (!res.ok) return res;
+  return { ok: true, message: (await sentForApproval(await createClient(), "JOB_CLOSE", id(fd) ?? "")) ?? res.message };
 }

@@ -36,7 +36,7 @@ export function IdeationPanel({ briefId, open, demo, messages, concepts, sentCon
   if (!open) {
     return (
       <Panel title="Ideation" sub="AI concepts from the brief and the approved substrate library">
-        <p className="flex items-center gap-2 px-5 py-4 text-sm text-muted"><MSymbol name="lock" size={18} /> Ideation and hand-off to Sourcing+ open once a colleague has approved this brief.</p>
+        <p className="flex items-center gap-2 px-5 py-4 text-sm text-muted"><MSymbol name="lock" size={18} /> Ideation and hand-off to Sourcing open once a colleague has approved this brief.</p>
       </Panel>
     );
   }
@@ -79,7 +79,7 @@ export function IdeationPanel({ briefId, open, demo, messages, concepts, sentCon
                 const sent = sentConceptIds.includes(c.id);
                 return (
                   <ConceptCard key={c.id} concept={c.data} top={c.is_top}
-                    actions={sent ? <Pill tone="ok"><MSymbol name="check" size={13} /> Sent to Sourcing+</Pill> : (
+                    actions={sent ? <Pill tone="ok"><MSymbol name="check" size={13} /> Sent to Sourcing</Pill> : (
                       <ConceptActions c={c} canDecide={Boolean(decide[c.id])} approvalRequired={approvalRequired} />
                     )} />
                 );

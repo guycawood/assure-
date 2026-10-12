@@ -39,7 +39,7 @@ export default async function ContractsPage({ searchParams }: { searchParams: SP
   return (
     <>
       <PageHead title="Contracts" sub="Draft, send, sign and amend supplier contracts. Status only moves through the actions on each contract, and every step is logged."
-        crumbs={[{ label: "Assure+", href: "/assure" }, { label: "Contracts" }]}>
+        crumbs={[{ label: "SRM", href: "/assure" }, { label: "Contracts" }]}>
         <ButtonLink href="/assure/contracts/templates"><MSymbol name="library_books" size={18} /> Templates</ButtonLink>
       </PageHead>
 

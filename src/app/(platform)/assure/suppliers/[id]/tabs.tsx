@@ -145,9 +145,7 @@ export async function OnboardingTab({ supplier: s, me }: Props) {
               <p>All critical gates must close by <b>{formatDate(s.fast_track_close_by)}</b>. After that date purchasing is blocked automatically.</p>
               {s.fast_track_justification && <p className="text-muted">Reason: {s.fast_track_justification}</p>}
             </div>
-          ) : isLead ? <FastTrackForm supplierId={s.id} /> : (
-            <p className="text-sm text-muted">An SRT lead can approve a time-limited fast-track exception, which lets purchasing continue while critical gates are closed.</p>
-          )}
+          ) : <FastTrackForm supplierId={s.id} lead={isLead} />}
         </Card>
       </div>
       <Card className="p-4">
@@ -528,7 +526,7 @@ export async function ActivityTab({ supplier: s }: Props) {
   return (
     <>
       <Panel title="Log a call, meeting, email or note"><div className="p-5"><ActivityForm supplierId={s.id} /></div></Panel>
-      <Panel title="Activity" sub="Every change across Assure+ for this supplier, newest first. Nothing here can be edited or deleted.">
+      <Panel title="Activity" sub="Every change across SRM for this supplier, newest first. Nothing here can be edited or deleted.">
         {acts.length === 0 ? <Empty title="Nothing recorded yet" /> : (
           <ol className="divide-y divide-line">
             {acts.map((a) => (

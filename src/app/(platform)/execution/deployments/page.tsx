@@ -35,8 +35,8 @@ export default async function DeploymentsPage({ searchParams }: { searchParams: 
   const markets = [...new Set(all.map((d) => d.market))].sort();
   return (
     <>
-      <PageHead crumbs={[{ label: "Execution+", href: "/execution" }, { label: "Deployments" }]} title="Deployments"
-        sub="An asset installed at an outlet. Planned, in transit and delivered follow the Logistics+ delivery; installed comes with photos and a GPS position; audited and rejected come from an internal audit." />
+      <PageHead crumbs={[{ label: "Execution", href: "/execution" }, { label: "Deployments" }]} title="Deployments"
+        sub="An asset installed at an outlet. Planned, in transit and delivered follow the Logistics delivery; installed comes with photos and a GPS position; audited and rejected come from an internal audit." />
       <form method="get" className="flex flex-wrap gap-2">
         <select name="stage" defaultValue={sp.stage ?? ""} className="input w-auto" aria-label="Stage"><option value="">All stages</option>{Object.entries(STAGE).map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}</select>
         <select name="audit" defaultValue={sp.audit ?? ""} className="input w-auto" aria-label="Audit"><option value="">Any audit status</option>{Object.entries(AUDIT_STATUS).map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}</select>

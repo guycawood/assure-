@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { requireAdmin } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import type { ClientFormResult } from "@/components/client/forms";
+import { sentForApproval } from "@/components/approvals/pending";
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const PATH = "/watchtower/client-access";
@@ -19,7 +20,7 @@ export async function grantClientAccess(_prev: ClientFormResult, fd: FormData): 
   const { error } = await supabase.rpc("client_access_grant", { p_user: user, p_client: client, p_role: role });
   if (error) return { error: error.message };
   revalidatePath(PATH);
-  return { ok: true, message: "Access saved." };
+  return { ok: true, message: (role === "approver" && (await sentForApproval(supabase, "CLIENT_ACCESS", `${user}:${client}`))) || "Access saved." };
 }
 
 export async function revokeClientAccess(_prev: ClientFormResult, fd: FormData): Promise<ClientFormResult> {

@@ -3,7 +3,7 @@ import type { createClient } from "@/lib/supabase/server";
 import type { BillingEntity, Job, LibraryRecord, SourcingClient, SourcingEvent, Spec, SpecComponent, SpecVersion } from "@/lib/sourcing";
 import type { MaterialFactor, Substrate } from "@/lib/sourcing-emissions";
 
-// Server-side reads for Sourcing+, RFQ+ and Order Management+. Everything runs as the signed-in user under RLS,
+// Server-side reads for Sourcing, RFQs and Order Management. Everything runs as the signed-in user under RLS,
 // through views that join names (no denormalised copies). Only eq filters and simple ordering are used, so the
 // same calls work on Supabase and on the demo PGlite client.
 

@@ -67,7 +67,7 @@ export default async function ClientEstimate({ params, searchParams }: { params:
           <Panel title="Your decision">
             <div className="px-5 py-4 text-sm">
               {ctx.preview ? (
-                <p className="text-muted">Decisions are turned off in preview. Record a client&apos;s decision in Order Management+.</p>
+                <p className="text-muted">Decisions are turned off in preview. Record a client&apos;s decision in Order Management.</p>
               ) : waitingForMe && e.role === "approver" ? (
                 <div className="space-y-5">
                   <ClientActionForm action={decideEstimate} hidden={{ estimate_id: e.id, decision: "approve" }} submit="Approve estimate">

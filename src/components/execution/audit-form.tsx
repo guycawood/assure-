@@ -12,7 +12,7 @@ export function AuditForm({ deploymentId, criteria, passMark, action }: {
   const s = displayScore(criteria, scores);
   return (
     <ActionForm action={action} hidden={{ id: deploymentId }} submit="Record audit">
-      {!s.weightsOk && <p className="rounded-lg bg-bad-soft px-3 py-2 text-sm text-bad">The criteria weights total {s.weightsTotal}%, not 100%. Fix them in the Execution+ Watchtower before auditing.</p>}
+      {!s.weightsOk && <p className="rounded-lg bg-bad-soft px-3 py-2 text-sm text-bad">The criteria weights total {s.weightsTotal}%, not 100%. Fix them in the Execution Watchtower before auditing.</p>}
       <div className="space-y-2">
         {criteria.map((c) => (
           <div key={c.code} className="grid grid-cols-[1fr_6rem] items-center gap-3">

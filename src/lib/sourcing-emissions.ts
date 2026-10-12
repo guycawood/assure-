@@ -1,4 +1,4 @@
-// Sourcing+ weight and CO2e logic, ported from the Base44 prototype (specWeight.js, specBom.js, materialBlend.js,
+// Sourcing weight and CO2e logic, ported from the Base44 prototype (specWeight.js, specBom.js, materialBlend.js,
 // emissionsCalc.js) as pure TypeScript: no I/O, every intermediate value returned so the UI can show the derivation.
 // Material figures cover raw-material production only: this is not a product carbon footprint.
 
@@ -334,7 +334,7 @@ export function computeSpecCo2e({ spec, versions, components, substratesById, fa
   };
 }
 
-/* ---------- Transport emissions (GHG Protocol Scope 3 Cat. 4), used by Logistics+ ---------- */
+/* ---------- Transport emissions (GHG Protocol Scope 3 Cat. 4), used by Logistics ---------- */
 
 export function haversineKm(lat1: number, lon1: number, lat2: number, lon2: number): number {
   const toRad = (d: number) => (d * Math.PI) / 180;

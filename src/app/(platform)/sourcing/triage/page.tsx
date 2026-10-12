@@ -30,8 +30,8 @@ export default async function TriagePage() {
 
   return (
     <>
-      <PageHead crumbs={[{ label: "Sourcing+", href: "/sourcing" }, { label: "Triage basket" }]} title="Triage basket"
-        sub="Every spec line is routed before supplier selection: Adopt and Adapt are priced from rate cards, Push asks the supplier to confirm our price, Create goes to RFQ+." />
+      <PageHead crumbs={[{ label: "Sourcing", href: "/sourcing" }, { label: "Triage basket" }]} title="Triage basket"
+        sub="Every spec line is routed before supplier selection: Adopt and Adapt are priced from rate cards, Push asks the supplier to confirm our price, Create goes to an RFQ." />
 
       <div className="grid gap-3 md:grid-cols-4">
         {ROUTES.map((r) => (
@@ -42,7 +42,7 @@ export default async function TriagePage() {
         ))}
       </div>
       {cfg && (
-        <p className="text-xs text-muted">Rules v1: tolerance band ±{Number(cfg.triage_tolerance_percent)}% on size; Push needs {Math.round(Number(cfg.push_confidence_threshold) * 100)}% confidence and an eligible rate-card supplier; anything over {money(cfg.instant_price_limit)} goes to RFQ. Change these in <Link className="underline" href="/sourcing/admin">Sourcing+ settings</Link>.</p>
+        <p className="text-xs text-muted">Rules v1: tolerance band ±{Number(cfg.triage_tolerance_percent)}% on size; Push needs {Math.round(Number(cfg.push_confidence_threshold) * 100)}% confidence and an eligible rate-card supplier; anything over {money(cfg.instant_price_limit)} goes to RFQ. Change these in <Link className="underline" href="/sourcing/admin">Sourcing settings</Link>.</p>
       )}
 
       <Panel title="Waiting for triage" sub={`${untriaged.length} line(s)`}>
@@ -71,7 +71,7 @@ export default async function TriagePage() {
         {waitingPush.length === 0 ? <p className="px-5 py-4 text-sm text-muted">No pushed prices are waiting.</p> : <SpecTable specs={waitingPush} />}
       </Panel>
 
-      <Panel title="Routed to RFQ (Create)" actions={<ButtonLink href="/rfq/new">New RFQ in RFQ+</ButtonLink>}>
+      <Panel title="Routed to RFQ (Create)" actions={<ButtonLink href="/rfq/new">New RFQ</ButtonLink>}>
         {createLines.length === 0 ? <p className="px-5 py-4 text-sm text-muted">No Create lines.</p> : <SpecTable specs={createLines} action={(s) => <ButtonLink href={`/rfq/new?job=${s.job_id}`}>RFQ</ButtonLink>} />}
       </Panel>
     </>

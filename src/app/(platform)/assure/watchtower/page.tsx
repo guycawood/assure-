@@ -7,10 +7,11 @@ import { getInputsBySupplier, getMethodology } from "@/lib/scorecard-data";
 import { scoreSupplier } from "@/lib/scorecard";
 import { personName, timeAgo } from "@/lib/srt";
 import { btn, Card, PageHead, Pill } from "@/components/ui";
+import { ApprovalRequests } from "@/components/approvals/requests";
 import { MethodologyView } from "./methodology-view";
 import { createDraft } from "./actions";
 
-export const metadata: Metadata = { title: "Assure+ Watchtower" };
+export const metadata: Metadata = { title: "SRM Watchtower" };
 
 type Audit = { id: number; methodology_id: string; action: string; detail: Record<string, unknown>; actor: string | null; at: string };
 
@@ -56,7 +57,8 @@ export default async function AssureWatchtower() {
 
   return (
     <>
-      <PageHead title="Assure+ Watchtower" sub="The rules Assure+ runs on, how they are applied, and how the module is doing. Rolls up into the master Watchtower." />
+      <PageHead title="SRM Watchtower" sub="The rules SRM runs on, how they are applied, and how the module is doing. Rolls up into the master Watchtower." />
+      <ApprovalRequests types={["SCORECARD"]} meId={me.id} title="Methodology waiting for approval" />
 
       <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
         {health.map((h) => (

@@ -139,17 +139,17 @@ export function GapTicketsButton({ supplierId }: { supplierId: string }) {
   );
 }
 
-export function FastTrackForm({ supplierId }: { supplierId: string }) {
+export function FastTrackForm({ supplierId, lead }: { supplierId: string; lead?: boolean }) {
   const [state, action, pending] = useActionState<ActionResult, FormData>(approveFastTrack.bind(null, supplierId), {});
   const def = new Date(Date.now() + 14 * 86400000).toISOString().slice(0, 10);
   return (
     <form action={action} className="space-y-3 text-sm">
-      <p className="text-muted">Lets purchasing continue while critical gates are closed, until the close-by date. You can&apos;t approve a supplier you created.</p>
+      <p className="text-muted">Lets purchasing continue while critical gates are closed, until the close-by date. Anyone can ask; an SRT lead approves it (never for a supplier they created, and never their own request where the approval policy says so).</p>
       <div><label className="label" htmlFor="justification">Justification</label><textarea id="justification" name="justification" rows={2} required className="input" placeholder="e.g. UL incumbent; production authorised by Unilever Procurement and SLT" /></div>
       <div><label className="label" htmlFor="close_by">All critical gates closed by</label><input id="close_by" name="close_by" type="date" required defaultValue={def} className="input w-auto" /></div>
       {state.error && <p className="text-bad" role="alert">{state.error}</p>}
       {state.ok && <p className="text-ok" role="status">{state.message}</p>}
-      <button type="submit" disabled={pending} className={btn.primary}>{pending ? "Approving…" : "Approve fast-track"}</button>
+      <button type="submit" disabled={pending} className={btn.primary}>{pending ? "Saving…" : lead ? "Approve or request fast-track" : "Ask for a fast-track"}</button>
     </form>
   );
 }

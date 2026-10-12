@@ -10,7 +10,7 @@ export function SendRfiForm({ ticketId, defaultEmail, resend }: { ticketId: stri
     <form action={action} className="space-y-3 text-sm">
       {!resend && (
         <p className="text-muted">
-          Email the vendor a link to register on Assure+ and fill in their company details, certifications and bank details. The ticket waits on the vendor until they submit.
+          Email the vendor a link to register on SRM and fill in their company details, certifications and bank details. The ticket waits on the vendor until they submit.
         </p>
       )}
       <div className="grid gap-3 sm:grid-cols-2">

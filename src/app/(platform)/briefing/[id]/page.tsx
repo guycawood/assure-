@@ -94,8 +94,8 @@ export default async function BriefDetail({ params, searchParams }: { params: Pr
         <Card className="flex items-center gap-3 p-4 text-sm">
           <MSymbol name="conversion_path" size={20} className="text-ok" />
           {brief.status === "spec_created"
-            ? <span>Sourcing+ has taken this brief on as a job{brief.resulting_job_id ? ` (job ${brief.resulting_job_id.slice(0, 8)})` : ""}. The brief is now closed for edits.</span>
-            : <span>{pendingHandoffs.length} concept{pendingHandoffs.length === 1 ? "" : "s"} sent to Sourcing+, waiting to be opened as a job.</span>}
+            ? <span>Sourcing has taken this brief on as a job{brief.resulting_job_id ? ` (job ${brief.resulting_job_id.slice(0, 8)})` : ""}. The brief is now closed for edits.</span>
+            : <span>{pendingHandoffs.length} concept{pendingHandoffs.length === 1 ? "" : "s"} sent to Sourcing, waiting to be opened as a job.</span>}
         </Card>
       )}
 
@@ -134,8 +134,8 @@ export default async function BriefDetail({ params, searchParams }: { params: Pr
           {(canIdeate(brief) || inApproval.length > 0) && <div id="concepts" className="scroll-mt-20">
             <Panel title="Concept approvals"
               sub={policy
-                ? `Policy ${policy.code}: a concept is approved by ${policy.approver_role ? (ROLE_LABEL[policy.approver_role] ?? policy.approver_role).toLowerCase() : "a colleague"} (never the submitter)${policy.client_approval_required ? ", then by the client in the Client Portal," : ""} before it goes to Sourcing+.`
-                : "No approval policy applies to this brief, so concepts can go straight to Sourcing+. You can still ask a colleague to approve one first."}
+                ? `Policy ${policy.code}: a concept is approved by ${policy.approver_role ? (ROLE_LABEL[policy.approver_role] ?? policy.approver_role).toLowerCase() : "a colleague"} (never the submitter)${policy.client_approval_required ? ", then by the client in the Client Portal," : ""} before it goes to Sourcing.`
+                : "No approval policy applies to this brief, so concepts can go straight to Sourcing. You can still ask a colleague to approve one first."}
               actions={<Link href="/watchtower/approvals" className="text-sm font-semibold text-accent hover:underline">All approvals</Link>}>
               {inApproval.length === 0 ? <p className="px-5 py-4 text-sm text-muted">No concept has been submitted for approval yet.</p> : (
                 <ul className="divide-y divide-line">
@@ -160,12 +160,12 @@ export default async function BriefDetail({ params, searchParams }: { params: Pr
           </div>}
 
           {history.handoffs.length > 0 && (
-            <Panel title="Hand-offs to Sourcing+">
+            <Panel title="Hand-offs to Sourcing">
               <ul className="divide-y divide-line">
                 {history.handoffs.map((h) => (
                   <li key={h.id} className="flex items-center justify-between gap-3 px-5 py-3 text-sm">
                     <span>{String((h.payload.concept as { name?: string })?.name ?? "Concept")} <span className="text-xs text-muted">· sent by {name(h.created_by)} · {formatDate(h.created_at)}</span></span>
-                    <Pill tone={h.status === "accepted" ? "ok" : "warn"}>{h.status === "accepted" ? "Opened as a job" : "Waiting for Sourcing+"}</Pill>
+                    <Pill tone={h.status === "accepted" ? "ok" : "warn"}>{h.status === "accepted" ? "Opened as a job" : "Waiting for Sourcing"}</Pill>
                   </li>
                 ))}
               </ul>

@@ -49,7 +49,7 @@ export default async function InternalReporting() {
         <Stat label="Change requests" value={crs ?? "–"} hint="Across all modules" icon={<MSymbol name="rule" size={20} />} />
       </section>
       <Card className="overflow-x-auto">
-        <div className="border-b border-line px-5 py-3.5"><h2 className="font-bold">Supply base by region</h2><p className="text-xs text-muted">From Assure+. Spend is year to date.</p></div>
+        <div className="border-b border-line px-5 py-3.5"><h2 className="font-bold">Supply base by region</h2><p className="text-xs text-muted">From SRM. Spend is year to date.</p></div>
         <table className="w-full text-sm">
           <thead><tr><th className="th">Region</th><th className="th text-right">Suppliers</th><th className="th text-right">Compliant</th><th className="th text-right">Blocked</th><th className="th text-right">On PSL</th><th className="th text-right">Avg score</th><th className="th text-right">Spend YTD</th><th className="th text-right">Overdue tickets</th></tr></thead>
           <tbody>

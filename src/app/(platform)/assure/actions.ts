@@ -7,6 +7,7 @@ import { z } from "zod";
 import { requireAdmin, requireInternal } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { CLIENTS, REGIONS } from "@/lib/srt";
+import { sentForApproval } from "@/components/approvals/pending";
 
 export type ActionResult = { ok?: boolean; error?: string; message?: string };
 
@@ -132,7 +133,7 @@ export async function approveFastTrack(supplierId: string, _: ActionResult, fd: 
   const { error } = await supabase.rpc("approve_fast_track", { p_supplier: supplierId, p_justification: justification, p_close_by: closeBy });
   if (error) return { error: friendly(error) };
   revalidatePath(`/assure/suppliers/${supplierId}`);
-  return { ok: true, message: "Fast-track exception approved" };
+  return { ok: true, message: (await sentForApproval(supabase, "FAST_TRACK", supplierId)) ?? "Fast-track exception approved" };
 }
 
 /* ---------------- Tickets ---------------- */
@@ -293,5 +294,5 @@ export async function setUserAccess(userId: string, _: ActionResult, fd: FormDat
   });
   if (error) return { error: friendly(error) };
   revalidatePath("/assure/admin/users");
-  return { ok: true, message: "Access updated" };
+  return { ok: true, message: (await sentForApproval(supabase, "ACCESS_USER", userId)) ?? "Access updated" };
 }

@@ -24,7 +24,7 @@ export const getSpend = (s: Client) => rows<SpendRow>(s, "v_finance_spend", { li
 export const getFinanceEvents = (s: Client, eq: Record<string, string>) =>
   rows<FinanceEvent>(s, "v_finance_events", { eq, order: [["at", false]], limit: 300 });
 
-/** Is the signed-in person Finance (same rule as RFQ+ quote approval)? */
+/** Is the signed-in person Finance (same rule as RFQs quote approval)? */
 export async function isFinance(s: Client): Promise<boolean> {
   const { data } = await s.rpc("finance_is_finance");
   return data === true;

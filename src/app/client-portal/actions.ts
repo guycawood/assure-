@@ -16,7 +16,7 @@ const decideSchema = z.object({
   client_order_ref: z.string().max(80).optional(),
 });
 
-/** Client approver's decision on an estimate. Recorded and sent to adm Indicia, who confirm it in Order Management+. */
+/** Client approver's decision on an estimate. Recorded and sent to adm Indicia, who confirm it in Order Management. */
 export async function decideEstimate(_prev: ClientFormResult, fd: FormData): Promise<ClientFormResult> {
   const me = await requireClient();
   if (me.is_admin || me.user_type === "internal") return { error: PREVIEW_MSG };

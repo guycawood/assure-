@@ -9,7 +9,7 @@ import { ButtonLink, Card, Empty, PageHead, Pill, Stat } from "@/components/ui";
 import { MSymbol } from "@/components/symbol";
 import { Td, Th, fmtDateTime } from "@/components/sourcing/bits";
 
-export const metadata: Metadata = { title: "RFQ+" };
+export const metadata: Metadata = { title: "RFQs" };
 
 export default async function RfqDashboard({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
   await requireInternal();
@@ -30,7 +30,7 @@ export default async function RfqDashboard({ searchParams }: { searchParams: Pro
 
   return (
     <>
-      <PageHead title="RFQ+" sub="Sealed requests for quote to suppliers from the Assure+ eligible pool, with minimum quotes from the Sourcing Control Matrix enforced.">
+      <PageHead title="RFQs" sub="Sealed requests for quote to suppliers from the SRM eligible pool, with minimum quotes from the Sourcing Control Matrix enforced.">
         <ButtonLink href="/rfq/new" variant="primary"><MSymbol name="add" size={18} />New RFQ</ButtonLink>
       </PageHead>
       <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
@@ -49,7 +49,7 @@ export default async function RfqDashboard({ searchParams }: { searchParams: Pro
       </form>
 
       <Card className="min-w-0 overflow-x-auto">
-        {rfqs.length === 0 ? <Empty title="No RFQs yet"><p>Create one from spec lines routed to Create in the Sourcing+ triage basket.</p></Empty> : list.length === 0 ? <p className="px-4 py-6 text-sm text-muted">No RFQs match.</p> : (
+        {rfqs.length === 0 ? <Empty title="No RFQs yet"><p>Create one from spec lines routed to Create in the Sourcing triage basket.</p></Empty> : list.length === 0 ? <p className="px-4 py-6 text-sm text-muted">No RFQs match.</p> : (
           <table className="w-full text-sm">
             <thead><tr><Th>RFQ</Th><Th>Job</Th><Th>Market</Th><Th>Status</Th><Th>Due</Th><Th>Value</Th><Th>Quotes / min</Th><Th>Awarded to</Th></tr></thead>
             <tbody>

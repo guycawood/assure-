@@ -21,7 +21,7 @@ export default async function PreAssessments({ searchParams }: { searchParams: P
   return (
     <>
       <PageHead title="Vendor pre-assessments" sub="Two-stage review: a vendor manager checks capability, then procurement agrees terms. The same person can't approve both stages."
-        crumbs={[{ label: "Assure+", href: "/assure" }, { label: "Pre-assessments" }]} />
+        crumbs={[{ label: "SRM", href: "/assure" }, { label: "Pre-assessments" }]} />
       <section className="grid gap-3 sm:grid-cols-4">
         <Stat label="Waiting for vendor manager" value={n("submitted", "under_review")} tone={n("submitted") ? "warn" : undefined} />
         <Stat label="With procurement" value={n("vm_approved", "procurement_review", "negotiation")} />

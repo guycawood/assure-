@@ -20,7 +20,7 @@ export default async function BriefingHome() {
 
   return (
     <>
-      <PageHead title="Briefing+" sub="Capture what the client needs as a brief per market, get it approved by a colleague, explore ideas with AI, then hand the chosen concept to Sourcing+.">
+      <PageHead title="Briefing+" sub="Capture what the client needs as a brief per market, get it approved by a colleague, explore ideas with AI, then hand the chosen concept to Sourcing.">
         <ButtonLink href="/briefing/campaign-ideation" variant="primary"><MSymbol name="lightbulb" size={18} /> Campaign ideation</ButtonLink>
         <ButtonLink href="/briefing/bulk"><MSymbol name="stacks" size={18} /> Bulk ideation</ButtonLink>
         <ButtonLink href="/briefing/new"><MSymbol name="add" size={18} /> New brief</ButtonLink>

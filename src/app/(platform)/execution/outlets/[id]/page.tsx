@@ -31,7 +31,7 @@ export default async function OutletPage({ params }: { params: Promise<{ id: str
 
   return (
     <>
-      <PageHead crumbs={[{ label: "Execution+", href: "/execution" }, { label: "Outlets", href: "/execution/outlets" }, { label: o.name }]}
+      <PageHead crumbs={[{ label: "Execution", href: "/execution" }, { label: "Outlets", href: "/execution/outlets" }, { label: o.name }]}
         title={o.name} sub={`${o.outlet_code} · ${o.client_name ?? "No client"} · ${o.city ?? ""} ${o.market_name ?? o.market} (${o.region})`}>
         <Pill tone={o.status === "active" ? "ok" : o.status === "pending_survey" ? "warn" : "neutral"}>{cap(o.status)}</Pill>
         <ButtonLink href={`/execution/recces?new=${id}`}>New recce</ButtonLink>

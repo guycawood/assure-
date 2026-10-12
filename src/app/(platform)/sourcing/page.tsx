@@ -10,7 +10,7 @@ import { ButtonLink, Card, PageHead, Panel, Pill, Stat } from "@/components/ui";
 import { MSymbol } from "@/components/symbol";
 import { JobStatusPill, RoutePill, Td, Th, fmtDate } from "@/components/sourcing/bits";
 
-export const metadata: Metadata = { title: "Sourcing+" };
+export const metadata: Metadata = { title: "Sourcing" };
 
 export default async function SourcingDashboard() {
   await requireInternal();
@@ -43,7 +43,7 @@ export default async function SourcingDashboard() {
 
   return (
     <>
-      <PageHead title="Sourcing+" sub="Jobs, specs and triage: decide how every line is bought before anyone asks a supplier for a price.">
+      <PageHead title="Sourcing" sub="Jobs, specs and triage: decide how every line is bought before anyone asks a supplier for a price.">
         <ButtonLink href="/sourcing/triage">Triage basket</ButtonLink>
         <ButtonLink href="/sourcing/jobs/new" variant="primary"><MSymbol name="add" size={18} />New job</ButtonLink>
       </PageHead>
@@ -55,7 +55,7 @@ export default async function SourcingDashboard() {
         <Stat label="Material CO2e in live specs" value={`${Math.round(co2).toLocaleString("en-GB")} kg`} hint="Raw materials only, not a product footprint" icon={<MSymbol name="eco" />} />
       </div>
 
-      <Panel title="Sourcing+ health" sub="The numbers the Watchtower checks for this module">
+      <Panel title="Sourcing health" sub="The numbers the Watchtower checks for this module">
         <div className="grid gap-3 p-4 sm:grid-cols-2 xl:grid-cols-4">
           <Link href="/rfq?filter=below_min"><Stat label="RFQs below minimum quotes" value={h.rfqs_below_min_quotes?.value ?? 0} tone={h.rfqs_below_min_quotes?.status} hint="Open RFQs with fewer valid quotes than the control matrix needs" /></Link>
           <Link href="/orders/purchase-orders?status=pending_approval"><Stat label="POs awaiting DOA" value={h.pos_awaiting_doa?.value ?? 0} tone={h.pos_awaiting_doa?.status} hint="Need an approver with enough delegated authority" /></Link>

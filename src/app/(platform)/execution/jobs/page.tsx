@@ -20,7 +20,7 @@ export default async function JobsGatesPage({ searchParams }: { searchParams: Pr
   const list = jobs.filter((j) => sp.all || ["ordered", "in_production", "delivered"].includes(j.status));
   return (
     <>
-      <PageHead crumbs={[{ label: "Execution+", href: "/execution" }, { label: "Quality gates" }]} title="Quality gates and job close"
+      <PageHead crumbs={[{ label: "Execution", href: "/execution" }, { label: "Quality gates" }]} title="Quality gates and job close"
         sub="Vendor onboarded → mock-up check sheet → production check sheet → installation check sheet → post-production closure. A job closes only when the gates pass, deliveries are confirmed and installs are audited." />
       <p className="text-sm">{sp.all ? <Link className="underline" href="/execution/jobs">Show live jobs only</Link> : <Link className="underline" href="/execution/jobs?all=1">Show all jobs</Link>}</p>
       <Card className="min-w-0 overflow-x-auto">

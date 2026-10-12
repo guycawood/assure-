@@ -16,7 +16,7 @@ export default async function ScorecardPage({ searchParams }: { searchParams: SP
   const sp = await searchParams;
   const supabase = await createClient();
   const [m, suppliers, inputs] = await Promise.all([getMethodology(supabase, { status: "active" }), getSuppliers(supabase), getInputsBySupplier(supabase)]);
-  if (!m) return <Card><Empty title="No active scorecard methodology">An admin needs to activate one in the Assure+ Watchtower.</Empty></Card>;
+  if (!m) return <Card><Empty title="No active scorecard methodology">An admin needs to activate one in the SRM Watchtower.</Empty></Card>;
 
   const rows = suppliers
     .map((s) => ({ s, r: scoreSupplier(m, inputs.get(s.id) ?? [], s.active) }))

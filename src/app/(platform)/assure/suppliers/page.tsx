@@ -31,7 +31,7 @@ export default async function SupplierDirectory({ searchParams }: { searchParams
 
   return (
     <>
-      <PageHead title="Supplier directory" sub={`Every supplier adm Indicia buys from. ${all.length} records.`} crumbs={[{ label: "Assure+", href: "/assure" }, { label: "Suppliers" }]}>
+      <PageHead title="Supplier directory" sub={`Every supplier adm Indicia buys from. ${all.length} records.`} crumbs={[{ label: "SRM", href: "/assure" }, { label: "Suppliers" }]}>
         <ButtonLink href={`/assure/suppliers/export?${qs}`}><MSymbol name="download" size={18} /> Export CSV</ButtonLink>
         <ButtonLink href="/assure/suppliers/new" variant="primary"><MSymbol name="add" size={18} /> Add supplier</ButtonLink>
       </PageHead>

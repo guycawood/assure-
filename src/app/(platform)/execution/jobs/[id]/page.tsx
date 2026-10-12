@@ -11,6 +11,7 @@ import { DELIVERY_STATUS } from "@/lib/logistics";
 import { FileList } from "@/components/file-list";
 import { FileUpload } from "@/components/file-upload";
 import { PageHead, Panel, Pill } from "@/components/ui";
+import { ApprovalRequests } from "@/components/approvals/requests";
 import { MSymbol } from "@/components/symbol";
 import { ActionForm, Field } from "@/components/sourcing/action-form";
 import { JobStatusPill, StatusPill, Td, Th, fmtDate, fmtDateTime } from "@/components/sourcing/bits";
@@ -19,7 +20,7 @@ import { closeJob, signOffGate } from "../../actions";
 export const metadata: Metadata = { title: "Job quality gates" };
 
 export default async function JobGatesPage({ params }: { params: Promise<{ id: string }> }) {
-  await requireInternal();
+  const me = await requireInternal();
   const { id } = await params;
   const supabase = await createClient();
   const job = await getJob(supabase, id);
@@ -32,11 +33,12 @@ export default async function JobGatesPage({ params }: { params: Promise<{ id: s
 
   return (
     <>
-      <PageHead crumbs={[{ label: "Execution+", href: "/execution" }, { label: "Quality gates", href: "/execution/jobs" }, { label: job.job_number }]}
+      <PageHead crumbs={[{ label: "Execution", href: "/execution" }, { label: "Quality gates", href: "/execution/jobs" }, { label: job.job_number }]}
         title={`${job.job_number} · ${job.title}`} sub={`${job.client_name} · ${job.market} (${job.region})`}>
         <JobStatusPill status={job.status} />
-        <Link className="text-sm font-semibold text-accent hover:underline" href={`/sourcing/jobs/${id}`}>Open in Sourcing+</Link>
+        <Link className="text-sm font-semibold text-accent hover:underline" href={`/sourcing/jobs/${id}`}>Open in Sourcing</Link>
       </PageHead>
+      <ApprovalRequests entityIds={id} types={["JOB_CLOSE"]} meId={me.id} title="Closing with overrides: waiting for a sourcing lead" />
       <div className="grid gap-4 xl:grid-cols-3">
         <div className="min-w-0 space-y-4 xl:col-span-2">
           <Panel title="Quality gates" sub="In order. Each needs its check sheet in the job bag and an internal sign-off.">
@@ -45,7 +47,7 @@ export default async function JobGatesPage({ params }: { params: Promise<{ id: s
                 <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-surface-2 text-xs font-bold">0</span>
                 <div className="min-w-0 flex-1 text-sm">
                   <p className="font-semibold">Vendor onboarded</p>
-                  <p className="text-muted">Checked in Assure+ for every supplier on the job&apos;s POs.</p>
+                  <p className="text-muted">Checked in SRM for every supplier on the job&apos;s POs.</p>
                 </div>
                 {check && (check.checks.find((c) => c.key === "vendor")?.ok ? <Pill tone="ok">Passed</Pill> : <Pill tone="bad">Not met</Pill>)}
               </li>
@@ -77,7 +79,7 @@ export default async function JobGatesPage({ params }: { params: Promise<{ id: s
               ))}
             </ol>
           </Panel>
-          <Panel title="Deliveries (Logistics+)">
+          <Panel title="Deliveries (Logistics)">
             {dels.length === 0 ? <p className="px-5 py-4 text-sm text-muted">No deliveries planned.</p> : (
               <table className="w-full text-sm"><thead><tr><Th>Delivery</Th><Th>Destination</Th><Th>Planned</Th><Th>PODs</Th><Th>Status</Th></tr></thead>
                 <tbody>{dels.map((d) => (

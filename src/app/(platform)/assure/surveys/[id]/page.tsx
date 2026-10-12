@@ -34,7 +34,7 @@ export default async function SurveyResponse({ params }: { params: Promise<{ id:
   return (
     <>
       <PageHead title={r.template_name} sub={`Version ${r.template_version}${r.due_date ? ` · due ${formatDate(r.due_date)}` : ""}`}
-        crumbs={[{ label: "Assure+", href: "/assure" }, { label: "Surveys", href: "/assure/surveys" }, { label: r.template_name }]}>
+        crumbs={[{ label: "SRM", href: "/assure" }, { label: "Surveys", href: "/assure/surveys" }, { label: r.template_name }]}>
         <OptPill list={SURVEY_STATUS} value={r.status} />
       </PageHead>
       <Panel title="Answers" sub={r.status === "draft" ? "The vendor hasn't submitted yet." : undefined}>

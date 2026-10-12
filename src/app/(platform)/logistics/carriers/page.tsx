@@ -28,8 +28,8 @@ export default async function CarriersPage() {
   const list = (v: unknown) => (Array.isArray(v) ? v.join(", ") : typeof v === "string" ? v : "—");
   return (
     <>
-      <PageHead crumbs={[{ label: "Logistics+", href: "/logistics" }, { label: "Carriers" }]} title="Carriers"
-        sub="The approved carrier list lives in the Logistics+ Watchtower library; performance comes from the shipments booked with each one.">
+      <PageHead crumbs={[{ label: "Logistics", href: "/logistics" }, { label: "Carriers" }]} title="Carriers"
+        sub="The approved carrier list lives in the Logistics Watchtower library; performance comes from the shipments booked with each one.">
         <ButtonLink href="/logistics/watchtower/libraries/carriers">Manage the library</ButtonLink>
       </PageHead>
       <Card className="min-w-0 overflow-x-auto">

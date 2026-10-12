@@ -19,7 +19,7 @@ export default async function PosPage({ searchParams }: { searchParams: Promise<
   if (sp.status) list = list.filter((p) => p.status === sp.status);
   return (
     <>
-      <PageHead crumbs={[{ label: "Order Management+", href: "/orders" }, { label: "Purchase orders" }]} title="Supplier purchase orders"
+      <PageHead crumbs={[{ label: "Order Management", href: "/orders" }, { label: "Purchase orders" }]} title="Supplier purchase orders"
         sub="Raised only from a client-approved estimate. Approval needs someone other than the buyer with enough delegated authority for the value." />
       <form method="get" className="flex gap-2">
         <select name="status" defaultValue={sp.status ?? ""} className="input w-auto" aria-label="Status"><option value="">All statuses</option>{Object.entries(PO_STATUS).map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}</select>

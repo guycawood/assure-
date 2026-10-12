@@ -1,6 +1,6 @@
 import "server-only";
 
-// Shared helpers for Sourcing+, RFQ+ and Order Management+ server actions.
+// Shared helpers for Sourcing, RFQs and Order Management server actions.
 export type FormResult = { ok?: boolean; error?: string; message?: string };
 
 /** Messages raised by our own SQL functions are written for users; anything else gets a generic message. */

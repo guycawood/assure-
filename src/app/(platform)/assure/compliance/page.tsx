@@ -51,7 +51,7 @@ export default async function CompliancePage({ searchParams }: { searchParams: S
 
   return (
     <>
-      <PageHead title="Compliance" sub="Certificates across all suppliers. One rule everywhere: expired once the date passes, expiring soon within 90 days." crumbs={[{ label: "Assure+", href: "/assure" }, { label: "Compliance" }]}>
+      <PageHead title="Compliance" sub="Certificates across all suppliers. One rule everywhere: expired once the date passes, expiring soon within 90 days." crumbs={[{ label: "SRM", href: "/assure" }, { label: "Compliance" }]}>
         <ButtonLink href="/assure/compliance/review" variant="primary"><MSymbol name="fact_check" size={18} /> Review queue{pendingDocs + count("pending") ? ` (${pendingDocs + count("pending")})` : ""}</ButtonLink>
       </PageHead>
       <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">

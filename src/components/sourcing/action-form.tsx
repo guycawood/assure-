@@ -9,7 +9,7 @@ type Action = (prev: FormResult, fd: FormData) => Promise<FormResult>;
 
 /**
  * A form bound to a server action that returns { ok, error, message }. Hidden fields carry record ids,
- * so one component serves every Sourcing+, RFQ+ and Order Management+ action.
+ * so one component serves every Sourcing, RFQs and Order Management action.
  */
 export function ActionForm({
   action, hidden, submit, variant = "primary", pendingLabel, className, children, confirm, inline,
@@ -35,7 +35,7 @@ export function ActionForm({
   );
 }
 
-/** Label + control wrapper used in Sourcing+ forms. */
+/** Label + control wrapper used in Sourcing forms. */
 export function Field({ label, htmlFor, hint, children, className }: { label: string; htmlFor?: string; hint?: string; children: React.ReactNode; className?: string }) {
   return (
     <div className={className}>

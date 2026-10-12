@@ -9,7 +9,7 @@ const mono = JetBrains_Mono({ subsets: ["latin"], variable: "--font-mono" });
 
 export const metadata: Metadata = {
   title: { default: "System Guy", template: "%s · System Guy" },
-  description: "System Guy by adm Indicia: Briefing+, Shopper IQ, Sourcing+, Logistics+, Execution+ and Assure+",
+  description: "System Guy by adm Indicia: Briefing+, Shopper IQ, Sourcing, Logistics, Execution and SRM",
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {

@@ -3,7 +3,7 @@ import Link from "next/link";
 import { MSymbol } from "@/components/symbol";
 import { SUBSCRIPTION_TIERS } from "@/lib/vendor";
 
-export const metadata: Metadata = { title: "Become an adm Indicia vendor", description: "The Assure+ vendor portal: quote, take orders, keep your compliance current and grow your partnership with adm Indicia." };
+export const metadata: Metadata = { title: "Become an adm Indicia vendor", description: "The SRM vendor portal: quote, take orders, keep your compliance current and grow your partnership with adm Indicia." };
 
 const FEATURES = [
   { icon: "request_quote", title: "Quotes and orders", desc: "Price quote requests per quantity break, confirm agreed prices and accept purchase orders in one place." },
@@ -37,7 +37,7 @@ export default function VendorPortalLanding() {
           <div>
             <p className="mb-3 text-xs font-bold uppercase tracking-[0.18em] text-white/60">For print, packaging, POS and merchandise suppliers</p>
             <h1 className="mb-5 font-display text-4xl font-extrabold leading-tight lg:text-5xl">Grow your business with adm Indicia</h1>
-            <p className="mb-8 max-w-xl text-white/75">The Assure+ vendor portal is where adm Indicia&apos;s suppliers quote, take orders, keep compliance current and see how they&apos;re performing. One place, plain and simple.</p>
+            <p className="mb-8 max-w-xl text-white/75">The SRM vendor portal is where adm Indicia&apos;s suppliers quote, take orders, keep compliance current and see how they&apos;re performing. One place, plain and simple.</p>
             <div className="flex flex-wrap gap-3">
               <Link href="/apply" className="rounded-xl bg-white px-5 py-3 text-sm font-bold text-brand-navy hover:bg-white/90">Start your application</Link>
               <Link href="/login?next=/vendor" className="rounded-xl border border-white/30 px-5 py-3 text-sm font-bold text-white hover:bg-white/10">I already have an account</Link>
@@ -103,7 +103,7 @@ export default function VendorPortalLanding() {
           <Link href="/apply" className="rounded-xl bg-white px-6 py-3 text-sm font-bold text-brand-navy hover:bg-white/90">Apply now</Link>
         </div>
       </section>
-      <footer className="py-6 text-center text-xs text-muted">© {new Date().getFullYear()} adm Indicia. Assure+ is part of System Guy.</footer>
+      <footer className="py-6 text-center text-xs text-muted">© {new Date().getFullYear()} adm Indicia. SRM is part of System Guy.</footer>
     </div>
   );
 }

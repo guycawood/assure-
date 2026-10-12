@@ -320,7 +320,7 @@ export async function requestPlan(_: ActionResult, fd: FormData): Promise<Action
 }
 
 // ---------------------------------------------------------------------------
-// Shipping & POD (Logistics+ vendor functions)
+// Shipping & POD (Logistics vendor functions)
 // ---------------------------------------------------------------------------
 const int = (fd: FormData, k: string) => {
   const v = s(fd, k, 12);
@@ -357,7 +357,7 @@ export async function attachPod(_: ActionResult, fd: FormData): Promise<ActionRe
 }
 
 // ---------------------------------------------------------------------------
-// Installations and recces (Execution+ vendor functions)
+// Installations and recces (Execution vendor functions)
 // ---------------------------------------------------------------------------
 export async function recordInstall(_: ActionResult, fd: FormData): Promise<ActionResult> {
   const v = await vendor("standard");
