@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { moduleByKey, type ModuleKey } from "@/modules/registry";
+import { membersOf, moduleByKey, type ModuleKey } from "@/modules/registry";
 import { ButtonLink, Card, PageHead, Stat, type Crumb } from "@/components/ui";
 import { MSymbol } from "@/components/symbol";
 import { LibraryIndex } from "./library-index";
@@ -46,13 +46,15 @@ export async function WatchtowerRoute({ module, base, slug, sp }: { module?: Mod
 /** A module's own Watchtower: health, its libraries, change requests and audit. */
 async function ModuleWatchtower({ module, base }: { module: ModuleKey; base: string }) {
   const m = moduleByKey(module)!;
+  const keys = membersOf(module); // a section's Watchtower covers its areas too (e.g. Sourcing includes RFQs)
   const supabase = await createClient();
-  const [{ data: defs }, { data: crs }, { data: audit }, health] = await Promise.all([
-    supabase.from("library_definitions").select("key").eq("module", module),
-    supabase.from("change_requests").select("status").eq("module", module),
-    supabase.from("library_audit").select("id").eq("module", module).limit(1000),
-    getHealth(supabase, module),
+  const [{ data: defs }, { data: crs }, { data: audit }, ...healthLists] = await Promise.all([
+    supabase.from("library_definitions").select("key").in("module", keys),
+    supabase.from("change_requests").select("status").in("module", keys),
+    supabase.from("library_audit").select("id").in("module", keys).limit(1000),
+    ...keys.map((k) => getHealth(supabase, k)),
   ]);
+  const health = healthLists.flat();
   const openCr = ((crs ?? []) as { status: string }[]).filter((c) => !["verified_complete", "rejected"].includes(c.status)).length;
   return (
     <>
@@ -70,7 +72,7 @@ async function ModuleWatchtower({ module, base }: { module: ModuleKey; base: str
           <h2 className="mb-2 font-bold">Module health</h2>
           <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
             {health.map((h) => (
-              <Stat key={h.metric} label={h.label} value={h.value} tone={h.status} hint={`Target ${h.target}`} />
+              <Stat key={`${h.module}-${h.metric}`} label={h.label} value={h.value} tone={h.status} hint={`Target ${h.target}`} />
             ))}
           </div>
         </section>

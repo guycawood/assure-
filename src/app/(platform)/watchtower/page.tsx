@@ -6,7 +6,7 @@ import { getSuppliers, getTickets } from "@/lib/data";
 import { getInputsBySupplier, getMethodology } from "@/lib/scorecard-data";
 import { scoreSupplier } from "@/lib/scorecard";
 import { getHealth, type HealthRow } from "@/lib/health";
-import { MODULES, type ModuleKey } from "@/modules/registry";
+import { MODULES, membersOf, type ModuleKey } from "@/modules/registry";
 import { MSymbol } from "@/components/symbol";
 import { Card, PageHead, Pill, Stat } from "@/components/ui";
 
@@ -22,14 +22,15 @@ export default async function MasterWatchtower() {
   const [suppliers, tickets, m, inputs, crRes, ...healthLists] = await Promise.all([
     getSuppliers(supabase), getTickets(supabase), getMethodology(supabase, { status: "active" }), getInputsBySupplier(supabase),
     supabase.from("change_requests").select("status"),
-    ...mods.map((x) => getHealth(supabase, x.key)),
+    // A section's health includes its areas (Sourcing + RFQs; Order Management + Logistics + Execution).
+    ...mods.map((x) => Promise.all(membersOf(x.key).map((k) => getHealth(supabase, k))).then((l) => l.flat())),
   ]);
   const health = new Map<ModuleKey, HealthRow[]>(mods.map((x, i) => [x.key, healthLists[i] as HealthRow[]]));
   const today = new Date().toISOString().slice(0, 10);
   const overdue = tickets.filter((t) => t.status !== "resolved" && t.due_date && t.due_date < today).length;
   const pct = suppliers.length ? Math.round((suppliers.filter((s) => s.rag === "green").length / suppliers.length) * 100) : 0;
   const psl = m ? suppliers.filter((s) => scoreSupplier(m, inputs.get(s.id) ?? [], s.active).preferred).length : 0;
-  // Assure+ health comes from its own data until it has a health view.
+  // SRM health comes from its own data until it has a health view.
   health.set("assure", [
     { module: "assure", metric: "compliant", label: "Suppliers fully compliant (%)", value: pct, target: 90, status: pct >= 90 ? "ok" : pct >= 60 ? "warn" : "bad" },
     { module: "assure", metric: "overdue", label: "Overdue SRT tickets", value: overdue, target: 0, status: overdue ? "bad" : "ok" },
@@ -67,8 +68,8 @@ export default async function MasterWatchtower() {
               </div>
               {rows.length ? (
                 <ul className="space-y-1 text-sm">
-                  {rows.slice(0, 4).map((r) => (
-                    <li key={r.metric} className="flex items-baseline justify-between gap-2">
+                  {rows.slice(0, 5).map((r) => (
+                    <li key={`${r.module}-${r.metric}`} className="flex items-baseline justify-between gap-2">
                       <span className="text-muted">{r.label}</span>
                       <span className={`font-bold tabular-nums ${TONE[r.status]}`}>{r.value}</span>
                     </li>

@@ -4,7 +4,7 @@ import { LoginForm } from "./login-form";
 
 export const metadata: Metadata = { title: "Sign in" };
 
-const MODULES = ["Briefing+", "Shopper IQ", "Sourcing+", "Logistics+", "Execution+", "Assure+"];
+const MODULES = ["Briefing+", "Shopper IQ", "Sourcing", "Order Management", "Finance+", "SRM"];
 const initials = (s: string) => s.split(" ").map((w) => w[0]).join("").slice(0, 2);
 
 export default async function LoginPage({ searchParams }: { searchParams: Promise<{ next?: string; error?: string }> }) {

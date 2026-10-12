@@ -21,7 +21,7 @@ const watchtower = (key: string, extra: NavItem[] = []): NavGroup => ({
   ],
 });
 
-export const NAV: Record<ModuleKey, { portal: string; groups: NavGroup[] }> = {
+const SECTION_NAV: Record<Exclude<ModuleKey, "rfq" | "logistics" | "execution">, { portal: string; groups: NavGroup[] }> = {
   watchtower: {
     portal: "Oversight",
     groups: [
@@ -81,33 +81,30 @@ export const NAV: Record<ModuleKey, { portal: string; groups: NavGroup[] }> = {
       watchtower("shopper-iq"),
     ],
   },
-  rfq: {
-    portal: "Quotes & award",
-    groups: [
-      about("rfq", "RFQ+"),
-      { label: "Overview", items: [{ label: "RFQs", href: "/rfq", icon: "request_quote", exact: true }] },
-      { label: "Sourcing events", items: [{ label: "New RFQ", href: "/rfq/new", icon: "add_circle" }] },
-      watchtower("rfq"),
-    ],
-  },
+  // Sourcing: jobs, specs and triage, then RFQs (one section; RFQ pages keep their /rfq URLs).
   sourcing: {
-    portal: "Job management",
+    portal: "Specs to award",
     groups: [
-      about("sourcing", "Sourcing+"),
+      about("sourcing", "Sourcing"),
       { label: "Overview", items: [{ label: "Dashboard", href: "/sourcing", icon: "space_dashboard", exact: true }] },
       { label: "Jobs & specs", items: [
         { label: "Jobs", href: "/sourcing/jobs", icon: "work" },
         { label: "Specs", href: "/sourcing/specs", icon: "layers" },
         { label: "Triage basket", href: "/sourcing/triage", icon: "alt_route" },
       ] },
+      { label: "RFQs", items: [
+        { label: "RFQs", href: "/rfq", icon: "request_quote", exact: true },
+        { label: "New RFQ", href: "/rfq/new", icon: "add_circle" },
+      ] },
       { label: "Administration", items: [{ label: "Clients & access", href: "/sourcing/admin", icon: "settings" }] },
       watchtower("sourcing"),
     ],
   },
+  // Order Management: estimates and POs, then Logistics and Execution (one section; their pages keep their URLs).
   orders: {
-    portal: "Estimates & POs",
+    portal: "Order to install",
     groups: [
-      about("orders", "Order Management+"),
+      about("orders", "Order Management"),
       { label: "Overview", items: [{ label: "Dashboard", href: "/orders", icon: "space_dashboard", exact: true }] },
       { label: "Orders", items: [
         { label: "Estimates", href: "/orders/estimates", icon: "receipt_long" },
@@ -115,42 +112,26 @@ export const NAV: Record<ModuleKey, { portal: string; groups: NavGroup[] }> = {
         { label: "PSA exceptions", href: "/orders/psa", icon: "gavel" },
         { label: "Stocktool hand-off", href: "/orders/outbox", icon: "outbox" },
       ] },
-      watchtower("orders"),
-    ],
-  },
-  logistics: {
-    portal: "Freight & deliveries",
-    groups: [
-      about("logistics", "Logistics+"),
-      { label: "Overview", items: [{ label: "Dashboard", href: "/logistics", icon: "space_dashboard", exact: true }] },
-      { label: "Deliveries", items: [
-        { label: "Deliveries", href: "/logistics/deliveries", icon: "local_shipping" },
+      { label: "Logistics", items: [
+        { label: "Logistics dashboard", href: "/logistics", icon: "local_shipping", exact: true },
+        { label: "Deliveries", href: "/logistics/deliveries", icon: "inventory_2" },
         { label: "Plan from a PO", href: "/logistics/plan", icon: "playlist_add" },
         { label: "Proof of delivery", href: "/logistics/pods", icon: "fact_check" },
         { label: "Tracker", href: "/logistics/tracker", icon: "route" },
         { label: "Carriers", href: "/logistics/carriers", icon: "airport_shuttle" },
+        { label: "OTIF & CO2e", href: "/logistics/performance", icon: "eco" },
       ] },
-      { label: "Performance", items: [{ label: "OTIF & CO2e", href: "/logistics/performance", icon: "eco" }] },
-      watchtower("logistics"),
-    ],
-  },
-  execution: {
-    portal: "In-store operations",
-    groups: [
-      about("execution", "Execution+"),
-      { label: "Overview", items: [{ label: "Dashboard", href: "/execution", icon: "space_dashboard", exact: true }] },
-      { label: "In store", items: [
-        { label: "Outlets", href: "/execution/outlets", icon: "storefront" },
+      { label: "Execution", items: [
+        { label: "Execution dashboard", href: "/execution", icon: "storefront", exact: true },
+        { label: "Outlets", href: "/execution/outlets", icon: "store" },
         { label: "Recces", href: "/execution/recces", icon: "straighten" },
         { label: "Deployments", href: "/execution/deployments", icon: "handyman" },
         { label: "Visits", href: "/execution/visits", icon: "event" },
         { label: "Maintenance", href: "/execution/tickets", icon: "build" },
-      ] },
-      { label: "Quality", items: [
         { label: "Quality gates", href: "/execution/jobs", icon: "verified" },
         { label: "Retail Grade", href: "/execution/retail-grade", icon: "grade" },
       ] },
-      watchtower("execution"),
+      watchtower("orders"),
     ],
   },
   finance: {
@@ -171,7 +152,7 @@ export const NAV: Record<ModuleKey, { portal: string; groups: NavGroup[] }> = {
   assure: {
     portal: "SRM portal",
     groups: [
-      { label: "About", items: [{ label: "About Assure+", href: "/assure/about", icon: "auto_awesome" }] },
+      { label: "About", items: [{ label: "About SRM", href: "/assure/about", icon: "auto_awesome" }] },
       { label: "Overview", items: [{ label: "Dashboard", href: "/assure", icon: "space_dashboard", exact: true }] },
       { label: "SRT desk", items: [
         { label: "Onboarding dashboard", href: "/assure/srt", icon: "speed", exact: true },
@@ -205,4 +186,12 @@ export const NAV: Record<ModuleKey, { portal: string; groups: NavGroup[] }> = {
       { label: "Administration", items: [{ label: "User access", href: "/assure/admin/users", icon: "group", adminOnly: true }] },
     ],
   },
+};
+
+/** Sidebar per module key; areas inside a section use their section's sidebar. */
+export const NAV: Record<ModuleKey, { portal: string; groups: NavGroup[] }> = {
+  ...SECTION_NAV,
+  rfq: SECTION_NAV.sourcing,
+  logistics: SECTION_NAV.orders,
+  execution: SECTION_NAV.orders,
 };

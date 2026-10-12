@@ -2,7 +2,7 @@ import { requireInternal } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { byId, getInternalPeople } from "@/lib/data";
 import { getAudit } from "@/lib/library-data";
-import { moduleByKey } from "@/modules/registry";
+import { membersOf, moduleByKey, type ModuleKey } from "@/modules/registry";
 import { personName, timeAgo } from "@/lib/srt";
 import { Card, Empty, PageHead, Pill, type Crumb } from "@/components/ui";
 
@@ -27,7 +27,7 @@ export async function AuditTrail({ module, crumbs }: { module?: string; crumbs: 
     ...lib.map((a) => ({ at: a.at, module: a.module, source: "Library", what: `${a.action.replace("_", " ")} · ${a.record_name ?? ""}`, detail: [a.library_key?.replace(/_/g, " "), a.note, a.changes.length ? `${a.changes.length} field${a.changes.length === 1 ? "" : "s"} changed` : ""].filter(Boolean).join(" · "), actor: a.actor })),
     ...((cr.data ?? []) as { change_request_id: string; to_status: string; note: string | null; actor: string | null; at: string }[])
       .map((e) => ({ ...e, change_requests: heads.get(e.change_request_id) ?? null }))
-      .filter((e) => !module || e.change_requests?.module === module)
+      .filter((e) => !module || (e.change_requests != null && membersOf(module).includes(e.change_requests.module as ModuleKey)))
       .map((e) => ({ at: e.at, module: e.change_requests?.module ?? "watchtower", source: "Change request", what: `CR-${String(e.change_requests?.request_no ?? 0).padStart(4, "0")} → ${e.to_status.replace(/_/g, " ")}`, detail: e.note ?? "", actor: e.actor })),
     ...((sc.data ?? []) as { action: string; detail: { note?: string } | null; actor: string | null; at: string }[])
       .map((e) => ({ at: e.at, module: "assure", source: "Scoring methodology", what: e.action.replace("_", " "), detail: e.detail?.note ?? "", actor: e.actor })),

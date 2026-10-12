@@ -3,7 +3,7 @@ import { requireInternal } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { byId, getInternalPeople } from "@/lib/data";
 import { canGovern } from "@/lib/library-data";
-import { moduleByKey } from "@/modules/registry";
+import { membersOf, moduleByKey } from "@/modules/registry";
 import { personName, timeAgo } from "@/lib/srt";
 import { Card, Empty, PageHead, Pill, type Crumb } from "@/components/ui";
 import { CrActions } from "./cr-actions";
@@ -32,7 +32,7 @@ export async function ChangeRequests({ module, crumbs, view }: { module?: string
   const me = await requireInternal();
   const supabase = await createClient();
   let q = supabase.from("change_requests").select("*");
-  if (module) q = q.eq("module", module);
+  if (module) q = q.in("module", membersOf(module));
   const [{ data }, people, { data: principles }] = await Promise.all([
     q.order("requested_at", { ascending: false }).limit(500),
     getInternalPeople(supabase),

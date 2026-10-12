@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { clsx } from "clsx";
-import { MODULES, type ModuleDef } from "@/modules/registry";
+import { MODULES, sectionForPath, type ModuleDef } from "@/modules/registry";
 import { NAV, type NavItem } from "@/modules/nav";
 import { MSymbol } from "@/components/symbol";
 import { SuggestChange } from "@/components/watchtower/suggest-change";
@@ -79,8 +79,9 @@ const THEMES = {
 type ThemeName = keyof typeof THEMES;
 const initials = (s: string) => s.split(/[\s@.]+/).filter(Boolean).slice(0, 2).map((w) => w[0]!.toUpperCase()).join("");
 
+// Areas inside a section (RFQs, Logistics, Execution) keep their own URLs but show their section's tab and sidebar.
 function currentModule(path: string): ModuleDef {
-  return MODULES.find((m) => path === m.basePath || path.startsWith(m.basePath + "/")) ?? MODULES[0];
+  return sectionForPath(path) ?? MODULES[0];
 }
 
 // The System Guy home page sits above the modules: its own small sidebar, no module tab highlighted.

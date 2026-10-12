@@ -1,8 +1,6 @@
-import type { Metadata } from "next";
-import { ModuleAboutPage } from "../../module-about";
+import { redirect } from "next/navigation";
 
-export const metadata: Metadata = { title: "About Execution+" };
-
+// execution is part of the orders section, which has one About page.
 export default function About() {
-  return <ModuleAboutPage moduleKey="execution" />;
+  redirect("/orders/about");
 }

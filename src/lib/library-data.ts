@@ -1,5 +1,6 @@
 import "server-only";
 import type { createClient } from "@/lib/supabase/server";
+import { membersOf } from "@/modules/registry";
 
 type Client = Awaited<ReturnType<typeof createClient>>;
 
@@ -45,7 +46,7 @@ export async function getAliases(supabase: Client, key: string): Promise<Alias[]
 
 export async function getAudit(supabase: Client, opts: { module?: string; recordIds?: string[]; limit?: number }): Promise<LibraryAudit[]> {
   let q = supabase.from("library_audit").select("*");
-  if (opts.module) q = q.eq("module", opts.module);
+  if (opts.module) q = q.in("module", membersOf(opts.module)); // a section includes its areas
   const { data } = await q.order("at", { ascending: false }).limit(opts.limit ?? 200);
   const rows = (data ?? []) as LibraryAudit[];
   return opts.recordIds ? rows.filter((r) => r.record_id && opts.recordIds!.includes(r.record_id)) : rows;

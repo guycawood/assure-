@@ -49,7 +49,7 @@ export const JOURNEY: JourneyStage[] = [
     { step: "AI ideation", detail: "Concepts from approved low-impact materials; open the approved brief to ideate.", lane: "internal", module: "briefing", href: "/briefing", as: U.ada },
     { step: "Approve the concept", detail: "Internal sign-off on the chosen concept.", lane: "internal", module: "briefing", href: "/briefing", as: U.lena, gate: "Approver role from the policy, not the submitter" },
     { step: "Client approves the concept", detail: "Where the client's policy requires it.", lane: "client", module: "briefing", href: "/client-portal/briefs", as: U.claire, gate: "Client approver (not viewer)" },
-    { step: "Send to Sourcing+", detail: "The concept becomes a job and specs.", lane: "internal", module: "briefing", href: "/briefing", as: U.ada },
+    { step: "Send to Sourcing", detail: "The concept becomes a job and specs.", lane: "internal", module: "briefing", href: "/briefing", as: U.ada },
   ] },
   { key: "source", title: "3. Source", summary: "Specs, triage and a sealed sourcing event with eligible vendors.", steps: [
     { step: "Job and specs", detail: "Spec form and type; promo/merch fields, HS code, weights, CO2e and Impact Grade.", lane: "internal", module: "sourcing", href: "/sourcing/jobs", as: U.ada },
@@ -57,7 +57,7 @@ export const JOURNEY: JourneyStage[] = [
     { step: "Send the RFQ", detail: "Eligible pool only, minimum quotes, up to 12 quantity breaks, run-ons, incoterms, delivery points.", lane: "internal", module: "rfq", href: "/rfq/new", as: U.ada, gate: "HS code required on promo lines; minimum quotes or a bypass reason" },
     { step: "Vendor quotes", detail: "Sealed per-unit prices, alternatives, cartons, weights, samples and emissions declaration.", lane: "vendor", module: "rfq", href: "/vendor/quotes", as: U.tom },
     { step: "Evaluate and approve", detail: "Benchmark, tolerance, savings; finance approves before award.", lane: "internal", module: "rfq", href: "/rfq", as: U.fiona, gate: "Finance approval" },
-    { step: "Award checks", detail: "Assure+ checks purchasing block, MSA and the approver's DOA level; losing quotes declined.", lane: "system", module: "assure", href: "/rfq", as: U.ada, gate: "Automatic checks" },
+    { step: "Award checks", detail: "SRM checks purchasing block, MSA and the approver's DOA level; losing quotes declined.", lane: "system", module: "assure", href: "/rfq", as: U.ada, gate: "Automatic checks" },
   ] },
   { key: "commit", title: "4. Commit", summary: "Estimate to the client, then the supplier PO, then the Stocktool hand-off.", steps: [
     { step: "Build the estimate", detail: "Markup or margin, cost split, GSC commission and rebate.", lane: "internal", module: "orders", href: "/orders/estimates", as: U.ada },

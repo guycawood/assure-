@@ -1,11 +1,7 @@
-import type { Metadata } from "next";
-import { WatchtowerRoute } from "@/components/watchtower/watchtower-route";
-import type { LibrarySearch } from "@/components/watchtower/library-view";
+import { redirect } from "next/navigation";
 
-export const metadata: Metadata = { title: "Logistics+ Watchtower" };
-
-// Logistics+ module Watchtower: libraries, change requests and audit trail for this module.
-export default async function Page({ params, searchParams }: { params: Promise<{ slug?: string[] }>; searchParams: Promise<LibrarySearch> }) {
+// logistics is part of the orders section: its Watchtower is the section's Watchtower.
+export default async function Page({ params }: { params: Promise<{ slug?: string[] }> }) {
   const { slug = [] } = await params;
-  return <WatchtowerRoute module="logistics" base="/logistics/watchtower" slug={slug} sp={await searchParams} />;
+  redirect(["/orders/watchtower", ...slug].join("/"));
 }
