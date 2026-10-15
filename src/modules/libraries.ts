@@ -296,6 +296,7 @@ export const LIBRARY_SCHEMAS: Record<string, LibrarySchema> = {
         { value: "procurement", label: "Procurement" }, { value: "procurement_head", label: "Procurement head" }, { value: "sourcing_lead", label: "Sourcing lead" },
         { value: "doa", label: "Delegated authority (DOA)" }, { value: "module_owner", label: "Module owner" }, { value: "briefing_lead", label: "Briefing lead" },
         { value: "client_approver", label: "Client approver" }, { value: "vendor", label: "Vendor" },
+        { value: "quality", label: "Quality role" }, { value: "logistics_lead", label: "Logistics lead" }, { value: "line_manager", label: "Line manager" },
       ] },
       { key: "min_value", label: "Applies from value", type: "number", column: true, help: "Blank for any value" },
       { key: "currency", label: "Currency", type: "enum", options: opts("GBP", "EUR", "USD", "SGD") },
@@ -308,6 +309,63 @@ export const LIBRARY_SCHEMAS: Record<string, LibrarySchema> = {
       { key: "where_in_ui", label: "Where it is decided", type: "text" },
     ],
   },
+  // QA/QC threshold management (SRM owns the levels, evidence, rules and bodies; Order Management the settings)
+  qaqc_levels: {
+    codeLabel: "Level code", nameLabel: "Level",
+    note: "Required evidence is one line per requirement as checkpoint:EVIDENCE_CODE, with alternatives separated by | (e.g. pre_shipment:COC|DECLARATION). Checkpoints: mockup, production, pre_shipment, installation.",
+    fields: [
+      { key: "level", label: "Level number", type: "number", required: true, column: true, help: "1 (lowest) to 5 (highest)" },
+      { key: "description", label: "What it means", type: "textarea", required: true, column: true },
+      { key: "checkpoints", label: "Checkpoints", type: "list", required: true, column: true, help: "One per line: mockup, production, pre_shipment, installation" },
+      { key: "required_evidence", label: "Required evidence", type: "list", required: true, help: "One per line: checkpoint:EVIDENCE_CODE (| for alternatives)" },
+      { key: "verifier", label: "Who verifies", type: "enum", options: opts("auto", "quality", "third_party"), required: true, column: true, filter: true },
+      { key: "aql_code", label: "AQL reference (code)", type: "text", column: true, help: "From the AQL levels library, e.g. AQL-2.5; the spec's own AQL level wins" },
+      { key: "signoff_required", label: "Quality sign-off required", type: "boolean", column: true, filter: true },
+      { key: "min_photos", label: "Minimum photos", type: "number" },
+      { key: "approved_body_required", label: "Approved lab / inspection body required", type: "boolean", column: true },
+    ],
+  },
+  qaqc_evidence_types: {
+    codeLabel: "Evidence code", nameLabel: "Evidence",
+    note: "Key data the vendor must give (needs): issued_on, expires_on, inspection_date, body, certificate_number, aql, result. Window 'po' means dated within the order (minus the look-back days); 'validity' means not expired.",
+    fields: [
+      { key: "description", label: "Description", type: "textarea", column: true },
+      { key: "needs", label: "Key data needed", type: "list", column: true, help: "One per line" },
+      { key: "window", label: "Date window", type: "enum", options: opts("po", "validity", "none"), column: true, filter: true },
+      { key: "lookback_days", label: "Look-back before the PO date", type: "number", unit: "days" },
+      { key: "body_types", label: "Accepted body types", type: "list", help: "lab, inspection_agency, certification_body" },
+      { key: "allowed_types", label: "Allowed file types", type: "list", help: "MIME prefixes, e.g. application/pdf, image/" },
+      { key: "min_files", label: "Minimum files", type: "number" },
+    ],
+  },
+  qaqc_level_rules: {
+    codeLabel: "Rule code", nameLabel: "Rule", groupBy: "condition",
+    note: "Every matching rule fires; the highest minimum level wins, then bumps (e.g. new supplier +1) are added, capped at L5. Values match case-insensitively; categories match as text contained in the spec's product category or the job category.",
+    fields: [
+      { key: "condition", label: "Condition", type: "enum", required: true, column: true, filter: true,
+        options: opts("spec_type", "product_category", "lighting_electronics", "testing_checklist", "order_value", "quantity", "destination_market",
+          "client_requirement", "supplier_unrated", "supplier_quality_below", "supplier_tier", "sustainability_claim", "cross_border") },
+      { key: "values", label: "Values", type: "list", column: true, help: "One per line (spec types, categories, tests, market codes, tiers)" },
+      { key: "threshold", label: "Threshold", type: "number", column: true, help: "Order value, quantity or quality score" },
+      { key: "currency", label: "Currency (order value)", type: "enum", options: opts("EUR", "GBP", "USD", "SGD") },
+      { key: "effect", label: "Effect", type: "enum", options: opts("min_level", "bump"), required: true, column: true, filter: true },
+      { key: "level", label: "Minimum level", type: "number", column: true },
+      { key: "bump", label: "Levels added", type: "number" },
+      { key: "evidence_add", label: "Extra evidence", type: "list", help: "checkpoint:EVIDENCE_CODE, e.g. pre_shipment:CERTIFICATE" },
+      { key: "explanation", label: "Explanation (shown to vendors)", type: "textarea", required: true },
+    ],
+  },
+  qaqc_approved_bodies: {
+    codeLabel: "Body code", nameLabel: "Name",
+    fields: [
+      { key: "body_type", label: "Type", type: "enum", options: opts("lab", "inspection_agency", "certification_body"), required: true, column: true, filter: true },
+      { key: "accreditation", label: "Accreditation", type: "text", column: true },
+      { key: "accredited_until", label: "Accredited until", type: "date", column: true },
+      { key: "scopes", label: "Scopes", type: "list" },
+      { key: "markets", label: "Markets", type: "list" },
+    ],
+  },
+  qaqc_settings: { codeLabel: "Setting", nameLabel: "Description", fields: [{ key: "value", label: "Value", type: "number", required: true, column: true }] },
 };
 
 export const schemaFor = (key: string): LibrarySchema => LIBRARY_SCHEMAS[key] ?? { fields: [] };

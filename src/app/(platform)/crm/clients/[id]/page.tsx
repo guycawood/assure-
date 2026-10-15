@@ -19,6 +19,9 @@ import { Disclosure, Input, RagPill, ScorePill, Select, StagePill, TextArea, lib
 import {
   captureFeedback, createOpportunity, followUpFeedback, logInteraction, requestTermsChange, resubmitSetup, saveAccount, saveContact, saveContract,
 } from "../../actions";
+import { getClientDeliveryKpis } from "@/lib/crm-data";
+import { DeliveryKpisView } from "@/components/qaqc/kpis";
+import { setQaMinLevel } from "../quality-actions";
 
 export const metadata: Metadata = { title: "Client · CRM" };
 
@@ -29,6 +32,7 @@ const TABS = [
   { key: "opportunities", label: "Opportunities", icon: "filter_alt" },
   { key: "contract", label: "Contract & terms", icon: "contract" },
   { key: "health", label: "Health", icon: "monitor_heart" },
+  { key: "delivery", label: "Delivery & quality", icon: "verified" },
   { key: "feedback", label: "Feedback", icon: "reviews" },
   { key: "work", label: "Campaigns, jobs & bills", icon: "work" },
 ];
@@ -48,6 +52,7 @@ export default async function CrmClient({ params, searchParams }: { params: Prom
     getLibrary(supabase, "crm_account_tiers"), getLibrary(supabase, "crm_interaction_types"),
   ]);
   const health = healthRows[0];
+  const kpis = tab === "delivery" ? await getClientDeliveryKpis(supabase, id) : null;
   const open = opps.filter((o) => OPEN_STAGES.includes(o.stage));
   const accountOpts = accounts.map((a) => ({ value: a.id, label: `${a.market_name ?? a.market}` }));
   const contactOpts = contacts.map((c) => ({ value: c.id, label: c.full_name }));
@@ -312,6 +317,25 @@ export default async function CrmClient({ params, searchParams }: { params: Prom
       )}
 
       {tab === "work" && <LinkedWork clientId={id} />}
+
+      {tab === "delivery" && (
+        <>
+          {kpis ? <DeliveryKpisView kpis={kpis} internal /> : <Empty title="Delivery figures could not be loaded" />}
+          <Panel title="Client QA/QC requirement" sub="The minimum QA/QC level the client's contract asks for. The threshold rules never go below it.">
+            <div className="p-5">
+              <ActionForm action={setQaMinLevel} hidden={{ id }} submit="Save" variant="secondary">
+                <div className="grid gap-3 sm:grid-cols-[10rem_1fr]">
+                  <div><label className="label" htmlFor="qa_level">Minimum level</label>
+                    <select id="qa_level" name="level" className="input" defaultValue={kpis?.qa_min_level ?? ""}>
+                      <option value="">None</option>{[1, 2, 3, 4, 5].map((n) => <option key={n} value={n}>L{n}</option>)}
+                    </select></div>
+                  <div><label className="label" htmlFor="qa_reason">Why (e.g. contract clause)</label><input id="qa_reason" name="reason" className="input" required /></div>
+                </div>
+              </ActionForm>
+            </div>
+          </Panel>
+        </>
+      )}
 
       <RecentChanges clientId={id} />
     </>

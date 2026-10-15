@@ -155,6 +155,7 @@ const SECTION_NAV: Record<Exclude<ModuleKey, "rfq" | "logistics" | "execution">,
         { label: "Purchase orders", href: "/orders/purchase-orders", icon: "shopping_cart" },
         { label: "PSA exceptions", href: "/orders/psa", icon: "gavel" },
         { label: "Stocktool hand-off", href: "/orders/outbox", icon: "outbox" },
+        { label: "QA/QC and OTIF", href: "/orders/qaqc", icon: "verified" },
       ] },
       { label: "Logistics", items: [
         { label: "Logistics dashboard", href: "/logistics", icon: "local_shipping", exact: true },

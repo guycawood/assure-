@@ -5,6 +5,7 @@ import type {
   AccountRow, ClientRow, ContactRow, ContractRow, FeedbackRow, HealthRow, InteractionRow, LibOption, MarketOption, OpportunityRow, Person,
   PlanActionRow, PlanRow,
 } from "@/lib/crm";
+import type { DeliveryKpis } from "@/lib/qaqc";
 
 // Server-side reads for CRM. Everything reads internal views (security invoker), so RLS limits them to adm Indicia staff.
 type Client = Awaited<ReturnType<typeof createClient>>;
@@ -127,3 +128,9 @@ export const getCadence = (s: Client) => list<CadenceRow>(s, "crm_review_cadence
 export const getCrmActions = (s: Client, f: Filter = {}) => list<CrmActionRow>(s, "crm_actions_v", f, ["due_date"]);
 export const getReviewResponses = (s: Client, reviewId: string) =>
   list<{ review_id: string; user_id: string; response: string; note: string | null; responded_at: string }>(s, "crm_review_responses", { review_id: reviewId }, ["responded_at", false]);
+
+/** OTIF, QA/QC pass rate by level, NCRs and speed to market for one client (last 12 months). */
+export async function getClientDeliveryKpis(s: Client, clientId: string): Promise<DeliveryKpis | null> {
+  const { data, error } = await s.rpc("crm_client_delivery_kpis", { p_client: clientId, p_months: 12 });
+  return error ? null : (data as DeliveryKpis);
+}

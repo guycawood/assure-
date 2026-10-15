@@ -111,8 +111,9 @@ export default async function ShippingPage() {
                               <ActionDialog label={s.pod_status === "rejected" ? "Upload corrected POD" : "Upload POD"} variant={s.pod_status === "rejected" ? "danger" : "primary"} title={`Proof of delivery for ${s.shipment_number}`}
                                 action={attachPod} hidden={{ shipment: s.id }} submit="Upload POD" wide>
                                 {checklistBox}
-                                <div className="grid gap-3 sm:grid-cols-2">
+                                <div className="grid gap-3 sm:grid-cols-3">
                                   <div><label className="label" htmlFor={`do-${s.id}`}>Delivered on</label><input id={`do-${s.id}`} name="delivered_on" type="date" min={s.dispatch_date} max={today()} defaultValue={today()} className="input" /></div>
+                                  <div><label className="label" htmlFor={`dt-${s.id}`}>Delivery time (as on the POD)</label><input id={`dt-${s.id}`} name="delivered_time" type="time" className="input" /></div>
                                   <div><label className="label" htmlFor={`f-${s.id}`}>Signed POD (PDF or photo)</label><input id={`f-${s.id}`} name="file" type="file" required accept=".pdf,image/*" className="input" /></div>
                                 </div>
                               </ActionDialog>

@@ -52,6 +52,9 @@ export default async function DeliveryPage({ params }: { params: Promise<{ id: s
               ["Method", `${cap(d.delivery_method)}${d.incoterm ? ` · ${d.incoterm}` : ""}`],
               ["Planned dispatch", fmtDate(d.planned_dispatch_date)], ["Planned delivery", fmtDate(d.planned_delivery_date)],
               ["Delivered", d.actual_delivery_date ? <span key="a" className={d.on_time ? "text-ok" : "text-bad"}>{fmtDate(d.actual_delivery_date)} {d.on_time ? "(on time)" : "(late)"}</span> : "—"],
+              ["POD timestamp", (d as typeof d & { pod_at?: string | null }).pod_at
+                ? `${fmtDateTime((d as typeof d & { pod_at?: string | null }).pod_at)} · on time means by ${fmtDate(d.planned_delivery_date)}${(d as typeof d & { otif_tolerance_days?: number }).otif_tolerance_days ? ` + ${(d as typeof d & { otif_tolerance_days?: number }).otif_tolerance_days} day(s)` : ""}`
+                : "—"],
               ["Destination", [d.recipient_name, d.address_line, d.city, d.postcode].filter(Boolean).join(", ") || "Not set"],
               ["Contact", [d.recipient_contact, d.recipient_phone, d.recipient_email].filter(Boolean).join(" · ") || "—"],
               ["Outlet", d.outlet_id ? <Link key="o" className="hover:underline" href={`/execution/outlets/${d.outlet_id}`}>{d.outlet_name} ({d.outlet_code})</Link> : "—"],
@@ -195,6 +198,13 @@ function ShipmentBlock({ s, deliveryStatus, legs, meId, people, files, podChecks
       </div>
       <Milestones shipment={s} deliveryStatus={deliveryStatus} />
       <p className="text-xs text-muted">{s.recorded_by_vendor ? "Recorded by the vendor" : "Recorded internally"}{s.gross_weight_kg != null ? ` · ${kg(s.gross_weight_kg, 3)} gross` : ""}{s.actual_delivery_date ? ` · arrived ${fmtDate(s.actual_delivery_date)}` : ""}</p>
+      {(() => {
+        const pod = s as typeof s & { pod_captured_at?: string | null; pod_time_stated?: boolean };
+        return pod.pod_captured_at ? (
+          <p className="text-xs"><span className="font-semibold">POD timestamp {fmtDateTime(pod.pod_captured_at)}</span>
+            <span className="text-muted"> ({pod.pod_time_stated ? "delivery time stated on the POD" : "time of upload"}){s.pod_received_at ? ` · uploaded ${fmtDateTime(s.pod_received_at)}` : ""}</span></p>
+        ) : null;
+      })()}
 
       <div className="grid gap-3 lg:grid-cols-2">
         <div className="space-y-2">

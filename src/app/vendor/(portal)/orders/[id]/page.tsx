@@ -12,6 +12,8 @@ import { FileList, getFiles } from "@/components/file-list";
 import { ActionButton, ActionDialog } from "@/components/vendor/action-form";
 import { InvoiceForm } from "@/components/vendor/invoice-form";
 import { respondPo } from "../../actions";
+import { VendorQaqcPlans } from "@/components/qaqc/vendor-plan";
+import type { QaqcPlan } from "@/lib/qaqc";
 
 export const metadata = { title: "Purchase order" };
 
@@ -37,11 +39,13 @@ export default async function OrderDetail({ params }: { params: Promise<{ id: st
   const { data, error } = await supabase.rpc("vendor_po_detail", { p_po: id });
   if (error || !data) notFound();
   const po = data as Po;
-  const [{ data: types }, files, deliveries, { data: invData }] = await Promise.all([
+  const [{ data: types }, files, deliveries, { data: invData }, qaqcPlans, bodies] = await Promise.all([
     supabase.from("vendor_order_document_types").select("id, code, name, required_for_categories, uploaded_by").order("name"),
     getFiles("purchase_order", po.id),
     rpcList<{ id: string; po_id: string; delivery_number: string; status: string; quantity: number; shipped: number }>("logistics_vendor_deliveries"),
     supabase.rpc("finance_vendor_invoices"),
+    rpcList<QaqcPlan>("qaqc_vendor_plans", { p_po: id }),
+    rpcList<{ code: string; name: string; body_type: string | null }>("qaqc_vendor_bodies"),
   ]);
   const allTypes = (types ?? []) as OrderDocType[];
   // The invoice is its own step (sent to Finance+); the rest are control documents.
@@ -99,6 +103,14 @@ export default async function OrderDetail({ params }: { params: Promise<{ id: st
         </ol>
         {po.status === "declined" && po.decline_reason && <p className="mt-3 text-sm text-muted">You declined: {po.decline_reason}</p>}
       </Card>
+
+      {qaqcPlans.length > 0 && (
+        <div id="qaqc">
+          <Panel title="QA/QC" sub="What adm Indicia needs from you to show the goods meet the spec. Your uploads are checked straight away.">
+            <VendorQaqcPlans plans={qaqcPlans} bodies={bodies} canAct={act} accepted={accepted} />
+          </Panel>
+        </div>
+      )}
 
       {po.status !== "declined" && (
         <Panel title="Invoice" sub="Send your invoice against this purchase order here, so it's matched to the order automatically">

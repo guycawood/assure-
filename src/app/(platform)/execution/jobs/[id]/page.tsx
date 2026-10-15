@@ -16,6 +16,9 @@ import { MSymbol } from "@/components/symbol";
 import { ActionForm, Field } from "@/components/sourcing/action-form";
 import { JobStatusPill, StatusPill, Td, Th, fmtDate, fmtDateTime } from "@/components/sourcing/bits";
 import { closeJob, signOffGate } from "../../actions";
+import { getJourney, getPlans, reviewableIds } from "@/lib/qaqc-data";
+import { QaqcPlans } from "@/components/qaqc/plan-panel";
+import { JourneyTimeline } from "@/components/qaqc/journey-timeline";
 
 export const metadata: Metadata = { title: "Job quality gates" };
 
@@ -26,6 +29,8 @@ export default async function JobGatesPage({ params }: { params: Promise<{ id: s
   const job = await getJob(supabase, id);
   if (!job) notFound();
   const [gates, check, dels, deps] = await Promise.all([getGates(supabase, id), getCloseCheck(supabase, id), getDeliveries(supabase, { job_id: id }), getDeployments(supabase, { job_id: id })]);
+  const [plans, journey] = await Promise.all([getPlans(supabase, { job: id }), getJourney(supabase, id)]);
+  const reviewable = await reviewableIds(supabase, plans);
   const live = !["closed", "cancelled"].includes(job.status);
   const firstOpen = gates.find((g) => g.status !== "passed")?.gate_key;
   const hardBlocked = check?.checks.some((c) => !c.ok && !c.overridable);
@@ -79,6 +84,11 @@ export default async function JobGatesPage({ params }: { params: Promise<{ id: s
               ))}
             </ol>
           </Panel>
+          {plans.length > 0 && (
+            <Panel title="QA/QC" sub="Every plan must pass at its required level (or be waived with approval) before the job closes.">
+              <QaqcPlans plans={plans} reviewable={reviewable} canManage={live} />
+            </Panel>
+          )}
           <Panel title="Deliveries (Logistics)">
             {dels.length === 0 ? <p className="px-5 py-4 text-sm text-muted">No deliveries planned.</p> : (
               <table className="w-full text-sm"><thead><tr><Th>Delivery</Th><Th>Destination</Th><Th>Planned</Th><Th>PODs</Th><Th>Status</Th></tr></thead>
@@ -116,6 +126,7 @@ export default async function JobGatesPage({ params }: { params: Promise<{ id: s
                 )}
             </div>
           </Panel>
+          <Panel title="Job timeline" sub="Brief to close, timestamped"><JourneyTimeline rows={journey} /></Panel>
         </div>
       </div>
     </>

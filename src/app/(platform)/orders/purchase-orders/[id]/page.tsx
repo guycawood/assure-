@@ -10,6 +10,10 @@ import { PageHead, Panel, Pill } from "@/components/ui";
 import { ActionForm, Field } from "@/components/sourcing/action-form";
 import { ActivityList, Facts, StatusPill, fmtDate, fmtDateTime } from "@/components/sourcing/bits";
 import { approvePo, etenderPo, rejectPo } from "../../actions";
+import { getJourney, getPlans, reviewableIds } from "@/lib/qaqc-data";
+import { QaqcPlans } from "@/components/qaqc/plan-panel";
+import { JourneyTimeline } from "@/components/qaqc/journey-timeline";
+import { createPlans } from "../../qaqc/actions";
 
 export const metadata: Metadata = { title: "Purchase order" };
 
@@ -23,6 +27,8 @@ export default async function PoPage({ params }: { params: Promise<{ id: string 
     getEvents(supabase, { entity_id: id }), getPeople(supabase), getMyAccess(supabase, me.id, me.is_admin, me.srt_role),
     one<{ purchasing_blocked: boolean; active: boolean }>(supabase, "suppliers", p.supplier_id),
   ]);
+  const [plans, journey] = await Promise.all([getPlans(supabase, { po: id }), getJourney(supabase, p.job_id)]);
+  const reviewable = await reviewableIds(supabase, plans);
   const blocked = !supplier || supplier.purchasing_blocked || !supplier.active;
   const [{ data: etPending }, { data: etCan }] = await Promise.all([
     supabase.rpc("po_etender_pending", { p_po: id }), supabase.rpc("po_etender_can_decide", { p_po: id }),
@@ -60,8 +66,17 @@ export default async function PoPage({ params }: { params: Promise<{ id: string 
             ]} />
             {p.rejected_reason && <p className="border-t border-line px-5 py-2 text-sm text-bad">Rejected: {p.rejected_reason}</p>}
           </Panel>
+          <div id="qaqc">
+            <Panel title="QA/QC" sub="Level per line from the Watchtower threshold rules; evidence comes from the vendor portal and is checked at upload.">
+              {plans.length > 0 ? <QaqcPlans plans={plans} reviewable={reviewable} poId={id} />
+                : ["issued", "accepted"].includes(p.status)
+                  ? <div className="p-5 text-sm"><p className="mb-3 text-muted">This PO was issued before QA/QC plans existed.</p><ActionForm action={createPlans} hidden={{ po: id }} submit="Create QA/QC plans" variant="secondary" /></div>
+                  : <p className="p-5 text-sm text-muted">QA/QC plans are created when the PO is approved and issued.</p>}
+            </Panel>
+          </div>
         </div>
         <div className="space-y-4">
+          <Panel title="Job timeline" sub="Every step from brief to close, timestamped"><JourneyTimeline rows={journey} compact /></Panel>
           <Panel title="Next step">
             <div className="space-y-3 p-5 text-sm">
               {p.status === "pending_approval" && (

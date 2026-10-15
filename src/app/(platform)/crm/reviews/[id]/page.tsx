@@ -57,6 +57,25 @@ export default async function CrmReview({ params }: { params: Promise<{ id: stri
               <p className="text-xs text-muted">{p.delivery?.on_time ?? 0} of {p.delivery?.delivered ?? 0} deliveries on time (12 months)</p></div>
             <div><p className="eyebrow">Install quality</p><p className="font-display text-lg font-bold">{p.quality?.pass_percent != null ? `${p.quality.pass_percent}%` : "—"}</p>
               <p className="text-xs text-muted">{p.quality?.passed ?? 0} of {p.quality?.audited ?? 0} audits passed · {p.jobs?.closed ?? 0} jobs closed, {p.jobs?.in_progress ?? 0} in production</p></div>
+            {(() => {
+              const x = p as typeof p & {
+                qaqc?: { plans: number; passed: number; failed: number; pass_percent: number | null; first_time_pass_percent: number | null; by_level?: { level: number; plans: number; pass_percent: number | null }[] } | null;
+                ncrs?: { raised: number; open: number; from_qaqc: number } | null;
+                speed_to_market?: { jobs: number; median_brief_to_delivery_days: number | null; target_days: number; stages?: Record<string, number | null> } | null;
+              };
+              if (!x.qaqc && !x.speed_to_market) return null;
+              return (
+                <>
+                  <div><p className="eyebrow">QA/QC</p><p className="font-display text-lg font-bold">{x.qaqc?.pass_percent != null ? `${x.qaqc.pass_percent}% passed` : "—"}</p>
+                    <p className="text-xs text-muted">{x.qaqc?.passed ?? 0} of {x.qaqc?.plans ?? 0} plans passed · first time {x.qaqc?.first_time_pass_percent ?? "—"}%{x.qaqc?.by_level?.length ? ` · ${x.qaqc.by_level.map((l) => `L${l.level}: ${l.pass_percent ?? "—"}%`).join(", ")}` : ""}</p></div>
+                  <div><p className="eyebrow">Non-conformances</p><p className="font-display text-lg font-bold">{x.ncrs?.raised ?? 0}</p>
+                    <p className="text-xs text-muted">{x.ncrs?.open ?? 0} open · {x.ncrs?.from_qaqc ?? 0} raised by QA/QC (12 months)</p></div>
+                  <div><p className="eyebrow">Speed to market</p><p className="font-display text-lg font-bold">{x.speed_to_market?.median_brief_to_delivery_days != null ? `${x.speed_to_market.median_brief_to_delivery_days} days` : "—"}</p>
+                    <p className="text-xs text-muted">Median brief to delivery over {x.speed_to_market?.jobs ?? 0} job(s) · target {x.speed_to_market?.target_days ?? "—"} days
+                      {x.speed_to_market?.stages ? ` · PO to POD ${x.speed_to_market.stages.po_to_pod ?? "—"} d` : ""}</p></div>
+                </>
+              );
+            })()}
             <div className="md:col-span-2 xl:col-span-3"><p className="eyebrow">Open actions at the time</p>
               {(p.open_actions ?? []).length === 0 ? <p className="text-xs text-muted">None.</p> : <ul className="text-xs">{p.open_actions!.map((a, i) => <li key={i}>{a.title} · due {fmtDate(a.due_date)} · {a.status}</li>)}</ul>}</div>
           </div>

@@ -351,7 +351,12 @@ export async function attachPod(_: ActionResult, fd: FormData): Promise<ActionRe
   if (!shipment) return fail("Shipment not found.");
   const f = await storeFile(fd, "file", "logistics", "shipment", shipment, "POD");
   if ("error" in f) return fail(f.error);
-  const { error } = await v.supabase.rpc("logistics_vendor_attach_pod", { p_shipment: shipment, p_file_id: f.id, p_delivered_on: date(fd, "delivered_on") });
+  // The POD timestamp drives OTIF: with a stated time it is recorded exactly, otherwise the date alone is used.
+  const day = date(fd, "delivered_on");
+  const time = String(fd.get("delivered_time") ?? "");
+  const { error } = day && /^\d{2}:\d{2}$/.test(time)
+    ? await v.supabase.rpc("logistics_vendor_attach_pod_at", { p_shipment: shipment, p_file_id: f.id, p_delivered_at: `${day}T${time}:00` })
+    : await v.supabase.rpc("logistics_vendor_attach_pod", { p_shipment: shipment, p_file_id: f.id, p_delivered_on: day });
   if (error) return fail(error.message);
   return done("POD uploaded. adm Indicia will check it against the checklist.");
 }

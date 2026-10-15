@@ -4,6 +4,8 @@ import { fmtDate, fmtMoney, monthLabel, type EffectivenessRow, type Report } fro
 import { Card, Empty, PageHead, Panel, Stat } from "@/components/ui";
 import { MSymbol } from "@/components/symbol";
 import { Bar, PreviewBanner } from "@/components/client/bits";
+import { DeliveryKpisView } from "@/components/qaqc/kpis";
+import type { DeliveryKpis } from "@/lib/qaqc";
 
 export const metadata: Metadata = { title: "Reports" };
 
@@ -12,9 +14,10 @@ const SOURCE: Record<string, string> = { not_measured: "Not measured", client_re
 // External Reporting for clients: spend and savings at the price you pay, sustainability and effectiveness, your accounts only.
 export default async function ClientReports({ searchParams }: { searchParams: Promise<{ preview?: string }> }) {
   const ctx = await portalContext(await searchParams);
-  const [report, eff] = await Promise.all([
+  const [report, eff, delivery] = await Promise.all([
     rpc<Report>(ctx.supabase, "client_portal_report", scope(ctx)),
     rpc<EffectivenessRow[]>(ctx.supabase, "client_portal_effectiveness", scope(ctx)),
+    rpc<DeliveryKpis>(ctx.supabase, "client_portal_delivery_kpis", scope(ctx)),
   ]);
   const r: Report = report ?? { by_month: [], by_market: [], sustainability: { specs: 0, specs_with_co2e: 0, co2e_kg: 0, units: 0, by_market: [] }, effectiveness: [] };
 
@@ -45,6 +48,12 @@ export default async function ClientReports({ searchParams }: { searchParams: Pr
         <Stat label="Carbon footprint" value={`${Number(sus.co2e_kg).toLocaleString("en-GB")} kg`} hint={`CO2e for ${sus.specs_with_co2e} of ${sus.specs} items`} icon={<MSymbol name="eco" />} />
         <Stat label="Units produced" value={Number(sus.units).toLocaleString("en-GB")} icon={<MSymbol name="inventory_2" />} />
       </section>
+
+      {delivery && (
+        <Panel title="Delivery, quality and speed to market" sub="Your jobs, last 12 months: on time in full (proof-of-delivery time against the promised date), QA/QC results and days from brief to delivery">
+          <div className="p-5"><DeliveryKpisView kpis={delivery} /></div>
+        </Panel>
+      )}
 
       <div className="grid gap-6 xl:grid-cols-2">
         <Panel title="Spend by month" sub={`Last 12 months, ${cur}, by approval date`}>

@@ -24,6 +24,7 @@ export const TYPE_LABEL: Record<string, string> = {
   CONTRACT_APPROVE: "Contract approval", INSPECTION_CHANGE: "Inspection result change", NCR_CLOSE: "NCR close", ISSUE_RESOLVE: "Issue resolution",
   PAYMENT_TERMS: "Non-standard payment terms", SIQ_EFFECTIVENESS: "Result verification", SIQ_ASSET: "Asset rights sign-off",
   CRM_CLIENT_SETUP: "New client set-up", CRM_TERMS: "Client commercial terms", CRM_CONTRACT: "Client contract", CRM_OPP_WON: "Opportunity won", CRM_SEND: "CRM email or survey send",
+  QAQC_VERIFY: "QA/QC evidence review", QAQC_LOWER: "Lower QA/QC level", QAQC_WAIVE: "QA/QC waiver",
 };
 
 export const typeLabel = (t: string) => TYPE_LABEL[t] ?? t.replace(/_/g, " ").toLowerCase().replace(/^./, (c) => c.toUpperCase());
