@@ -61,7 +61,7 @@ export const JOURNEY: JourneyStage[] = [
   ] },
   { key: "source", title: "3. Source", summary: "Specs, triage and a sealed sourcing event with eligible vendors.", steps: [
     { step: "Job and specs", detail: "Spec form and type; promo/merch fields, HS code, weights, CO2e and Impact Grade.", lane: "internal", module: "sourcing", href: "/sourcing/jobs", as: U.ada },
-    { step: "Triage every line", detail: "Adopt (rate card), Adapt (priced in band), Create (RFQ) or Push (vendor confirms our price).", lane: "internal", module: "sourcing", href: "/sourcing/triage", as: U.ada },
+    { step: "Triage every line", detail: "Adopt (rate card), Adapt (priced in band), Create (RFQ) or Push (vendor confirms our price). Thresholds come from the AAC rules in Watchtower → Product taxonomy; each line records the rule applied.", lane: "internal", module: "sourcing", href: "/sourcing/triage", as: U.ada },
     { step: "Send the RFQ", detail: "Eligible pool only, minimum quotes, up to 12 quantity breaks, run-ons, incoterms, delivery points.", lane: "internal", module: "rfq", href: "/rfq/new", as: U.ada, gate: "HS code required on promo lines; minimum quotes or a bypass reason" },
     { step: "Vendor quotes", detail: "Sealed per-unit prices, alternatives, cartons, weights, samples and emissions declaration.", lane: "vendor", module: "rfq", href: "/vendor/quotes", as: U.tom },
     { step: "Evaluate and approve", detail: "Benchmark, tolerance, savings; finance approves before award.", lane: "internal", module: "rfq", href: "/rfq", as: U.fiona, gate: "Finance approval" },
