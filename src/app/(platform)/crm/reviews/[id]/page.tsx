@@ -10,6 +10,7 @@ import { ActionForm } from "@/components/sourcing/action-form";
 import { Facts, StatusPill, Td, Th, fmtDate, fmtDateTime } from "@/components/sourcing/bits";
 import { ClientLink, Input, RagPill, TextArea, peopleOptions, Select } from "@/components/crm/bits";
 import { generatePack, saveCrmAction, setCrmActionStatus, setReviewStatus } from "../../actions";
+import { ScorecardPackSection } from "@/components/scorecard/scorecard-view";
 
 export const metadata: Metadata = { title: "Business review · CRM" };
 
@@ -79,7 +80,8 @@ export default async function CrmReview({ params }: { params: Promise<{ id: stri
             <div className="md:col-span-2 xl:col-span-3"><p className="eyebrow">Open actions at the time</p>
               {(p.open_actions ?? []).length === 0 ? <p className="text-xs text-muted">None.</p> : <ul className="text-xs">{p.open_actions!.map((a, i) => <li key={i}>{a.title} · due {fmtDate(a.due_date)} · {a.status}</li>)}</ul>}</div>
           </div>
-        )}
+        )}        {p && <ScorecardPackSection pack={(p as { scorecard?: Parameters<typeof ScorecardPackSection>[0]["pack"] }).scorecard} />}
+
       </Panel>
 
       <Panel title="Outcomes and notes" sub="Closing the review needs the outcomes recorded">

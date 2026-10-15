@@ -14,6 +14,8 @@ import { getJourney, getPlans, reviewableIds } from "@/lib/qaqc-data";
 import { QaqcPlans } from "@/components/qaqc/plan-panel";
 import { JourneyTimeline } from "@/components/qaqc/journey-timeline";
 import { createPlans } from "../../qaqc/actions";
+import { getSheetDetails, getSheetRows } from "@/lib/tech-sheet-data";
+import { PoTechSheets } from "@/components/tech-sheet/internal-panel";
 
 export const metadata: Metadata = { title: "Purchase order" };
 
@@ -29,6 +31,7 @@ export default async function PoPage({ params }: { params: Promise<{ id: string 
   ]);
   const [plans, journey] = await Promise.all([getPlans(supabase, { po: id }), getJourney(supabase, p.job_id)]);
   const reviewable = await reviewableIds(supabase, plans);
+  const techSheets = await getSheetDetails(supabase, (await getSheetRows(supabase, { po_id: id })).map((r) => r.id));
   const blocked = !supplier || supplier.purchasing_blocked || !supplier.active;
   const [{ data: etPending }, { data: etCan }] = await Promise.all([
     supabase.rpc("po_etender_pending", { p_po: id }), supabase.rpc("po_etender_can_decide", { p_po: id }),
@@ -72,6 +75,11 @@ export default async function PoPage({ params }: { params: Promise<{ id: string 
                 : ["issued", "accepted"].includes(p.status)
                   ? <div className="p-5 text-sm"><p className="mb-3 text-muted">This PO was issued before QA/QC plans existed.</p><ActionForm action={createPlans} hidden={{ po: id }} submit="Create QA/QC plans" variant="secondary" /></div>
                   : <p className="p-5 text-sm text-muted">QA/QC plans are created when the PO is approved and issued.</p>}
+            </Panel>
+          </div>
+          <div id="tech-sheet">
+            <Panel title="Technical & packaging data" sub="Declared by the vendor; the pre-shipment QA/QC check is held until the sheet is complete and compares a packed carton with it.">
+              <PoTechSheets sheets={techSheets} />
             </Panel>
           </div>
         </div>

@@ -366,6 +366,82 @@ export const LIBRARY_SCHEMAS: Record<string, LibrarySchema> = {
     ],
   },
   qaqc_settings: { codeLabel: "Setting", nameLabel: "Description", fields: [{ key: "value", label: "Value", type: "number", required: true, column: true }] },
+  // Balanced scorecard (20261027000001). calc/numerator/denominator/value_key/count_key name the scorecard measures the
+  // calculation uses (see _sc_bundles); a new measure needs a code change, a new target or wording does not.
+  scorecard_kpis: {
+    codeLabel: "KPI code", nameLabel: "KPI", groupBy: "perspective",
+    note: "Changes go live after a second person approves them. Targets per client or market are in Scorecard targets.",
+    fields: [
+      { key: "perspective", label: "Perspective", type: "enum", options: opts("plan", "design", "buy", "manage"), required: true, column: true, filter: true },
+      { key: "sort", label: "Order", type: "number" },
+      { key: "definition", label: "Definition", type: "textarea", required: true, column: true },
+      { key: "formula", label: "Formula (plain English)", type: "text" },
+      { key: "measurement", label: "How it is measured", type: "textarea" },
+      { key: "source", label: "Data source", type: "text" },
+      { key: "unit", label: "Unit", type: "enum", options: opts("percent", "days", "eur", "score10", "score100"), required: true, column: true },
+      { key: "direction", label: "Better when", type: "enum", options: [{ value: "higher", label: "Higher" }, { value: "lower", label: "Lower" }], required: true, column: true, filter: true },
+      { key: "default_target", label: "Default target", type: "number", column: true },
+      { key: "measured", label: "Measured", type: "boolean", column: true, filter: true, help: "Off when there is no data source yet: the scorecard shows 'not yet measured'" },
+      { key: "calc", label: "Calculation", type: "enum", options: opts("ratio", "value", "none"), required: true },
+      { key: "numerator", label: "Numerator measure", type: "text" },
+      { key: "denominator", label: "Denominator measure", type: "text" },
+      { key: "value_key", label: "Value measure", type: "text" },
+      { key: "count_key", label: "Count measure", type: "text" },
+      { key: "threshold_days", label: "Threshold (days)", type: "number" },
+      { key: "threshold_eur", label: "Threshold (EUR)", type: "number" },
+    ],
+  },
+  scorecard_targets: {
+    codeLabel: "Target code", nameLabel: "Description",
+    note: "Client + market beats client, client beats market, market beats the KPI default. Effective-dated; a second person approves.",
+    fields: [
+      { key: "kpi_code", label: "KPI code", type: "text", required: true, column: true },
+      { key: "client_id", label: "Client (id)", type: "text", column: true, help: "Leave blank for a market-wide target" },
+      { key: "client_code", label: "Client code", type: "text", help: "Alternative to the client id" },
+      { key: "market", label: "Market (code)", type: "text", column: true, help: "Leave blank for a client-wide target" },
+      { key: "target", label: "Target", type: "number", required: true, column: true },
+    ],
+  },
+  reporting_fx_rates: {
+    codeLabel: "Currency", nameLabel: "Name",
+    fields: [{ key: "eur_per_unit", label: "EUR per unit", type: "number", required: true, column: true }],
+  },
+  client_brands: {
+    codeLabel: "Brand code", nameLabel: "Brand",
+    fields: [
+      { key: "client_id", label: "Client (id)", type: "text", column: true },
+      { key: "client_code", label: "Client code", type: "text" },
+      { key: "business_unit", label: "Business unit", type: "text", column: true, filter: false },
+      { key: "power_brand", label: "Power brand", type: "boolean", column: true, filter: true },
+    ],
+  },
+  // Vendor technical & packaging data sheet (20261029000001): SRM owns both libraries (maker-checker).
+  packaging_materials: {
+    codeLabel: "Material code", nameLabel: "Material", groupBy: "material_group",
+    fields: [
+      { key: "material_group", label: "Material group", type: "enum", options: opts("paper", "plastic", "wood", "metal", "glass", "textile", "composite", "other"), required: true, column: true, filter: true },
+      { key: "epr_category", label: "Packaging reporting (EPR) category", type: "text", column: true },
+      { key: "default_recycled_pct", label: "Typical recycled content", type: "number", unit: "%", column: true },
+      { key: "recyclable", label: "Recyclable", type: "boolean", column: true, filter: true },
+      { key: "reusable_by_default", label: "Usually reusable", type: "boolean" },
+      { key: "emission_factor_code", label: "Emission factor (code)", type: "text", help: "From the material emission factors library" },
+      { key: "recycled_factor_code", label: "Recycled emission factor (code)", type: "text" },
+    ],
+  },
+  tech_sheet_requirements: {
+    codeLabel: "Rule code", nameLabel: "Rule", groupBy: "stage",
+    note: "Every matching rule adds its fields; a field required at quote is also required at PO acceptance and pre-shipment. Empty conditions match everything. Field codes: product_dims, net_weight, materials, materials_weight, materials_recycled, finishes, components, electrical, origin_country, hs_code, packing_method, primary_pack, primary_materials, primary_material_weights, primary_recycled, units_per_carton, carton_dims, carton_gross_weight, carton_materials, carton_material_weights, carton_recycled, carton_marking, protective_fill, pallet, pallet_config, pallet_gross_weight, max_stack, pallet_materials, pallet_material_weights, pallet_recycled, reusable_packaging.",
+    fields: [
+      { key: "stage", label: "Required from stage", type: "enum", options: opts("quote", "po_acceptance", "pre_shipment"), required: true, column: true, filter: true },
+      { key: "fields", label: "Fields", type: "list", required: true, column: true, help: "One field code per line" },
+      { key: "min_level", label: "From QA/QC level", type: "number", column: true, help: "1 to 5; blank for every level" },
+      { key: "spec_types", label: "Spec types", type: "list", column: true, help: "2d, 3d, promo_merch, custom_goods_services, design; blank for all" },
+      { key: "categories", label: "Categories (text contained)", type: "list" },
+      { key: "markets", label: "Destination markets", type: "list", column: true, help: "Market codes, e.g. DE, FR, GB; blank for all" },
+      { key: "electronics", label: "Only items with lighting or electronics", type: "boolean", filter: true },
+      { key: "explanation", label: "Explanation (shown to vendors)", type: "textarea", required: true },
+    ],
+  },
 };
 
 export const schemaFor = (key: string): LibrarySchema => LIBRARY_SCHEMAS[key] ?? { fields: [] };

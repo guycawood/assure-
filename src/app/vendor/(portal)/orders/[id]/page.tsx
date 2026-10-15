@@ -14,6 +14,8 @@ import { InvoiceForm } from "@/components/vendor/invoice-form";
 import { respondPo } from "../../actions";
 import { VendorQaqcPlans } from "@/components/qaqc/vendor-plan";
 import type { QaqcPlan } from "@/lib/qaqc";
+import { VendorTechSheetPanel } from "@/components/tech-sheet/vendor-po-panel";
+import type { MaterialOptions, VendorPoLine } from "@/lib/tech-sheet";
 
 export const metadata = { title: "Purchase order" };
 
@@ -39,14 +41,17 @@ export default async function OrderDetail({ params }: { params: Promise<{ id: st
   const { data, error } = await supabase.rpc("vendor_po_detail", { p_po: id });
   if (error || !data) notFound();
   const po = data as Po;
-  const [{ data: types }, files, deliveries, { data: invData }, qaqcPlans, bodies] = await Promise.all([
+  const [{ data: types }, files, deliveries, { data: invData }, qaqcPlans, bodies, techLines, { data: matData }] = await Promise.all([
     supabase.from("vendor_order_document_types").select("id, code, name, required_for_categories, uploaded_by").order("name"),
     getFiles("purchase_order", po.id),
     rpcList<{ id: string; po_id: string; delivery_number: string; status: string; quantity: number; shipped: number }>("logistics_vendor_deliveries"),
     supabase.rpc("finance_vendor_invoices"),
     rpcList<QaqcPlan>("qaqc_vendor_plans", { p_po: id }),
     rpcList<{ code: string; name: string; body_type: string | null }>("qaqc_vendor_bodies"),
+    rpcList<VendorPoLine>("tech_sheet_vendor_po", { p_po: id }),
+    supabase.rpc("tech_sheet_materials"),
   ]);
+  const materialOptions = (matData ?? { packaging: [], substrates: [] }) as MaterialOptions;
   const allTypes = (types ?? []) as OrderDocType[];
   // The invoice is its own step (sent to Finance+); the rest are control documents.
   const invoiceType = allTypes.find((t) => t.code === "INVOICE") ?? allTypes.find((t) => /invoice/i.test(t.name));
@@ -103,6 +108,14 @@ export default async function OrderDetail({ params }: { params: Promise<{ id: st
         </ol>
         {po.status === "declined" && po.decline_reason && <p className="mt-3 text-sm text-muted">You declined: {po.decline_reason}</p>}
       </Card>
+
+      {techLines.length > 0 && (
+        <div id="tech-sheet">
+          <Panel title="Technical & packaging data sheet" sub="The item as you build it and how you pack it: carton, unit pack and pallet. Declare it once the order is accepted; QA/QC weighs and measures a packed carton at pre-shipment and compares it with what you declared.">
+            <VendorTechSheetPanel poId={po.id} lines={techLines} options={materialOptions} canAct={act} supplierId={ctx.company.id} />
+          </Panel>
+        </div>
+      )}
 
       {qaqcPlans.length > 0 && (
         <div id="qaqc">

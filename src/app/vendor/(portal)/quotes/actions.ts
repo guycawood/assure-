@@ -38,6 +38,7 @@ export async function saveQuoteDetailed(_: ActionResult, fd: FormData): Promise<
   const lines = new Map<string, Record<string, unknown>>();
   const alts = new Map<string, Record<string, unknown>>();
   const pointPrices: { delivery_point_id: string; unit_price: number }[] = [];
+  const packaging = new Map<string, Record<string, unknown>>();
 
   for (const [k, raw] of fd.entries()) {
     if (typeof raw !== "string" || !raw.trim()) continue;
@@ -91,6 +92,21 @@ export async function saveQuoteDetailed(_: ActionResult, fd: FormData): Promise<
       const n = num(val);
       if (n == null || !Number.isFinite(n) || n < 0) return fail("Delivery-point prices must be numbers of zero or more.");
       pointPrices.push({ delivery_point_id: m[1], unit_price: n });
+      continue;
+    }
+    // Packaging (proposed): becomes a draft technical & packaging data sheet (or a "to be confirmed by" date).
+    m = /^pk:([0-9a-f-]{36}):(packing_method|carton_gross_weight_kg|tbc_by|tbc_note)$/i.exec(k);
+    if (m) {
+      const row = packaging.get(m[1]) ?? { line_id: m[1] };
+      if (m[2] === "carton_gross_weight_kg") {
+        const n = num(val);
+        if (n == null || !Number.isFinite(n) || n <= 0) return fail("Enter the carton gross weight as a number above zero.");
+        row[m[2]] = n;
+      } else if (m[2] === "tbc_by") {
+        if (!/^\d{4}-\d{2}-\d{2}$/.test(val)) return fail("Give the 'to be confirmed by' date as a date.");
+        row.tbc_by = val;
+      } else row[m[2]] = val.slice(0, 500);
+      packaging.set(m[1], row);
     }
   }
   for (const a of alts.values()) {
@@ -104,7 +120,8 @@ export async function saveQuoteDetailed(_: ActionResult, fd: FormData): Promise<
   const supabase = await createClient();
   const { error } = await supabase.rpc("rfq_submit_quote", {
     p_rfq: rfq,
-    p_prices: { prices, lines: [...lines.values()], alternatives: [...alts.values()].filter((a) => a.description || a.unit_price != null), point_prices: pointPrices },
+    p_prices: { prices, lines: [...lines.values()], alternatives: [...alts.values()].filter((a) => a.description || a.unit_price != null), point_prices: pointPrices,
+      packaging: [...packaging.values()] },
     p_lead_time_days: lead ? Number(lead) : null, p_notes: s(fd, "notes", 2000), p_submit: submit,
   });
   if (error) return fail(error.message);

@@ -22,6 +22,9 @@ import {
 import { getClientDeliveryKpis } from "@/lib/crm-data";
 import { DeliveryKpisView } from "@/components/qaqc/kpis";
 import { setQaMinLevel } from "../quality-actions";
+import { getScorecard, getScorecardOptions } from "@/lib/scorecard-reporting-data";
+import { toFilters, type ScorecardParams } from "@/lib/scorecard-reporting";
+import { ScorecardView } from "@/components/scorecard/scorecard-view";
 
 export const metadata: Metadata = { title: "Client · CRM" };
 
@@ -33,14 +36,16 @@ const TABS = [
   { key: "contract", label: "Contract & terms", icon: "contract" },
   { key: "health", label: "Health", icon: "monitor_heart" },
   { key: "delivery", label: "Delivery & quality", icon: "verified" },
+  { key: "scorecard", label: "Scorecard", icon: "analytics" },
   { key: "feedback", label: "Feedback", icon: "reviews" },
   { key: "work", label: "Campaigns, jobs & bills", icon: "work" },
 ];
 
-export default async function CrmClient({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ tab?: string }> }) {
+export default async function CrmClient({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ tab?: string } & ScorecardParams> }) {
   const me = await requireInternal();
   const { id } = await params;
-  const wanted = (await searchParams).tab;
+  const sp = await searchParams;
+  const wanted = sp.tab;
   const tab = wanted && TABS.some((t) => t.key === wanted) ? wanted : "accounts";
   const supabase = await createClient();
   const client = await getClient(supabase, id);
@@ -53,6 +58,7 @@ export default async function CrmClient({ params, searchParams }: { params: Prom
   ]);
   const health = healthRows[0];
   const kpis = tab === "delivery" ? await getClientDeliveryKpis(supabase, id) : null;
+  const [scorecard, scOptions] = tab === "scorecard" ? await Promise.all([getScorecard(supabase, id, toFilters(sp)), getScorecardOptions(supabase, id)]) : [null, null];
   const open = opps.filter((o) => OPEN_STAGES.includes(o.stage));
   const accountOpts = accounts.map((a) => ({ value: a.id, label: `${a.market_name ?? a.market}` }));
   const contactOpts = contacts.map((c) => ({ value: c.id, label: c.full_name }));
@@ -317,6 +323,11 @@ export default async function CrmClient({ params, searchParams }: { params: Prom
       )}
 
       {tab === "work" && <LinkedWork clientId={id} />}
+
+      {tab === "scorecard" && (
+        <ScorecardView report={scorecard} params={{ ...sp, client: undefined }} base={`/crm/clients/${id}`} keep={{ tab: "scorecard" }} options={scOptions}
+          scopeNote={`Balanced scorecard for ${client.name}: the same KPIs and targets as the Client Portal and the business review pack.`} />
+      )}
 
       {tab === "delivery" && (
         <>

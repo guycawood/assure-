@@ -5,7 +5,7 @@ import { formatDate } from "@/lib/srt";
 import { daysUntil, human, money, statusTone } from "@/lib/vendor";
 import { Card, PageHead, Panel, Pill } from "@/components/ui";
 import { ActionDialog } from "@/components/vendor/action-form";
-import { QuoteForm, SpecSummary, type QuoteAlt, type QuoteDetail, type QuoteLine, type QuotePointPrice, type QuotePrice } from "@/components/vendor/quote-form";
+import { QuoteForm, SpecSummary, type QuoteAlt, type QuoteDetail, type QuoteLine, type QuotePackaging, type QuotePointPrice, type QuotePrice } from "@/components/vendor/quote-form";
 import { declineRfq } from "../../actions";
 import { saveQuoteDetailed } from "../actions";
 
@@ -30,6 +30,9 @@ export default async function QuoteDetail({ params }: { params: Promise<{ id: st
   const { data, error } = await supabase.rpc("rfq_vendor_view", { p_rfq: id });
   if (error || !data) notFound();
   const v = data as View;
+  // Packaging proposal on file per line (technical & packaging data sheet) and the vendor's own verified sheet to pre-fill from.
+  const { data: pkData } = await supabase.rpc("tech_sheet_vendor_quote", { p_rfq: id });
+  const packaging = (Array.isArray(pkData) ? pkData : []) as QuotePackaging[];
   const q = v.quote;
   const declined = v.invitation.status === "declined";
   const editable = v.rfq.open && !declined && canAct(ctx.permission) && (!q || ["draft", "submitted"].includes(q.status));
@@ -66,7 +69,7 @@ export default async function QuoteDetail({ params }: { params: Promise<{ id: st
         <div className="p-5">
           {editable ? (
             <QuoteForm rfqId={v.rfq.id} currency={v.rfq.currency} lines={v.lines} prices={q?.prices ?? []} details={q?.lines ?? []} alternatives={q?.alternatives ?? []}
-              pointPrices={q?.point_prices ?? []} leadTime={q?.lead_time_days ?? null} notes={q?.notes ?? null}
+              pointPrices={q?.point_prices ?? []} packaging={packaging} leadTime={q?.lead_time_days ?? null} notes={q?.notes ?? null}
               submitted={q?.status === "submitted"} action={saveQuoteDetailed} />
           ) : (
             <div className="space-y-4">

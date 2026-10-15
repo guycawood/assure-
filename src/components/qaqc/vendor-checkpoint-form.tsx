@@ -3,6 +3,8 @@
 import { ActionForm } from "@/components/vendor/action-form";
 import { aqlAccept, NEED_LABEL, type QaqcCheckpoint } from "@/lib/qaqc";
 import { submitQaqc } from "@/app/vendor/(portal)/qaqc/actions";
+import { submitQaqcMeasured } from "@/app/vendor/(portal)/tech-sheets/actions";
+import { needsMeasurement } from "@/lib/tech-sheet";
 import { useState } from "react";
 
 type Body = { code: string; name: string; body_type: string | null };
@@ -12,8 +14,22 @@ export function VendorCheckpointForm({ checkpoint, bodies }: { checkpoint: QaqcC
   const [aql, setAql] = useState<{ sample?: number; major?: number }>({});
   const majorAql = checkpoint.aql?.major ? Number(checkpoint.aql.major) : null;
   const allowed = aqlAccept(aql.sample, majorAql);
+  // Pre-shipment with a technical & packaging data sheet: the packed carton is measured and compared with the declaration.
+  const measure = needsMeasurement(checkpoint.required);
   return (
-    <ActionForm action={submitQaqc} submit="Upload and check" hidden={{ checkpoint: checkpoint.id, groups: String(checkpoint.required.length) }} resetOnOk>
+    <ActionForm action={measure ? submitQaqcMeasured : submitQaqc} submit="Upload and check" hidden={{ checkpoint: checkpoint.id, groups: String(checkpoint.required.length) }} resetOnOk>
+      {measure && (
+        <fieldset className="space-y-2 rounded-lg border border-accent/40 bg-accent-soft/30 p-3">
+          <legend className="px-1 text-sm font-semibold">Measured on a packed carton</legend>
+          <p className="text-xs text-muted">Weigh and measure one full carton as it will ship. We compare it with your technical &amp; packaging data sheet.</p>
+          <div className="grid gap-2 sm:grid-cols-4">
+            <label className="text-xs">Gross weight (kg)<input name="measured_gross_weight_kg" inputMode="decimal" required className="input" /></label>
+            <label className="text-xs">Length (mm)<input name="measured_length_mm" inputMode="decimal" required className="input" /></label>
+            <label className="text-xs">Width (mm)<input name="measured_width_mm" inputMode="decimal" required className="input" /></label>
+            <label className="text-xs">Height (mm)<input name="measured_height_mm" inputMode="decimal" required className="input" /></label>
+          </div>
+        </fieldset>
+      )}
       {checkpoint.required.map((r, g) => {
         const needs = new Set(r.needs ?? []);
         const photos = r.codes.includes("PHOTO_SET");

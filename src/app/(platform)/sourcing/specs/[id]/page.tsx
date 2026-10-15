@@ -14,15 +14,59 @@ import { ApprovalRequests } from "@/components/approvals/requests";
 import { SubstrateSelect } from "@/components/sourcing/spec-fields";
 import { SpecHubFields } from "@/components/sourcing/spec-hub-fields";
 import { addComponent, addVersion, deleteComponent, deleteVersion, overrideTriage, recomputeSpec, reviseSpec, runTriage, updateSpec, updateSpecDetails } from "../../actions";
+import { getSheetDetails, getSheetRows } from "@/lib/tech-sheet-data";
+import { SpecTechSheets } from "@/components/tech-sheet/internal-panel";
 
 export const metadata: Metadata = { title: "Spec" };
 
-export default async function SpecPage({ params }: { params: Promise<{ id: string }> }) {
+/** Spec | Technical & packaging tabs. */
+function SpecTabs({ id, tab, count }: { id: string; tab: string; count: number }) {
+  const t = (key: string, label: string) => (
+    <Link href={`/sourcing/specs/${id}${key === "spec" ? "" : `?tab=${key}`}`}
+      className={`border-b-2 px-3 py-2 text-sm font-semibold ${tab === key ? "border-accent text-accent" : "border-transparent text-muted hover:text-fg"}`}>{label}</Link>
+  );
+  return <nav className="flex gap-1 border-b border-line">{t("spec", "Spec")}{t("tech", `Technical & packaging${count ? ` (${count})` : ""}`)}</nav>;
+}
+
+export default async function SpecPage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ tab?: string }> }) {
   const me = await requireInternal();
   const { id } = await params;
+  const tab = (await searchParams).tab === "tech" ? "tech" : "spec";
   const supabase = await createClient();
   const spec = (await getSpec(supabase, id)) as SpecHub | null;
   if (!spec) notFound();
+  const sheetRows = await getSheetRows(supabase, { spec_id: id });
+  if (tab === "tech") {
+    // Suppliers on this spec: invited to quote on it, or on an estimate / PO for it.
+    const lineRows = await rows<{ rfq_id: string }>(supabase, "rfq_lines", { eq: { spec_id: id } });
+    const [{ data: inv }, { data: estLines }, { data: lib }] = await Promise.all([
+      lineRows.length ? supabase.from("v_rfq_invitations").select("supplier_id, supplier_name").in("rfq_id", lineRows.map((l) => l.rfq_id)) : Promise.resolve({ data: [] }),
+      supabase.from("estimate_lines").select("estimate_id").eq("spec_id", id),
+      supabase.from("spec_tech_library").select("sheet_id, spec_id").eq("title_key", spec.title.trim().toLowerCase()).neq("spec_id", id).limit(10),
+    ]);
+    const estIds = ((estLines ?? []) as { estimate_id: string }[]).map((e) => e.estimate_id);
+    const { data: ests } = estIds.length ? await supabase.from("v_estimates").select("supplier_id, supplier_name").in("id", estIds) : { data: [] };
+    const sup = new Map<string, string>();
+    for (const r of [...((inv ?? []) as { supplier_id: string; supplier_name: string }[]), ...((ests ?? []) as { supplier_id: string; supplier_name: string }[])]) sup.set(r.supplier_id, r.supplier_name);
+    const libIds = ((lib ?? []) as { sheet_id: string }[]).map((l) => l.sheet_id);
+    const elsewhere = libIds.length ? (await supabase.from("v_tech_sheets").select("sheet_ref, supplier_name, spec_title").in("id", libIds)).data ?? [] : [];
+    const details = await getSheetDetails(supabase, sheetRows.map((r) => r.id));
+    return (
+      <>
+        <PageHead crumbs={[{ label: "Sourcing", href: "/sourcing" }, { label: spec.job_number, href: `/sourcing/jobs/${spec.job_id}?tab=specs` }, { label: `Spec ${spec.spec_no}` }]}
+          title={spec.title} sub={`${specType(spec.spec_type)} · ${spec.total_quantity.toLocaleString("en-GB")} units · ${spec.market} (${spec.region})`}>
+          <Pill tone="info">Revision {spec.revision ?? 1}</Pill>
+        </PageHead>
+        <SpecTabs id={id} tab={tab} count={sheetRows.length} />
+        <Panel title="Technical & packaging data sheets" sub="Declared by each vendor in stages (quote, PO acceptance, pre-shipment), checked against a packed carton at the QA/QC pre-shipment check, and reused from the library of verified sheets.">
+          <div className="p-5">
+            <SpecTechSheets specId={id} sheets={details} suppliers={[...sup.entries()].map(([sid, name]) => ({ id: sid, name }))}
+              verifiedElsewhere={elsewhere as { sheet_ref: string; supplier_name: string; spec_title: string }[]} />
+          </div>
+        </Panel>
+      </>
+    );
+  }
   const [versions, components, libs, events, people, lines, brandingMethods, aqlLevels, revisions] = await Promise.all([
     getVersions(supabase, id), getComponents(supabase, id), getEmissionLibraries(supabase), getEvents(supabase, { entity_id: id }), getPeople(supabase),
     rows<{ rfq_id: string; spec_revision: number | null }>(supabase, "rfq_lines", { eq: { spec_id: id } }),
@@ -45,6 +89,7 @@ export default async function SpecPage({ params }: { params: Promise<{ id: strin
         <Pill tone="info">Revision {spec.revision ?? 1}</Pill>
         <RoutePill route={spec.route} confidence={spec.confidence} />
       </PageHead>
+      <SpecTabs id={id} tab={tab} count={sheetRows.length} />
       <ApprovalRequests entityIds={id} types={["TRIAGE_OVERRIDE"]} meId={me.id} title="Route change waiting for a sourcing lead" />
       {locked && <Card className="border-warn/40 bg-warn-soft px-5 py-3 text-sm text-warn">This spec is on a sent RFQ, so suppliers are quoting on it. To change it, use <b>Revise spec</b> below: a new revision is saved with your note, the RFQ is flagged &quot;spec changed&quot; and the invited suppliers are asked to re-quote. The revision they quoted on stays on record.</Card>}
       {onDraftRfq && <Card className="px-5 py-3 text-sm text-muted">This spec is on a draft RFQ. Edit it freely until the RFQ is sent.</Card>}

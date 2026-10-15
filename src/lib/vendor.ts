@@ -19,6 +19,7 @@ export const VENDOR_NAV: { label: string; items: NavLink[] }[] = [
   { label: "Quality & compliance", items: [
     { label: "Certificates & documents", href: "/vendor/compliance", icon: "verified" },
     { label: "QA/QC", href: "/vendor/qaqc", icon: "rule" },
+    { label: "Technical & packaging data", href: "/vendor/tech-sheets", icon: "deployed_code" },
     { label: "Quality & NCRs", href: "/vendor/quality", icon: "fact_check" },
     { label: "Performance & issues", href: "/vendor/performance", icon: "monitoring" },
   ] },

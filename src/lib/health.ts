@@ -11,9 +11,12 @@ type Source = { view: string; metrics?: string[] };
 // Which views (and which of their metrics) feed each module. Sourcing's view covers RFQs and Order Management too;
 // Order Management also reads QA/QC, OTIF and speed to market from watchtower_health_qaqc.
 const SOURCES: Partial<Record<ModuleKey, Source[]>> = {
-  sourcing: [{ view: "watchtower_health_sourcing", metrics: ["triage_no_rfq_share", "savings_vs_target"] }],
+  sourcing: [{ view: "watchtower_health_sourcing", metrics: ["triage_no_rfq_share", "savings_vs_target"] },
+    { view: "watchtower_health_tech_sheets", metrics: ["tech_tbc_overdue"] }],
   rfq: [{ view: "watchtower_health_sourcing", metrics: ["rfqs_below_min_quotes", "high_value_awaiting_approval"] }],
-  orders: [{ view: "watchtower_health_sourcing", metrics: ["pos_awaiting_doa"] }, { view: "watchtower_health_qaqc" }],
+  // Technical & packaging data sheets: orders held at the pre-shipment gate and the declared-vs-measured mismatch rate.
+  orders: [{ view: "watchtower_health_sourcing", metrics: ["pos_awaiting_doa"] }, { view: "watchtower_health_qaqc" },
+    { view: "watchtower_health_tech_sheets", metrics: ["tech_orders_blocked", "tech_mismatch_rate"] }],
   logistics: [{ view: "watchtower_health_logistics" }],
   execution: [{ view: "watchtower_health_execution" }],
   finance: [{ view: "watchtower_health_finance" }],

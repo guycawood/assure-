@@ -31,6 +31,14 @@ export type QuoteDetail = {
 };
 export type QuoteAlt = { line_id: string; alt_no: number; description: string; quantity: number; unit_price: number; lead_time_days: number | null };
 export type QuotePointPrice = { delivery_point_id: string; quantity: number; unit_price: number };
+/** Packaging proposal on file for a line (technical & packaging data sheet, quote stage) and what it can be pre-filled from. */
+export type QuotePackaging = {
+  line_id: string; sheet_ref: string | null; status: string | null; packing_method: string | null; tbc_by: string | null; tbc_note: string | null;
+  units_per_carton: number | null; carton_length_mm: number | null; carton_width_mm: number | null; carton_height_mm: number | null; carton_gross_weight_kg: number | null;
+  prefill: { sheet_ref: string; match: string; units_per_carton: number | null; carton_length_mm: number | null; carton_width_mm: number | null; carton_height_mm: number | null;
+    carton_gross_weight_kg: number | null; packing_method: string | null } | null;
+  quote_required: { code: string; label: string }[];
+};
 
 const TESTS: Record<string, string> = { pre_screen: "Pre-screen", lab_test: "Lab test", full_inspection: "Full inspection", drop_test: "Drop test", loading_test: "Loading test", final_inspection: "Final inspection" };
 const v = (x: unknown) => (x == null ? "" : String(x));
@@ -74,9 +82,9 @@ function Num({ name, label, value, width = "max-w-[140px]" }: { name: string; la
  * HS code, origin, lead time, run-on and sample costs, emissions declaration, prices per delivery point, a proposed spec for
  * ideation briefs and up to two alternative proposals.
  */
-export function QuoteForm({ rfqId, currency, lines, prices, details = [], alternatives = [], pointPrices = [], leadTime, notes, submitted, action }: {
+export function QuoteForm({ rfqId, currency, lines, prices, details = [], alternatives = [], pointPrices = [], packaging = [], leadTime, notes, submitted, action }: {
   rfqId: string; currency: string; lines: QuoteLine[]; prices: QuotePrice[]; details?: QuoteDetail[]; alternatives?: QuoteAlt[]; pointPrices?: QuotePointPrice[];
-  leadTime: number | null; notes: string | null; submitted: boolean; action: FormAction;
+  packaging?: QuotePackaging[]; leadTime: number | null; notes: string | null; submitted: boolean; action: FormAction;
 }) {
   const initial = useMemo(() => {
     const m: Record<string, string> = {};
@@ -91,7 +99,13 @@ export function QuoteForm({ rfqId, currency, lines, prices, details = [], altern
     <ActionForm action={action} hidden={{ rfq: rfqId }} submit={submitted ? "Update submitted quote" : "Submit quote"}
       secondary={submitted ? undefined : [{ label: "Save draft", intent: "draft" }]} className="flex flex-col gap-5">
       {lines.map((l) => {
-        const d = details.find((x) => x.line_id === l.id);
+        const own = details.find((x) => x.line_id === l.id);
+        const pk = packaging.find((x) => x.line_id === l.id);
+        const pf = pk?.sheet_ref ? null : pk?.prefill ?? null;
+        const cm = (mm: number | null | undefined) => (mm == null ? null : Number(mm) / 10);
+        // A verified sheet of this vendor pre-fills the carton details when nothing is on file yet.
+        const d = own ?? (pf ? { carton_length_cm: cm(pf.carton_length_mm), carton_width_cm: cm(pf.carton_width_mm), carton_height_cm: cm(pf.carton_height_mm),
+          units_per_carton: pf.units_per_carton } as Partial<QuoteDetail> : undefined);
         const alts = alternatives.filter((a) => a.line_id === l.id);
         const pts = l.delivery_points ?? [];
         const proposal = l.spec.spec_form === "ideation" || l.spec.spec_form === "open";
@@ -132,7 +146,20 @@ export function QuoteForm({ rfqId, currency, lines, prices, details = [], altern
                 </tbody>
               </table>
             </div>
-            <details className="border-t border-line px-4 py-3" open={!!d || alts.length > 0}>
+            <fieldset className="border-t border-line px-4 py-3">
+              <legend className="sr-only">Packaging (proposed)</legend>
+              <p className="text-sm font-semibold">Packaging (proposed)</p>
+              <p className="text-xs text-muted">How you would pack this line. Give the carton size and units per carton below{pk?.quote_required.length ? ` (adm Indicia needs: ${pk.quote_required.map((r) => r.label.toLowerCase()).join("; ")})` : ""}. Not sure yet? Give a date you will confirm it by.</p>
+              {pf && <p className="mt-1 text-xs text-accent">Pre-filled from your verified sheet {pf.sheet_ref} ({pf.match}). Check it still applies.</p>}
+              {pk?.sheet_ref && <p className="mt-1 text-xs text-muted">On file as data sheet {pk.sheet_ref}.</p>}
+              <div className="mt-2 flex flex-wrap gap-3">
+                <label className="block text-xs"><span className="label">Packing method</span><input name={`pk:${l.id}:packing_method`} defaultValue={v(pk?.packing_method ?? pf?.packing_method)} maxLength={500} className="input min-w-[240px]" placeholder="e.g. Shrink-wrapped in 25s" /></label>
+                <Num name={`pk:${l.id}:carton_gross_weight_kg`} label="Gross weight of a full carton (kg)" value={pk?.carton_gross_weight_kg ?? pf?.carton_gross_weight_kg} width="max-w-[170px]" />
+                <label className="block text-xs"><span className="label">Or to be confirmed by</span><input type="date" name={`pk:${l.id}:tbc_by`} defaultValue={v(pk?.tbc_by)} className="input max-w-[170px]" /></label>
+                <label className="block min-w-[220px] flex-1 text-xs"><span className="label">What will be confirmed</span><input name={`pk:${l.id}:tbc_note`} defaultValue={v(pk?.tbc_note)} maxLength={500} className="input" placeholder="e.g. Carton weight after the sample" /></label>
+              </div>
+            </fieldset>
+            <details className="border-t border-line px-4 py-3" open={!!own || alts.length > 0 || !!pf}>
               <summary className="cursor-pointer text-sm font-semibold">Packing, shipping, samples, emissions{pts.length ? ", delivery points" : ""} and alternatives</summary>
               <div className="mt-3 space-y-4">
                 <div className="flex flex-wrap gap-3">
