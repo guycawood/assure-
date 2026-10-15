@@ -21,7 +21,8 @@ import { BriefForm } from "@/components/briefing/brief-form";
 import { ProgressTimeline, RevisionHistory } from "@/components/briefing/history";
 import { WhatWorkedPanel } from "@/components/shopper-iq/what-worked";
 import { ClientComments } from "@/components/client/client-comments";
-import { updateBrief } from "../actions";
+import { duplicateBrief, updateBrief } from "../actions";
+import { DuplicateDialog } from "@/components/repeat/duplicate-dialog";
 import { ApprovalPanel, BriefActions } from "./brief-controls";
 import { IdeationPanel } from "./ideation-panel";
 
@@ -76,12 +77,33 @@ export default async function BriefDetail({ params, searchParams }: { params: Pr
   }
 
   const pendingHandoffs = history.handoffs.filter((h) => h.status === "pending");
+  // briefs_v predates the repeat link, so read it from the table.
+  const { data: link } = await supabase.from("briefs").select("repeat_of_brief_id").eq("id", id).maybeSingle();
+  const repeatOfId = (link as { repeat_of_brief_id: string | null } | null)?.repeat_of_brief_id ?? null;
+  const [{ data: marketRows }, { data: repeatRow }] = await Promise.all([
+    supabase.from("markets").select("code, name").order("name"),
+    repeatOfId ? supabase.from("briefs").select("id, brief_code, title").eq("id", repeatOfId).maybeSingle() : Promise.resolve({ data: null }),
+  ]);
+  const markets = (marketRows ?? []) as { code: string; name: string }[];
+  const repeatOf = repeatRow as { id: string; brief_code: string; title: string } | null;
   return (
     <>
       <PageHead crumbs={[{ label: "Briefing+", href: "/briefing" }, { label: brief.brief_code }]} title={brief.title}
         sub={[brief.client, brief.brand, brief.market ? `${marketName(brief.market)} · ${brief.region ?? ""}` : null].filter(Boolean).join(" · ")}>
         <BriefActions id={id} status={brief.status} canEdit={editable} canSubmit={mayChange} canArchive={mayChange && !["archived", "spec_created"].includes(brief.status)} />
+        <DuplicateDialog label="Duplicate for repeat order" title={`Duplicate ${brief.brief_code}`} submit="Create the repeat brief" action={duplicateBrief} hidden={{ id }}
+          sub="A new draft with the same content, linked to this brief, for you to adjust and submit. The launch date, approval and ideation are not copied.">
+          <div><label className="label" htmlFor="dup-title">Title</label><input id="dup-title" name="title" className="input" defaultValue={brief.title} maxLength={200} /></div>
+          <div><label className="label" htmlFor="dup-market">Market</label>
+            <select id="dup-market" name="market" className="input" defaultValue={brief.market ?? ""}>
+              {markets.map((m) => <option key={m.code} value={m.code}>{m.name} ({m.code})</option>)}
+            </select>
+          </div>
+        </DuplicateDialog>
       </PageHead>
+      {repeatOf && (
+        <p className="text-sm text-muted"><MSymbol name="repeat" size={15} className="align-middle text-accent" /> Repeat of <Link href={`/briefing/${repeatOf.id}`} className="font-semibold text-accent hover:underline">{repeatOf.brief_code} · {repeatOf.title}</Link></p>
+      )}
       <div className="flex flex-wrap items-center gap-2">
         <BriefStatusPill status={brief.status} />
         {brief.revision_count > 0 && <Pill tone="warn"><MSymbol name="edit" size={13} /> Revised · v{brief.revision_count}</Pill>}

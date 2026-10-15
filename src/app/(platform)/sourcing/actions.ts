@@ -323,6 +323,20 @@ export async function recomputeSpec(_: FormResult, fd: FormData): Promise<FormRe
   return { ok: true, message: "Weights and CO2e recalculated" };
 }
 
+/* ---------------- Repeat orders ---------------- */
+
+/** Draft copy of a spec (versions and bill of materials included) on this or another open job, linked to the original. */
+export async function duplicateSpec(_: FormResult, fd: FormData): Promise<FormResult> {
+  await requireInternal();
+  const qty = numOrNull(fd, "quantity");
+  if (qty !== null && (!Number.isInteger(qty) || qty <= 0)) return { error: "Quantity is a whole number above zero." };
+  const supabase = await createClient();
+  const { data, error } = await supabase.rpc("spec_duplicate", { p_spec: id(fd), p_job: str(fd, "job_id") || null, p_quantity: qty });
+  if (error) return { error: friendly(error) };
+  revalidatePath("/sourcing", "layout");
+  redirect(`/sourcing/specs/${data as string}`);
+}
+
 /* ---------------- Triage ---------------- */
 
 export async function runTriage(_: FormResult, fd: FormData): Promise<FormResult> {

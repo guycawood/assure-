@@ -16,6 +16,16 @@ import { SpecHubFields } from "@/components/sourcing/spec-hub-fields";
 import { addComponent, addVersion, deleteComponent, deleteVersion, overrideTriage, recomputeSpec, reviseSpec, runTriage, updateSpec, updateSpecDetails } from "../../actions";
 import { getSheetDetails, getSheetRows } from "@/lib/tech-sheet-data";
 import { SpecTechSheets } from "@/components/tech-sheet/internal-panel";
+import { DuplicateDialog } from "@/components/repeat/duplicate-dialog";
+import { MSymbol } from "@/components/symbol";
+import { duplicateSpec } from "../../actions";
+
+type RepeatContext = {
+  original: { spec_id: string; spec_no: number; title: string; job_number: string };
+  generations: number;
+  last_purchase: { supplier_name: string | null; unit_cost: number; quantity: number; currency: string; po_number: string | null; approved_at: string | null } | null;
+  verified_sheet: { sheet_ref: string; supplier_name: string } | null;
+};
 
 export const metadata: Metadata = { title: "Spec" };
 
@@ -73,6 +83,14 @@ export default async function SpecPage({ params, searchParams }: { params: Promi
     getLibrary(supabase, "branding_methods", false), getLibrary(supabase, "aql_levels", false),
     rows<SpecRevision>(supabase, "spec_revisions", { eq: { spec_id: id }, order: [["revision", false]] }),
   ]);
+  // Repeat orders: open jobs for the same client to duplicate onto, and what was bought last time if this is a repeat.
+  const { data: jobRow } = await supabase.from("jobs").select("client_id").eq("id", spec.job_id).maybeSingle();
+  const [{ data: openJobs }, { data: repeatCtx }] = await Promise.all([
+    supabase.from("jobs").select("id, job_number, title, status").eq("client_id", (jobRow as { client_id: string } | null)?.client_id ?? "").order("job_number", { ascending: false }).limit(50),
+    supabase.rpc("spec_repeat_context", { p_spec: id }),
+  ]);
+  const jobsForRepeat = ((openJobs ?? []) as { id: string; job_number: string; title: string; status: string }[]).filter((j) => !["closed", "cancelled"].includes(j.status));
+  const repeat = repeatCtx as RepeatContext | null;
   const live = computeSpecCo2e({ spec, versions, components, substratesById: libs.substrates, factorsByCode: libs.factors, singleSubstrate: spec.substrate_id ? libs.substrates[spec.substrate_id] : null });
   // On a sent or awarded RFQ the spec can't be edited directly: changes go through a new revision.
   const locked = !!spec.on_live_rfq;
@@ -88,8 +106,30 @@ export default async function SpecPage({ params, searchParams }: { params: Promi
         {spec.is_draft && <Pill tone="warn">Draft</Pill>}
         <Pill tone="info">Revision {spec.revision ?? 1}</Pill>
         <RoutePill route={spec.route} confidence={spec.confidence} />
+        <DuplicateDialog label="Duplicate for repeat order" title={`Duplicate spec ${spec.spec_no}: ${spec.title}`} submit="Create the repeat spec" action={duplicateSpec} hidden={{ id }}
+          sub="Copies every product field, the versions and the bill of materials as a draft, linked to this spec. The RFQ, quotes, triage, estimates and POs are not copied.">
+          <Field label="Put it on job" htmlFor="dup-job">
+            <select id="dup-job" name="job_id" className="input" defaultValue={spec.job_id}>
+              {jobsForRepeat.map((j) => <option key={j.id} value={j.id}>{j.job_number} · {j.title}{j.id === spec.job_id ? " (this job)" : ""}</option>)}
+            </select>
+          </Field>
+          <Field label="New quantity (optional)" htmlFor="dup-qty" hint="Applies when the spec has one version; otherwise edit the versions after copying.">
+            <input id="dup-qty" name="quantity" type="number" min={1} step={1} className="input" placeholder={String(spec.total_quantity)} />
+          </Field>
+        </DuplicateDialog>
       </PageHead>
       <SpecTabs id={id} tab={tab} count={sheetRows.length} />
+      {repeat && (
+        <Card className="flex flex-wrap items-start gap-x-6 gap-y-2 border-accent/30 px-5 py-3 text-sm">
+          <span className="inline-flex items-center gap-1.5 font-semibold"><MSymbol name="repeat" size={18} className="text-accent" /> Repeat order</span>
+          <span>Repeat of <Link className="font-semibold text-accent hover:underline" href={`/sourcing/specs/${repeat.original.spec_id}`}>{repeat.original.job_number} · spec {repeat.original.spec_no}</Link>{repeat.generations > 1 ? ` (${repeat.generations} repeats back)` : ""}</span>
+          {repeat.last_purchase ? (
+            <span>Last bought from <b>{repeat.last_purchase.supplier_name ?? "—"}</b> at <b>{money(Number(repeat.last_purchase.unit_cost), repeat.last_purchase.currency)}</b> per unit × {Number(repeat.last_purchase.quantity).toLocaleString("en-GB")}
+              {repeat.last_purchase.po_number ? ` on ${repeat.last_purchase.po_number}` : ""}{repeat.last_purchase.approved_at ? ` (${new Date(repeat.last_purchase.approved_at).toLocaleDateString("en-GB")})` : ""}</span>
+          ) : <span className="text-muted">No approved purchase on the original yet.</span>}
+          {repeat.verified_sheet && <span>Verified packaging data: <b>{repeat.verified_sheet.sheet_ref}</b> ({repeat.verified_sheet.supplier_name})</span>}
+        </Card>
+      )}
       <ApprovalRequests entityIds={id} types={["TRIAGE_OVERRIDE"]} meId={me.id} title="Route change waiting for a sourcing lead" />
       {locked && <Card className="border-warn/40 bg-warn-soft px-5 py-3 text-sm text-warn">This spec is on a sent RFQ, so suppliers are quoting on it. To change it, use <b>Revise spec</b> below: a new revision is saved with your note, the RFQ is flagged &quot;spec changed&quot; and the invited suppliers are asked to re-quote. The revision they quoted on stays on record.</Card>}
       {onDraftRfq && <Card className="px-5 py-3 text-sm text-muted">This spec is on a draft RFQ. Edit it freely until the RFQ is sent.</Card>}

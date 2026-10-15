@@ -81,6 +81,18 @@ export async function archiveBrief(id: string, note: string): Promise<ActionResu
   return { ok: true, message: "Archived." };
 }
 
+/** Repeat order: a draft copy of the brief (optionally for another market), linked to the original. */
+export async function duplicateBrief(_prev: { ok?: boolean; error?: string; message?: string }, fd: FormData): Promise<{ ok?: boolean; error?: string; message?: string }> {
+  await requireInternal();
+  const supabase = await createClient();
+  const { data, error } = await supabase.rpc("brief_duplicate", {
+    p_brief: String(fd.get("id") ?? ""), p_market: String(fd.get("market") ?? "") || null, p_title: String(fd.get("title") ?? "") || null,
+  });
+  if (error) return { error: error.message };
+  done();
+  redirect(`/briefing/${data as string}?edit=1`);
+}
+
 // ---------------------------------------------------------------------------
 // Campaigns
 // ---------------------------------------------------------------------------
