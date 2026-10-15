@@ -16,9 +16,10 @@ const tone = (s: number) => (s >= 9 ? "ok" : s >= 7 ? "warn" : "bad") as "ok" | 
 // Clients rate adm Indicia (0-10) and see who looks after them. Both through client-safe functions scoped to their accounts.
 export default async function ClientFeedback({ searchParams }: { searchParams: Promise<{ preview?: string }> }) {
   const ctx = await portalContext(await searchParams);
-  const [team, given] = await Promise.all([
+  const [team, given, surveys] = await Promise.all([
     rpc<Team[]>(ctx.supabase, "client_portal_account_team", scope(ctx)),
     rpc<Given[]>(ctx.supabase, "client_portal_feedback", scope(ctx)),
+    rpc<{ token: string; title: string; client_name: string; kind: string }[]>(ctx.supabase, "client_portal_surveys", scope(ctx)),
   ]);
   const markets = [...new Map((team ?? []).map((t) => [t.market, t.market_name ?? t.market])).entries()];
 
@@ -26,6 +27,14 @@ export default async function ClientFeedback({ searchParams }: { searchParams: P
     <>
       {ctx.preview && <PreviewBanner name={ctx.accounts.map((a) => a.name).join(", ")} />}
       <PageHead title="Feedback" sub="Tell us how we are doing. Your account team reads every response." />
+
+      {(surveys ?? []).length > 0 && (
+        <Card className="space-y-2 border-accent/40 px-5 py-4">
+          <h2 className="font-display text-[0.95rem] font-bold">A survey is waiting for you</h2>
+          <ul className="space-y-1 text-sm">{(surveys ?? []).map((s) => (
+            <li key={s.token}><a className="font-semibold text-accent hover:underline" href={`/s/${s.token}`}>{s.title}</a> <span className="text-muted">· {s.client_name}</span></li>))}</ul>
+        </Card>
+      )}
 
       <Panel title="Your account team" sub="The adm Indicia people who look after your business">
         {(team ?? []).length === 0 ? <Empty title="Your account team will appear here" /> : (

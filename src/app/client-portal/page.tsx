@@ -7,6 +7,8 @@ import {
 import { Card, Empty, PageHead, Panel, Pill, Stat } from "@/components/ui";
 import { MSymbol } from "@/components/symbol";
 import { OrderTimeline, PreviewBanner } from "@/components/client/bits";
+import { ClientActionForm } from "@/components/client/forms";
+import { respondReview } from "./actions";
 
 export default async function ClientPortalHome({ searchParams }: { searchParams: Promise<{ preview?: string }> }) {
   const ctx = await portalContext(await searchParams, { allowPicker: true });
@@ -44,6 +46,10 @@ export default async function ClientPortalHome({ searchParams }: { searchParams:
     rpc<OrderRow[]>(ctx.supabase, "client_portal_orders", s),
     rpc<{ client_name: string; market: string; market_name: string | null; lead_name: string; lead_email: string }[]>(ctx.supabase, "client_portal_account_team", s),
   ]);
+  const [reviews, ourActions] = await Promise.all([
+    rpc<{ id: string; client_name: string; title: string; review_type: string; scheduled_on: string; agenda: string[]; my_response: string | null }[]>(ctx.supabase, "client_portal_reviews", s),
+    rpc<{ id: string; client_name: string; title: string; detail: string | null; due_date: string | null; status: string; from_review: string | null; owner_name: string }[]>(ctx.supabase, "client_portal_actions", s),
+  ]);
   const names = ctx.accounts.map((a) => a.name).join(", ");
   const waiting = (estimates ?? []).filter((e) => e.status === "sent");
   const active = (orders ?? []).filter((o) => o.status !== "closed").slice(0, 4);
@@ -73,6 +79,37 @@ export default async function ClientPortalHome({ searchParams }: { searchParams:
           ))}
           <Link href={ctx.link("/client-portal/feedback")} className="ml-auto text-xs font-semibold text-accent hover:underline">Give feedback</Link>
         </Card>
+      )}
+
+      {((reviews ?? []).length > 0 || (ourActions ?? []).length > 0) && (
+        <div className="grid gap-6 xl:grid-cols-2">
+          <Panel title="Your next business review" sub="Agenda and date agreed with your account team">
+            {(reviews ?? []).length === 0 ? <Empty title="No review booked yet" /> : (
+              <ul className="divide-y divide-line">{(reviews ?? []).map((r) => (
+                <li key={r.id} className="space-y-2 px-5 py-3 text-sm">
+                  <p className="font-semibold">{r.title} <span className="font-normal text-muted">· {fmtDate(r.scheduled_on)}{ctx.accounts.length > 1 ? ` · ${r.client_name}` : ""}</span></p>
+                  <ol className="list-decimal pl-5 text-muted">{r.agenda.map((a, i) => <li key={i}>{a}</li>)}</ol>
+                  {r.my_response && <Pill tone={r.my_response === "attending" ? "ok" : "neutral"}>{r.my_response === "attending" ? "You are attending" : "You can\u2019t attend"}</Pill>}
+                  {!ctx.preview && (
+                    <div className="flex flex-wrap gap-2">
+                      <ClientActionForm action={respondReview} hidden={{ review_id: r.id, response: "attending" }} submit="I will attend" variant="secondary" />
+                      <ClientActionForm action={respondReview} hidden={{ review_id: r.id, response: "declined" }} submit={"I can\u2019t attend"} variant="secondary" />
+                    </div>
+                  )}
+                </li>))}</ul>
+            )}
+          </Panel>
+          <Panel title="Our actions for you" sub="What adm Indicia has agreed to do">
+            {(ourActions ?? []).length === 0 ? <Empty title="Nothing open right now" /> : (
+              <ul className="divide-y divide-line">{(ourActions ?? []).map((a) => (
+                <li key={a.id} className="flex flex-wrap items-start gap-3 px-5 py-3 text-sm">
+                  <div className="min-w-0 flex-1"><p className="font-semibold">{a.title}</p>
+                    <p className="text-xs text-muted">{a.detail ? `${a.detail} · ` : ""}{a.owner_name}{a.from_review ? ` · from ${a.from_review}` : ""}{a.due_date ? ` · due ${fmtDate(a.due_date)}` : ""}</p></div>
+                  <Pill tone={a.status === "done" ? "ok" : a.status === "in_progress" ? "warn" : "info"}>{a.status === "done" ? "Done" : a.status === "in_progress" ? "In progress" : "To do"}</Pill>
+                </li>))}</ul>
+            )}
+          </Panel>
+        </div>
       )}
 
       <div className="grid gap-6 xl:grid-cols-2">

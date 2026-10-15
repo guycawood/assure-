@@ -47,11 +47,12 @@ const ALL: ModuleDef[] = [
     basePath: "/crm",
     status: "live",
     phase: "Live",
-    // The client-side mirror of SRM: owns the client relationship around the client master every section uses.
+    // The client-side mirror of SRM, in two halves: internal client management (this tab) and the external
+    // Client Portal (/client-portal), where clients approve, follow their work, see bills and give feedback.
     scope: [
-      "Clients, accounts per market and contacts; account plans and client health",
-      "Pipeline from lead to won; a won opportunity becomes a campaign in Briefing+",
-      "Contracts, renewals and commercial terms (markup, margin, commission, rebate, payment terms) under approval",
+      "Internal: clients, accounts per market, contacts, pipeline, account plans, contracts, commercial terms and client health",
+      "External Client Portal: campaigns and briefs, concept and estimate approvals, orders, bills and reports",
+      "External Client Portal: their account team, feedback and surveys, and the client's own users",
     ],
     flow: "Start of the flow and under every section: wins the work, sets the commercial terms Sourcing, Order Management and Finance+ apply, and hears back from the client through the Client Portal.",
   },
@@ -101,7 +102,7 @@ const ALL: ModuleDef[] = [
       "Supplier invoices matched to POs and deliveries; client billing",
       "Payment schedules, terms and spend reporting by region and market",
     ],
-    flow: "Approves the commercial steps (quotes, estimates) and closes the loop: invoices, billing and payment once delivery and installation are proven.",
+    flow: "A layer under every section, like Sustainability and Supplier Engagement: checks new clients, approves quotes and estimates, holds POs to delegated authority, and closes the loop with invoices, payments and billing once delivery and installation are proven.",
   },  {
     key: "assure",
     name: "SRM",
@@ -208,9 +209,13 @@ const ALL: ModuleDef[] = [
 // Shopper IQ sits next to Briefing+ (insight decides what to brief).
 // Sourcing includes RFQs; Order Management includes Logistics and Execution (areas with partOf set, no tab of their own).
 // SRM goes last: it manages the supply base; vendors engage at set points (see LAYERS supplier touches).
-const TAB_ORDER: ModuleKey[] = ["watchtower", "crm", "briefing", "shopper-iq", "sourcing", "rfq", "orders", "logistics", "execution", "finance", "assure"];
-/** Modules that run across the whole workflow rather than being a step in it. */
-export const HORIZONTALS: ModuleKey[] = ["watchtower"];
+const TAB_ORDER: ModuleKey[] = ["watchtower", "crm", "briefing", "shopper-iq", "sourcing", "rfq", "orders", "logistics", "execution", "assure", "finance"];
+/**
+ * Sections that run across the whole workflow rather than being a step in it. They keep a tab (their team's
+ * workspace) but the architecture draws them as layers: Watchtower over everything, Finance+ under everything
+ * (like Sustainability and Supplier Engagement).
+ */
+export const HORIZONTALS: ModuleKey[] = ["watchtower", "finance"];
 ALL.sort((a, b) => TAB_ORDER.indexOf(a.key) - TAB_ORDER.indexOf(b.key));
 
 /** The sections people see: one tab, one sidebar, one About and one Watchtower each. */
@@ -241,22 +246,27 @@ export const LAYERS: LayerDef[] = [
   {
     key: "data", name: "Data Management", colour: "#EE4E62", href: "/watchtower/data",
     summary: "One canonical record per thing, real links between modules, region and market kept separate, data-quality rules and BI-ready views.",
-    touches: { crm: "Client master, accounts per market and contacts", briefing: "Campaign taxonomy at source", "shopper-iq": "Effectiveness data model", sourcing: "Spec library, price history and benchmarks", orders: "Stocktool hand-off, LOCODEs and outlet master data", finance: "Spend and savings reporting", assure: "Supplier master" },
+    touches: { crm: "Client master, accounts per market and contacts", briefing: "Campaign taxonomy at source", "shopper-iq": "Effectiveness data model", sourcing: "Spec library, price history and benchmarks", orders: "Stocktool hand-off, LOCODEs and outlet master data", assure: "Supplier master" },
+  },
+  {
+    key: "finance", name: "Finance", colour: "#97DBD9", href: "/finance",
+    summary: "Finance runs under every section rather than at the end: it checks new clients, approves quotes and estimates, holds POs to delegated authority, matches invoices to evidence, pays suppliers and bills clients, and reports spend and savings. The Finance+ tab is the finance team's workspace.",
+    touches: { crm: "Credit check, billing entities, payment terms", briefing: "Budget on the brief", "shopper-iq": "Spend by campaign", sourcing: "Quote approval before award", orders: "Estimate review, PO DOA, invoice match, client bills", assure: "Supplier payment terms, bank details, payments" },
   },
   {
     key: "supplier", name: "Supplier Engagement", colour: "#6A2DD3", href: "/vendor",
     summary: "Vendors engage at set points in the journey, not throughout: onboarding and compliance, quoting, confirming pushed prices, accepting POs and updating production, shipping and proof of delivery, installation, and invoicing. All through the vendor portal.",
-    touches: { sourcing: "Quote, decline or confirm pushed prices", orders: "Accept PO, ship with POD, install with photo and GPS", finance: "Upload invoice, see payment", assure: "Onboard, keep compliant, reviews" },
+    touches: { sourcing: "Quote, decline or confirm pushed prices", orders: "Accept PO, ship with POD, install, upload invoice", assure: "Onboard, keep compliant, reviews, see payments" },
   },
   {
     key: "sustainability", name: "Sustainability", colour: "#78C7AE", href: "/watchtower/sustainability",
     summary: "Shared emission factors, substrates and Impact Grade from the Watchtower, applied the same way in every module.",
-    touches: { crm: "Client sustainability commitments in the contract", briefing: "Targets on the brief", "shopper-iq": "Footprint beside effectiveness", sourcing: "CO2e and Impact Grade per spec; weighting in evaluation", orders: "Transport CO2e per delivery; reuse and maintenance", finance: "Carbon cost alongside spend", assure: "Audits and certificates in the score" },
+    touches: { crm: "Client sustainability commitments in the contract", briefing: "Targets on the brief", "shopper-iq": "Footprint beside effectiveness", sourcing: "CO2e and Impact Grade per spec; weighting in evaluation", orders: "Transport CO2e per delivery; reuse and maintenance", assure: "Audits and certificates in the score" },
   },
   {
     key: "internal_reporting", name: "Internal Reporting", colour: "#9DC5ED", href: "/watchtower/reporting",
     summary: "Management reporting across every module from one data model: pipeline, spend and savings, supplier performance, compliance, delivery and carbon, cut by region and market.",
-    touches: { crm: "Pipeline, renewals and client health", briefing: "Brief volume and approval times", "shopper-iq": "Effectiveness by campaign", sourcing: "Route mix and savings", orders: "POs awaiting approval, OTIF, install and audit pass rates", finance: "Spend, fee and savings", assure: "Compliance and PSL" },
+    touches: { crm: "Pipeline, renewals and client health", briefing: "Brief volume and approval times", "shopper-iq": "Effectiveness by campaign", sourcing: "Route mix and savings", orders: "POs awaiting approval, OTIF, install and audit pass rates", assure: "Compliance, PSL, spend and savings" },
   },
 ];
 
@@ -271,10 +281,10 @@ export type PortalDef = { key: string; name: string; href: string; colour: strin
 export const PORTALS: PortalDef[] = [
   {
     key: "client", name: "Client Portal", href: "/client-portal", colour: "#4896F7", icon: "storefront", status: "live",
-    summary: "Clients follow their campaigns, approve briefs, concepts and estimates, see delivery and installation progress, bills and reports, see their account team and give feedback to CRM.",
+    summary: "CRM's external view. Clients follow their campaigns, approve briefs, concepts and estimates, see delivery and installation progress, bills and reports, see their account team and give feedback to CRM.",
   },
   {
     key: "vendor", name: "Vendor Portal", href: "/vendor", colour: "#6A2DD3", icon: "handshake", status: "live",
-    summary: "Vendors register and subscribe, complete onboarding, quote, accept POs, update production, ship, install, submit QA/QC and upload invoices and control documents.",
+    summary: "SRM's external view. Vendors register and subscribe, complete onboarding, quote, accept POs, update production, ship, install, submit QA/QC and upload invoices and control documents.",
   },
 ];

@@ -73,3 +73,17 @@ export async function commentOnBrief(_prev: ClientFormResult, fd: FormData): Pro
   revalidatePath(`/client-portal/briefs/${parsed.data.brief_id}`);
   return { ok: true, message: "Comment sent to adm Indicia." };
 }
+
+/** Client user confirms whether they will attend an upcoming business review. */
+export async function respondReview(_prev: ClientFormResult, fd: FormData): Promise<ClientFormResult> {
+  const me = await requireClient();
+  if (me.is_admin || me.user_type === "internal") return { error: PREVIEW_MSG };
+  const review = uuid.safeParse(fd.get("review_id"));
+  const response = fd.get("response");
+  if (!review.success || (response !== "attending" && response !== "declined")) return { error: "Choose whether you will attend." };
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("client_review_respond", { p_review: review.data, p_response: response, p_note: String(fd.get("note") ?? "").trim() || null });
+  if (error) return { error: error.message };
+  revalidatePath("/client-portal");
+  return { ok: true, message: response === "attending" ? "Thanks, see you there." : "Thanks for letting us know." };
+}

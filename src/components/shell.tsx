@@ -216,9 +216,11 @@ export function Shell({ user, isAdmin, demo, badges, notices, children }: Props)
                 <MSymbol name="auto_awesome" size={17} fill /> Ask
               </Link>
               {demo && <span className="hidden rounded-full border border-brand-tech/60 px-2.5 py-0.5 text-[0.64rem] font-bold uppercase tracking-wider text-brand-tech lg:block">Demo data</span>}
-              {m.key === "assure" && (
-                <Link href="/vendor" className="hidden items-center gap-1 rounded-full border border-white/25 px-2.5 py-1 text-xs font-semibold text-white/85 hover:bg-white/10 xl:flex">
-                  <MSymbol name="open_in_new" size={14} /> Vendor portal
+              {/* SRM and CRM each have an external half: the vendor portal and the Client Portal. */}
+              {(m.key === "assure" || m.key === "crm") && (
+                <Link href={m.key === "assure" ? "/vendor" : "/client-portal"} title="Open the external view"
+                  className={clsx("hidden items-center gap-1 rounded-full border px-2.5 py-1 text-xs font-semibold xl:flex", theme === "navy" ? "border-white/25 text-white/85 hover:bg-white/10" : "border-line text-fg/80 hover:bg-surface-2")}>
+                  <MSymbol name="open_in_new" size={14} /> {m.key === "assure" ? "Vendor portal" : "Client Portal"}
                 </Link>
               )}
               <button onClick={switchTheme} title={theme === "navy" ? "Switch to the light look" : "Switch to the dark look"} aria-label="Switch theme" className={clsx("grid h-9 w-9 place-items-center rounded-lg transition", T.icon)}><MSymbol name={theme === "navy" ? "light_mode" : "dark_mode"} size={19} /></button>

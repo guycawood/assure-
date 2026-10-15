@@ -15,7 +15,7 @@ export default function FlowMap() {
       <PageHead
         crumbs={[{ label: "Watchtower", href: "/watchtower" }, { label: "How the modules connect" }]}
         title="How System Guy fits together"
-        sub="Every module stands alone with its own Watchtower, governed by the master Watchtower. Data Management, Supplier Engagement, Sustainability and Internal Reporting run under every module. Clients and vendors come in through their own portals, with External Reporting tailored to each."
+        sub="Every module stands alone with its own Watchtower, governed by the master Watchtower. Data Management, Finance, Supplier Engagement, Sustainability and Internal Reporting run under every section. Clients come in through the Client Portal (CRM's external view) and vendors through the vendor portal (SRM's external view), with External Reporting tailored to each."
       />
 
       <Card className="flex flex-wrap items-center gap-3 px-5 py-3.5 text-sm">
@@ -26,7 +26,7 @@ export default function FlowMap() {
 
       <Card className="p-5"><Architecture /></Card>
 
-      <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+      <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
         {LAYERS.map((l) => (
           <Card key={l.key} className="overflow-hidden">
             <div className="h-1.5" style={{ background: l.colour }} />

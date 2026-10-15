@@ -189,3 +189,181 @@ export async function followUpFeedback(_: FormResult, fd: FormData): Promise<For
   const res = await call("crm_feedback_follow_up", { p_id: id(fd), p_note: str(fd, "note") });
   return res.error ? { error: res.error } : { ok: true, message: "Follow-up recorded." };
 }
+
+/* =================== Stage 2: HubSpot replacement =================== */
+
+const ids = (fd: FormData, k = "ids") => fd.getAll(k).map(String).filter((x) => /^[0-9a-f-]{36}$/i.test(x));
+
+/** One cell of the stakeholder grid (called from the grid, not a form). */
+export async function setContactField(contactId: string, field: string, value: unknown): Promise<{ ok?: boolean; error?: string }> {
+  const res = await call("crm_contact_set_field", { p_id: contactId, p_field: field, p_value: value === undefined ? null : value });
+  return res.error ? { error: res.error } : { ok: true };
+}
+
+export async function reassignContacts(_: FormResult, fd: FormData): Promise<FormResult> {
+  const list = ids(fd);
+  if (!list.length) return { error: "Tick the contacts to reassign first." };
+  const res = await call<number>("crm_contacts_reassign", { p_ids: list, p_owner: id(fd, "owner"), p_note: str(fd, "note") });
+  return res.error ? { error: res.error } : { ok: true, message: `${res.data ?? 0} contact(s) reassigned.` };
+}
+
+export async function markContactsReviewed(_: FormResult, fd: FormData): Promise<FormResult> {
+  const list = ids(fd);
+  if (!list.length) return { error: "Tick the contacts you have reviewed first." };
+  const res = await call<number>("crm_contacts_mark_reviewed", { p_ids: list });
+  return res.error ? { error: res.error } : { ok: true, message: `${res.data ?? 0} contact(s) marked as reviewed.` };
+}
+
+export async function markContactLeft(_: FormResult, fd: FormData): Promise<FormResult> {
+  const res = await call("crm_contact_mark_left", { p_id: id(fd), p_note: str(fd, "note") });
+  return res.error ? { error: res.error } : { ok: true, message: "Marked as left." };
+}
+
+export async function savePerformance(_: FormResult, fd: FormData): Promise<FormResult> {
+  if (bad(fd, "budget", "probability")) return { error: "Numbers only in budget and probability." };
+  const res = await call("crm_performance_save", {
+    p_id: id(fd), p_client: id(fd, "client_id"), p_contact: id(fd, "contact_id"), p_service: id(fd, "service_id"), p_title: str(fd, "title"),
+    p_stage: str(fd, "stage"), p_next_step: id(fd, "next_step_id"), p_next_steps: str(fd, "next_steps"), p_cs_lead: id(fd, "cs_lead"), p_sme: id(fd, "sme"),
+    p_budget: numOrNull(fd, "budget"), p_currency: str(fd, "currency"), p_probability: intOrNull(fd, "probability"), p_expected_close: str(fd, "expected_close"),
+  });
+  return res.error ? { error: res.error } : { ok: true, message: id(fd) ? "Updated." : "Added to the Performance Tracker." };
+}
+
+/* ---------- Surveys ---------- */
+export async function createWave(_: FormResult, fd: FormData): Promise<FormResult> {
+  const res = await call<string>("crm_survey_wave_create", { p_name: str(fd, "name"), p_period: str(fd, "period"), p_closes_on: str(fd, "closes_on") });
+  if (res.error) return { error: res.error };
+  redirect(`/crm/surveys/${res.data}`);
+}
+export async function addToWave(_: FormResult, fd: FormData): Promise<FormResult> {
+  const res = await call<number>("crm_survey_wave_add", { p_wave: id(fd), p_client: id(fd, "client_id"), p_contacts: ids(fd, "contact_ids").length ? ids(fd, "contact_ids") : null });
+  return res.error ? { error: res.error } : { ok: true, message: `${res.data ?? 0} contact(s) added.` };
+}
+export async function sendWave(_: FormResult, fd: FormData): Promise<FormResult> {
+  const res = await call<string>("crm_survey_wave_send", { p_wave: id(fd) });
+  if (res.error) return { error: res.error };
+  if (res.data === "pending") {
+    const supabase = await createClient();
+    return { ok: true, message: (await sentForApproval(supabase, "CRM_SEND", id(fd) ?? "")) ?? "Sent for approval." };
+  }
+  return { ok: true, message: "Survey emails queued, each signed by the contact owner." };
+}
+export async function closeWave(_: FormResult, fd: FormData): Promise<FormResult> {
+  const res = await call("crm_survey_wave_close", { p_wave: id(fd) });
+  return res.error ? { error: res.error } : { ok: true, message: "Survey closed." };
+}
+
+/* ---------- Forms ---------- */
+const slug = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_+|_+$/g, "").replace(/^(\d)/, "f_$1").slice(0, 40) || "field";
+/** "Label | type | required | Option A, Option B" per line -> form fields. */
+function parseFields(text: string) {
+  const out: { key: string; label: string; type: string; required: boolean; options?: string[] }[] = [];
+  for (const line of text.split(/\r?\n/).map((l) => l.trim()).filter(Boolean)) {
+    const [label, type = "text", req = "", opts = ""] = line.split("|").map((x) => x.trim());
+    const t = type.toLowerCase();
+    const key = t === "email" ? "email" : /^(full )?name$/i.test(label) ? "full_name" : /job title/i.test(label) ? "job_title" : /phone/i.test(label) ? "phone" : slug(label);
+    out.push({ key, label, type: t, required: /^(required|yes|y|true)$/i.test(req), ...(t === "select" ? { options: opts.split(",").map((o) => o.trim()).filter(Boolean) } : {}) });
+  }
+  return out;
+}
+export async function saveForm(_: FormResult, fd: FormData): Promise<FormResult> {
+  const fields = parseFields(str(fd, "fields") ?? "");
+  const res = await call<string>("crm_form_save", {
+    p_id: id(fd), p_name: str(fd, "name"), p_description: str(fd, "description"), p_fields: fields, p_consent_text: str(fd, "consent_text"),
+    p_client: id(fd, "client_id"), p_active: fd.has("active_field") ? bool(fd, "active") : true,
+  });
+  if (res.error) return { error: res.error };
+  if (!id(fd)) redirect(`/crm/forms/${res.data}`);
+  return { ok: true, message: "Form saved." };
+}
+
+/* ---------- Lists and emails ---------- */
+export async function saveList(_: FormResult, fd: FormData): Promise<FormResult> {
+  const filters: Record<string, string | boolean> = {};
+  for (const k of ["client_id", "department", "relationship_rag", "influence_level", "decision_level", "quadrant", "market", "owner", "owner_role", "decision_role"]) {
+    const v = str(fd, k);
+    if (v) filters[k] = v;
+  }
+  if (str(fd, "receive_survey")) filters.receive_survey = str(fd, "receive_survey") === "true";
+  if (bool(fd, "all_staff")) filters.all_staff = true;
+  const res = await call<string>("crm_list_save", {
+    p_id: id(fd), p_name: str(fd, "name"), p_description: str(fd, "description"), p_kind: str(fd, "kind"), p_audience: str(fd, "audience"), p_filters: filters,
+  });
+  return res.error ? { error: res.error } : { ok: true, message: "List saved." };
+}
+export async function addToList(_: FormResult, fd: FormData): Promise<FormResult> {
+  const c = ids(fd, "contact_ids"), p = ids(fd, "profile_ids");
+  if (!c.length && !p.length) return { error: "Choose who to add." };
+  const res = await call<number>("crm_list_add", { p_list: id(fd), p_contacts: c.length ? c : null, p_profiles: p.length ? p : null });
+  return res.error ? { error: res.error } : { ok: true, message: `${res.data ?? 0} added.` };
+}
+export async function removeFromList(_: FormResult, fd: FormData): Promise<FormResult> {
+  const res = await call("crm_list_remove", { p_list: id(fd), p_member: id(fd, "member") });
+  return res.error ? { error: res.error } : { ok: true, message: "Removed." };
+}
+export async function saveEmail(_: FormResult, fd: FormData): Promise<FormResult> {
+  const res = await call<string>("crm_email_save", {
+    p_id: id(fd), p_name: str(fd, "name"), p_list: id(fd, "list_id"), p_template: id(fd, "template_id"), p_subject: str(fd, "subject"), p_body: str(fd, "body"), p_link: str(fd, "link"),
+  });
+  if (res.error) return { error: res.error };
+  if (!id(fd)) redirect(`/crm/emails/${res.data}`);
+  return { ok: true, message: "Saved." };
+}
+export async function sendEmail(_: FormResult, fd: FormData): Promise<FormResult> {
+  const res = await call<string>("crm_email_send", { p_email: id(fd) });
+  if (res.error) return { error: res.error };
+  if (res.data === "pending") {
+    const supabase = await createClient();
+    return { ok: true, message: (await sentForApproval(supabase, "CRM_SEND", id(fd) ?? "")) ?? "Sent for approval." };
+  }
+  return { ok: true, message: "Queued for sending. Anyone excluded is listed with the reason." };
+}
+export async function simulateEmailEvents(_: FormResult, fd: FormData): Promise<FormResult> {
+  const res = await call<number>("crm_email_simulate_events", { p_email: id(fd) });
+  return res.error ? { error: res.error } : { ok: true, message: `${res.data ?? 0} demo events added (simulated, no provider connected).` };
+}
+
+/* ---------- HubSpot import ---------- */
+export async function runImport(kind: string, rows: Record<string, string>[], dryRun: boolean, fileName: string, mapping: Record<string, string>, onDuplicate: string) {
+  const res = await call<import("@/lib/crm").ImportReport>("crm_import", {
+    p_kind: kind, p_rows: rows, p_dry_run: dryRun, p_file_name: fileName || null, p_mapping: mapping, p_on_duplicate: onDuplicate === "update" ? "update" : "skip",
+  });
+  if (res.error) return { error: res.error };
+  if (!dryRun) revalidatePath("/crm", "layout");
+  return { report: res.data };
+}
+/* ---------- Client business reviews and actions ---------- */
+export async function saveReview(_: FormResult, fd: FormData): Promise<FormResult> {
+  const agenda = (str(fd, "agenda") ?? "").split(/\r?\n/).map((x) => x.trim()).filter(Boolean);
+  const res = await call<string>("crm_review_save", {
+    p_id: id(fd), p_client: id(fd, "client_id"), p_account: id(fd, "account_id"), p_type: str(fd, "review_type"), p_title: str(fd, "title"),
+    p_scheduled_on: str(fd, "scheduled_on"), p_agenda: agenda, p_internal: ids(fd, "internal_attendees"), p_contacts: ids(fd, "contact_attendees"),
+    p_client_visible: fd.has("visible_field") ? bool(fd, "client_visible") : true,
+  });
+  if (res.error) return { error: res.error };
+  if (!id(fd)) redirect(`/crm/reviews/${res.data}`);
+  return { ok: true, message: "Review saved." };
+}
+export async function generatePack(_: FormResult, fd: FormData): Promise<FormResult> {
+  const res = await call("crm_review_generate_pack", { p_id: id(fd) });
+  return res.error ? { error: res.error } : { ok: true, message: "Pack generated from the latest CRM data." };
+}
+export async function setReviewStatus(_: FormResult, fd: FormData): Promise<FormResult> {
+  const status = str(fd, "status");
+  const res = await call("crm_review_set_status", { p_id: id(fd), p_status: status, p_outcomes: str(fd, "outcomes"), p_notes: str(fd, "notes") });
+  return res.error ? { error: res.error } : { ok: true, message: status === "closed" ? "Review closed." : status === "held" ? "Marked as held." : status === "cancelled" ? "Review cancelled." : "Saved." };
+}
+export async function saveCrmAction(_: FormResult, fd: FormData): Promise<FormResult> {
+  const res = await call("crm_action_save", {
+    p_id: id(fd), p_client: id(fd, "client_id"), p_title: str(fd, "title"), p_detail: str(fd, "detail"), p_owner: id(fd, "owner"), p_due: str(fd, "due_date"),
+    p_review: id(fd, "review_id"), p_client_visible: bool(fd, "client_visible"), p_account: id(fd, "account_id"),
+  });
+  return res.error ? { error: res.error } : { ok: true, message: id(fd) ? "Action updated." : "Action added." };
+}
+export async function setCrmActionStatus(_: FormResult, fd: FormData): Promise<FormResult> {
+  const plan = str(fd, "kind") === "plan";
+  const res = plan
+    ? await call("crm_plan_action_set", { p_id: id(fd), p_status: str(fd, "status") === "cancelled" ? "dropped" : str(fd, "status") === "in_progress" ? "open" : str(fd, "status") })
+    : await call("crm_action_set_status", { p_id: id(fd), p_status: str(fd, "status"), p_note: str(fd, "note") });
+  return res.error ? { error: res.error } : { ok: true, message: "Updated." };
+}

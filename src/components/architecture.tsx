@@ -6,7 +6,8 @@ const text = (c: string) => (c === "#9DC5ED" || c === "#97DBD9" || c === "#78C7A
 
 /**
  * The System Guy architecture (Guy's diagram): master Watchtower over a Watchtower per module, the module row,
- * Data Management / Supplier Engagement / Sustainability layers under every module, and the Client and Vendor portals.
+ * Data Management / Finance / Supplier Engagement / Sustainability / Internal Reporting layers under every module,
+ * and the Client and Vendor portals.
  */
 export function Architecture({ highlight, compact }: { highlight?: ModuleKey; compact?: boolean }) {
   const mods = MODULES.filter((m) => !HORIZONTALS.includes(m.key));

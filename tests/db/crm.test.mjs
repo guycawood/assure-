@@ -219,7 +219,7 @@ test("client health and the Watchtower health view return standard rows", async 
   assert.equal(h.open_issues, 1);
   const rows = (await as("plain", "select module, metric, label, value, target, status from public.watchtower_health_crm")).rows;
   assert.deepEqual(rows.map((r) => r.metric).sort(),
-    ["accounts_red", "clients_no_activity_60d", "overdue_client_bills", "pipeline_vs_target", "renewals_due_90d"]);
+    ["accounts_red", "actions_overdue", "clients_no_activity_60d", "overdue_client_bills", "pipeline_vs_target", "renewals_due_90d", "reviews_overdue"]);
   for (const r of rows) {
     assert.equal(r.module, "crm");
     assert.ok(["ok", "warn", "bad"].includes(r.status));

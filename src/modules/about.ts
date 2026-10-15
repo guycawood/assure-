@@ -42,7 +42,7 @@ const SECTIONS: Record<Exclude<ModuleKey, "rfq">, ModuleAbout> = {
   crm: {
     headline: "Know every client, win the right work, keep the terms straight.",
     summary:
-      "CRM manages the client relationship: clients and their accounts per market, contacts, activity, the pipeline from lead to won, account plans, contracts and renewals, and the commercial terms every other section applies. It is the client-side mirror of SRM, and it hears back from clients through feedback in the Client Portal.",
+      "CRM is the client-side mirror of SRM, in two halves. Internally, the account team manages the client: accounts per market, contacts, activity, the pipeline from lead to won, account plans, contracts and renewals, and the commercial terms every other section applies. Externally, the Client Portal is the client's own view: they follow campaigns and briefs, approve concepts and estimates, track orders, see bills and reports, reach their account team and give feedback.",
     who: ["Account directors and account leads", "Client service teams", "Commercial and finance", "Leadership"],
     functions: [
       { title: "Clients, accounts and contacts", body: "One record per client, an account per market with its lead and tier, and the client's people with their decision roles.", status: "live" },
@@ -50,6 +50,7 @@ const SECTIONS: Record<Exclude<ModuleKey, "rfq">, ModuleAbout> = {
       { title: "Account plans", body: "Objectives, growth targets and actions with owners and dates.", status: "live" },
       { title: "Contracts and commercial terms", body: "MSAs and SOWs with renewal dates; markup, margin, commission, rebate and payment terms changed only through approval.", status: "live" },
       { title: "Client health and feedback", body: "Spend, open issues, overdue bills, renewals, activity and satisfaction rolled into a RAG; feedback from the Client Portal.", status: "live" },
+      { title: "Client Portal (external view)", body: "The client's side: campaigns and briefs, concept and estimate approvals, orders, bills, reports, their account team and feedback.", status: "live" },
     ],
     inputs: ["Opportunities and client contact", "Spend, bills and issues from every section", "Feedback from the Client Portal"],
     outputs: ["Won work as campaigns in Briefing+", "Commercial terms for Sourcing, Order Management and Finance+", "Client master and access for the Client Portal"],
@@ -192,7 +193,7 @@ const SECTIONS: Record<Exclude<ModuleKey, "rfq">, ModuleAbout> = {
       { title: "SRM Watchtower", body: "Scoring methodology explained and governed by admins.", status: "live" },
       { title: "Performance, quality & reviews", body: "Performance records and issues, inspections and NCRs, corrective actions, business reviews.", status: "live" },
       { title: "Compliance, contracts & operations", body: "Certificates and document review, pre-assessments, contracts, action plans, surveys, workflows, messages, training.", status: "live" },
-      { title: "Vendor portal", body: "Subscription, quote requests and pricing, production updates, QA/QC, invoices and documents.", status: "planned" },
+      { title: "Vendor portal (external view)", body: "The vendor's side: onboarding and subscription, quote requests and pricing, PO acceptance and production, QA/QC, shipping and installs, invoices and documents.", status: "live" },
     ],
     inputs: ["New vendor requests", "Vendor documents and certifications", "Delivery, quality and price data from every module"],
     outputs: ["Who can quote, be awarded and be paid", "Supplier scores and the PSL", "Vendor-side actions on every job"],

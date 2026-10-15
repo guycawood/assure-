@@ -1,6 +1,7 @@
 import "server-only";
 import type { createClient } from "@/lib/supabase/server";
 import type {
+  AudienceRow, CadenceRow, CrmActionRow, ReviewRow, EmailRecipientRow, EmailRow, FormRow, ImportLogRow, ListRow, PerformanceRow, StakeholderRow, SurveyRecipientRow, SurveyResultRow, SurveyWaveRow,
   AccountRow, ClientRow, ContactRow, ContractRow, FeedbackRow, HealthRow, InteractionRow, LibOption, MarketOption, OpportunityRow, Person,
   PlanActionRow, PlanRow,
 } from "@/lib/crm";
@@ -11,7 +12,8 @@ type Filter = Record<string, string | null | undefined>;
 
 const NUMERIC = ["value", "probability", "weighted_value", "growth_target", "credit_limit", "spend_ytd", "billed_ytd", "satisfaction", "score",
   "default_markup_percent", "gsc_commission_percent", "year_end_rebate_percent", "markup_percent", "min_margin_percent", "rebate_percent",
-  "savings_target_percent", "e_tender_threshold", "sell_price", "gross_amount", "net_amount", "amount", "budget"];
+  "savings_target_percent", "e_tender_threshold", "sell_price", "gross_amount", "net_amount", "amount", "budget",
+  "total_budget", "weighted_budget", "overall", "nps", "spend"];
 
 function normalise<T>(rows: unknown[] | null): T[] {
   return ((rows ?? []) as Record<string, unknown>[]).map((r) => {
@@ -85,3 +87,43 @@ export async function getClientLinks(s: Client, clientId: string) {
     bills: normalise<{ id: string; bill_number: string; status: string; currency: string; gross_amount: number; due_date: string | null; market: string }>(bills.data as unknown[] | null),
   };
 }
+
+// ---------- stage 2 ----------
+export const getStakeholders = (s: Client, f: Filter = {}) => list<StakeholderRow>(s, "crm_stakeholders_v", f, ["full_name"]);
+export const getPerformance = (s: Client, f: Filter = {}) => list<PerformanceRow>(s, "crm_performance_v", f, ["updated_at", false]);
+export const getSurveyWaves = (s: Client) => list<SurveyWaveRow>(s, "crm_survey_waves_v", {}, ["created_at", false]);
+export const getSurveyRecipients = (s: Client, waveId: string) => list<SurveyRecipientRow>(s, "crm_survey_recipients_v", { wave_id: waveId }, ["client_name"]);
+export const getSurveyResults = (s: Client, f: Filter = {}) => list<SurveyResultRow>(s, "crm_survey_results_v", f, ["created_at", false]);
+export const getJobSurveys = (s: Client) =>
+  list<{ id: string; job_id: string; project_number: string; client_name: string; contact_name: string; job_title: string; status: string; overall: number | null;
+    comment: string | null; spend: number | null; currency: string | null; sent_at: string; responded_at: string | null }>(s, "crm_job_surveys_v", {}, ["sent_at", false]);
+export const getForms = (s: Client) => list<FormRow>(s, "crm_forms_v", {}, ["created_at", false]);
+export const getFormSubmissions = (s: Client, formId: string) =>
+  list<{ id: string; form_id: string; data: Record<string, string>; email: string; full_name: string | null; contact_id: string | null; contact_created: boolean;
+    consent: boolean; created_at: string }>(s, "crm_form_submissions", { form_id: formId }, ["created_at", false]);
+export const getLists = (s: Client) => list<ListRow>(s, "crm_lists_v", {}, ["created_at", false]);
+export const getEmails = (s: Client) => list<EmailRow>(s, "crm_emails_v", {}, ["created_at", false]);
+export const getEmailRecipients = (s: Client, emailId: string) => list<EmailRecipientRow>(s, "crm_email_recipients_v", { email_id: emailId }, ["full_name"]);
+export const getImportLogs = (s: Client) => list<ImportLogRow>(s, "crm_import_logs_v", {}, ["created_at", false]);
+
+export async function getAudience(s: Client, listId: string): Promise<AudienceRow[]> {
+  const { data, error } = await s.rpc("crm_list_audience", { p_list: listId });
+  if (error) console.error("[crm] crm_list_audience:", error.message);
+  return (data as AudienceRow[] | null) ?? [];
+}
+
+/** The survey template a wave uses (sections and questions). */
+export async function getTemplate(s: Client, id: string) {
+  const { data } = await s.from("library_records").select("id, name, data").eq("id", id).maybeSingle();
+  return (data as { id: string; name: string; data: { sections: { key: string; label: string; questions: { code: string; text: string }[] }[]; tools?: string[] } } | null);
+}
+// ---------- reviews, cadence and actions ----------
+export const getReviews = (s: Client, f: Filter = {}) => list<ReviewRow>(s, "crm_reviews_v", f, ["scheduled_on", false]);
+export async function getReview(s: Client, id: string): Promise<ReviewRow | null> {
+  const { data } = await s.from("crm_reviews_v").select("*").eq("id", id).maybeSingle();
+  return (data as ReviewRow | null) ?? null;
+}
+export const getCadence = (s: Client) => list<CadenceRow>(s, "crm_review_cadence_v", {}, ["client_name"]);
+export const getCrmActions = (s: Client, f: Filter = {}) => list<CrmActionRow>(s, "crm_actions_v", f, ["due_date"]);
+export const getReviewResponses = (s: Client, reviewId: string) =>
+  list<{ review_id: string; user_id: string; response: string; note: string | null; responded_at: string }>(s, "crm_review_responses", { review_id: reviewId }, ["responded_at", false]);

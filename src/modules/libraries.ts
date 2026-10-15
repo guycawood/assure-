@@ -248,6 +248,41 @@ export const LIBRARY_SCHEMAS: Record<string, LibrarySchema> = {
       { key: "counts_as_activity", label: "Counts as client contact", type: "boolean", column: true, filter: true },
     ],
   },
+  crm_services: { codeLabel: "Service code", nameLabel: "Service", fields: [{ key: "order", label: "Order", type: "number", column: true }] },
+  crm_stakeholder_quadrants: {
+    codeLabel: "Quadrant", nameLabel: "Name",
+    fields: [
+      { key: "strategy", label: "Engagement strategy", type: "textarea", column: true },
+      { key: "actions", label: "Suggested actions", type: "textarea", column: true },
+      { key: "order", label: "Order", type: "number" },
+    ],
+  },
+  crm_stakeholder_matrix: {
+    codeLabel: "Cell (influence-decision)", nameLabel: "Description",
+    note: "Which quadrant each influence x decision-maker combination falls in. The default grid is marked to confirm: tick Confirmed once Client Services has agreed it.",
+    fields: [
+      { key: "influence", label: "Influence", type: "enum", options: opts("high", "medium", "low"), required: true, column: true, filter: true },
+      { key: "decision", label: "Decision maker", type: "enum", options: opts("high", "medium", "low"), required: true, column: true, filter: true },
+      { key: "quadrant", label: "Quadrant", type: "enum", options: opts("INFORM", "ESTABLISH", "MAINTAIN", "GROW"), required: true, column: true, filter: true },
+      { key: "confirmed", label: "Confirmed", type: "boolean", column: true, filter: true },
+    ],
+  },
+  crm_owner_roles: { codeLabel: "Role code", nameLabel: "Role", fields: [{ key: "order", label: "Order", type: "number", column: true }] },
+  crm_next_steps: { codeLabel: "Code", nameLabel: "Next step", fields: [{ key: "order", label: "Order", type: "number", column: true }] },
+  crm_settings: { codeLabel: "Setting", nameLabel: "Description", fields: [{ key: "value", label: "Value", type: "number", required: true, column: true }] },
+  crm_survey_templates: {
+    codeLabel: "Template code", nameLabel: "Template",
+    note: "Questions are held as sections of statements scored 1-5 (comment required at or below comment_at_or_below), then NPS and the open questions. Edit the JSON in a new version; waves keep the version they were sent with.",
+    fields: [
+      { key: "scale", label: "Scale", type: "text", column: true },
+      { key: "comment_at_or_below", label: "Comment required at or below", type: "number", column: true },
+      { key: "tools", label: "Technology tools asked about", type: "list" },
+    ],
+  },
+  crm_email_templates: {
+    codeLabel: "Template code", nameLabel: "Template",
+    fields: [{ key: "subject", label: "Subject", type: "text", required: true, column: true }, { key: "body", label: "Body", type: "textarea", required: true }],
+  },
   approval_policies: {
     codeLabel: "Policy code", nameLabel: "Approval point", groupBy: "module",
     note: "Who approves what across the platform. The most specific active policy applies (client, then market, then the highest value threshold met). SLA days drive overdue flags in the approvals inbox.",

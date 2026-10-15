@@ -59,21 +59,40 @@ const SECTION_NAV: Record<Exclude<ModuleKey, "rfq" | "logistics" | "execution">,
       { label: "Overview", items: [{ label: "Dashboard", href: "/crm", icon: "space_dashboard", exact: true }] },
       { label: "Clients", items: [
         { label: "Clients", href: "/crm/clients", icon: "apartment" },
-        { label: "Contacts", href: "/crm/contacts", icon: "contacts" },
+        { label: "Contacts (stakeholder grid)", href: "/crm/contacts", icon: "contacts" },
+        { label: "Stakeholder mapping", href: "/crm/stakeholders", icon: "hub" },
         { label: "Activity", href: "/crm/activity", icon: "forum" },
       ] },
       { label: "Growth", items: [
         { label: "Pipeline", href: "/crm/pipeline", icon: "filter_alt" },
+        { label: "Performance Tracker", href: "/crm/performance", icon: "trending_up" },
         { label: "Account plans", href: "/crm/plans", icon: "flag" },
+      ] },
+      { label: "Engagement", items: [
+        { label: "Satisfaction surveys", href: "/crm/surveys", icon: "rate_review" },
+        { label: "Forms", href: "/crm/forms", icon: "dynamic_form" },
+        { label: "Lists", href: "/crm/lists", icon: "group_add" },
+        { label: "Emails", href: "/crm/emails", icon: "mail" },
       ] },
       { label: "Commercial", items: [
         { label: "Contracts & renewals", href: "/crm/contracts", icon: "contract" },
       ] },
+      // Mirrors SRM's business reviews, calendar and action plans, for clients.
+      { label: "Reviews & actions", items: [
+        { label: "Business reviews", href: "/crm/reviews", icon: "groups" },
+        { label: "Review calendar", href: "/crm/calendar", icon: "calendar_month" },
+        { label: "Client actions", href: "/crm/actions", icon: "task_alt" },
+      ] },
       { label: "Relationship health", items: [
         { label: "Client health", href: "/crm/health", icon: "monitor_heart" },
         { label: "Feedback", href: "/crm/feedback", icon: "reviews" },
+      ] },
+      // CRM's external half: what the client sees and does (the Client Portal), as the vendor portal is for SRM.
+      { label: "External view", items: [
+        { label: "Client Portal (preview)", href: "/client-portal", icon: "storefront" },
         { label: "Client Portal access", href: "/watchtower/client-access", icon: "badge" },
       ] },
+      { label: "Data", items: [{ label: "HubSpot import & export", href: "/crm/import", icon: "upload_file", adminOnly: true }] },
       watchtower("crm"),
     ],
   },
@@ -206,6 +225,11 @@ const SECTION_NAV: Record<Exclude<ModuleKey, "rfq" | "logistics" | "execution">,
         { label: "Surveys", href: "/assure/surveys", icon: "quiz" },
         { label: "Messages", href: "/assure/messages", icon: "forum" },
         { label: "Training", href: "/assure/training", icon: "school" },
+      ] },
+      // SRM's external half: the vendor's own portal (onboarding, quotes, POs, shipping, installs, invoices).
+      { label: "External view", items: [
+        { label: "Vendor portal", href: "/vendor", icon: "handshake" },
+        { label: "Public vendor page", href: "/vendor-portal", icon: "public" },
       ] },
       watchtower("assure"),
       { label: "Administration", items: [{ label: "User access", href: "/assure/admin/users", icon: "group", adminOnly: true }] },
