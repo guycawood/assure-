@@ -46,5 +46,9 @@ export function money(v: number | null | undefined, currency: string | null | un
   }
 }
 
+/** When a request was raised, e.g. "4 Aug 2026, 14:32". */
+export const stampText = (at: string | null | undefined) =>
+  at ? new Date(at).toLocaleString("en-GB", { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" }) : "–";
+
 export const ageText = (days: number | null | undefined) =>
   days == null ? "" : days < 1 ? "today" : days < 2 ? "1 day" : `${Math.floor(days)} days`;

@@ -44,7 +44,7 @@ export const VENDOR_NAV: { label: string; items: NavLink[] }[] = [
 export const SUBSCRIPTION_TIERS = [
   { key: "silver", name: "Silver", price: "£1,500", colour: "#7C8794", features: ["Performance scorecard access", "Compliance tracker", "Monthly reporting", "Email support"] },
   { key: "gold", name: "Gold", price: "£3,500", colour: "#B7862B", featured: true, features: ["Everything in Silver", "Priority tender access", "Quarterly business review", "Dedicated account manager"] },
-  { key: "platinum", name: "Platinum", price: "£6,000", colour: "#6E56CF", features: ["Everything in Gold", "ecoGRADE certification support", "NTI leakage reporting", "Executive sponsor"] },
+  { key: "platinum", name: "Platinum", price: "£6,000", colour: "#6E56CF", features: ["Everything in Gold", "Impact Grade certification support", "NTI leakage reporting", "Executive sponsor"] },
   { key: "diamond", name: "Diamond", price: "£12,000", colour: "#2A8BC9", features: ["Everything in Platinum", "Strategic co-marketing", "First-look opportunities", "Board-level engagement"] },
 ] as const;
 export const tierName = (k: string | null | undefined) => SUBSCRIPTION_TIERS.find((t) => t.key === k)?.name ?? "No plan";

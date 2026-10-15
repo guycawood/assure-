@@ -65,7 +65,7 @@ function build(d: InsightData): Insight[] {
       hint: `${won} order${won === 1 ? "" : "s"} won in the same period`, href: "/vendor/quotes" },
     { tier: "gold", feature: "Quarterly business review", icon: "groups", label: "Next business review", value: next ? formatDate(next.date) : "Not booked",
       hint: next ? next.title : "Your account manager will propose a date", href: "/vendor/reviews" },
-    { tier: "platinum", feature: "ecoGRADE certification support", icon: "eco", label: "Sustainability score", value: n0(latest?.sustainability_score),
+    { tier: "platinum", feature: "Impact Grade certification support", icon: "eco", label: "Sustainability score", value: n0(latest?.sustainability_score),
       hint: "From your SRM scorecard; feeds Impact Grade on the specs you supply", href: "/vendor/performance" },
     { tier: "platinum", feature: "NTI leakage reporting", icon: "query_stats", label: "NTI leakage", value: "In your report",
       hint: "Reported in your monthly pack while the live view is built", href: "/vendor/performance" },

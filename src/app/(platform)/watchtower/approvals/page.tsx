@@ -3,7 +3,7 @@ import Link from "next/link";
 import { requireInternal } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { getInbox, getPolicies, type ApprovalRow } from "@/components/approvals/data";
-import { ageText, money, moduleLabel, ROLE_LABEL, typeLabel } from "@/components/approvals/labels";
+import { ageText, money, moduleLabel, ROLE_LABEL, stampText, typeLabel } from "@/components/approvals/labels";
 import { btn, Card, Empty, PageHead, Panel, Pill, Stat } from "@/components/ui";
 import { MSymbol } from "@/components/symbol";
 
@@ -97,7 +97,7 @@ export default async function ApprovalsPage({ searchParams }: { searchParams: Pr
           <table className="w-full min-w-[960px] text-sm">
             <thead>
               <tr>
-                <th className="th">Status</th><th className="th">What</th><th className="th">Module</th><th className="th">Asked by</th>
+                <th className="th">Status</th><th className="th">What</th><th className="th">Module</th><th className="th">Created</th><th className="th">Asked by</th>
                 <th className="th text-right">Value</th><th className="th">Client · market</th><th className="th">Who approves</th><th className="th" />
               </tr>
             </thead>
@@ -166,7 +166,8 @@ function Row({ r }: { r: ApprovalRow }) {
         <p className="text-xs text-muted"><span className="font-mono">{r.ref}</span> · {typeLabel(r.approval_type)}</p>
       </td>
       <td className="td whitespace-nowrap">{moduleLabel(r.module)}</td>
-      <td className="td whitespace-nowrap">{r.requested_by_name ?? <span className="text-muted">Vendor or system</span>}<p className="text-xs text-muted">{ageText(r.age_days)}</p></td>
+      <td className="td whitespace-nowrap tabular-nums">{stampText(r.requested_at)}<p className="text-xs text-muted">{ageText(r.age_days)}{r.age_days != null && r.age_days >= 1 ? " ago" : ""}</p></td>
+      <td className="td whitespace-nowrap">{r.requested_by_name ?? <span className="text-muted">Vendor or system</span>}</td>
       <td className="td text-right tabular-nums">{r.amount != null ? money(r.amount, r.currency) : "–"}</td>
       <td className="td">{[r.client, [r.market_name ?? r.market, r.region].filter(Boolean).join(" · ")].filter(Boolean).join(" · ") || "–"}</td>
       <td className="td text-xs">{r.approver_rule}{r.maker_checker && <span className="text-muted"> · second person</span>}</td>
