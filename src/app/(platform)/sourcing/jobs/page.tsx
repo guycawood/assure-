@@ -3,9 +3,11 @@ import Link from "next/link";
 import { requireInternal } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { getClients, getJobs } from "@/lib/sourcing-data";
-import { JOB_STATUS, money, REGIONS } from "@/lib/sourcing";
-import { ButtonLink, Card, Empty, PageHead } from "@/components/ui";
+import { JOB_STATUS, money, REGIONS, specType } from "@/lib/sourcing";
+import { ButtonLink, Card, Empty, PageHead, Panel } from "@/components/ui";
 import { JobStatusPill, Td, Th, fmtDate } from "@/components/sourcing/bits";
+import { ActionForm } from "@/components/sourcing/action-form";
+import { acceptHandoff } from "../actions";
 
 export const metadata: Metadata = { title: "Jobs" };
 
@@ -15,7 +17,13 @@ export default async function JobsPage({ searchParams }: { searchParams: Promise
   const status = sp.status ?? "active";
   const q = (sp.q ?? "").trim().toLowerCase();
   const supabase = await createClient();
-  const [jobs, clients] = await Promise.all([getJobs(supabase), getClients(supabase)]);
+  const [jobs, clients, { data: pendingRows }] = await Promise.all([
+    getJobs(supabase), getClients(supabase),
+    supabase.from("brief_handoffs").select("id, brief_id, payload, created_at").eq("status", "pending").order("created_at"),
+  ]);
+  type Pending = { id: string; brief_id: string; created_at: string; payload: { brief?: { code?: string; title?: string; client?: string; market?: string }; concept?: { name?: string; suggested_spec_type?: string }; substrate?: { name?: string } | null } };
+  const pending = (pendingRows ?? []) as Pending[];
+  const clientFor = (name?: string) => clients.find((c) => name && c.name.toLowerCase().startsWith(name.trim().toLowerCase()))?.id ?? "";
   const markets = [...new Set(jobs.map((j) => j.market))].sort();
 
   let list = jobs;
@@ -31,6 +39,30 @@ export default async function JobsPage({ searchParams }: { searchParams: Promise
       <PageHead crumbs={[{ label: "Sourcing", href: "/sourcing" }, { label: "Jobs" }]} title="Jobs" sub="Every job bag: its specs, RFQs, estimate and POs hang off it.">
         <ButtonLink href="/sourcing/jobs/new" variant="primary">New job</ButtonLink>
       </PageHead>
+
+      {pending.length > 0 && (
+        <Panel title="Concepts handed off from Briefing" sub="Accepting opens a job and seeds a draft spec from the concept: type, indicative sizes, substrate, recycled content and FSC from the brief. Check it, add quantities, then triage.">
+          <ul className="divide-y divide-line">
+            {pending.map((h) => (
+              <li key={h.id} className="flex flex-wrap items-end justify-between gap-3 px-5 py-3 text-sm">
+                <div className="min-w-0">
+                  <p className="font-semibold">{h.payload.concept?.name ?? "Concept"}</p>
+                  <p className="text-xs text-muted">
+                    <Link href={`/briefing/${h.brief_id}#concepts`} className="hover:underline">{[h.payload.brief?.code, h.payload.brief?.title].filter(Boolean).join(" · ")}</Link>
+                    {[h.payload.brief?.client, h.payload.brief?.market, h.payload.concept?.suggested_spec_type ? specType(h.payload.concept.suggested_spec_type) : null, h.payload.substrate?.name, `sent ${fmtDate(h.created_at)}`].filter(Boolean).map((x) => ` · ${x}`).join("")}
+                  </p>
+                </div>
+                <ActionForm action={acceptHandoff} hidden={{ handoff_id: h.id }} submit="Open job with draft spec" pendingLabel="Opening…" inline>
+                  <select name="client_id" defaultValue={clientFor(h.payload.brief?.client)} required className="input w-auto" aria-label="Client for the job">
+                    <option value="">Choose the client</option>
+                    {clients.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
+                  </select>
+                </ActionForm>
+              </li>
+            ))}
+          </ul>
+        </Panel>
+      )}
 
       <form method="get" className="flex flex-wrap items-center gap-2">
         <input name="q" defaultValue={sp.q ?? ""} placeholder="Search number, title, brand" className="input w-60" aria-label="Search jobs" />

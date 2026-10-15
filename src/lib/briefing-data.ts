@@ -6,7 +6,7 @@ type Client = Awaited<ReturnType<typeof createClient>>;
 
 export type Substrate = { id: string; code: string | null; name: string; data: Record<string, unknown> };
 export type LibraryRecord = { id: string; code: string | null; name: string; data: Record<string, unknown> };
-export type Handoff = { id: string; brief_id: string; concept_id: string; payload: Record<string, unknown>; status: "pending" | "accepted"; created_by: string | null; created_at: string; accepted_at: string | null };
+export type Handoff = { id: string; brief_id: string; concept_id: string; payload: Record<string, unknown>; status: "pending" | "accepted"; created_by: string | null; created_at: string; accepted_at: string | null; job_id?: string | null; seeded_spec_id?: string | null };
 export type SessionRow = { id: string; kind: "brief" | "campaign"; brief_id: string | null; bulk_run_id: string | null; objective: string | null; context: Record<string, unknown>; creative_params: Record<string, string>; created_by: string | null; created_at: string };
 
 export async function getBriefs(supabase: Client): Promise<Brief[]> {

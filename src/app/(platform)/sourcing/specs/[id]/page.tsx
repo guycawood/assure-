@@ -85,10 +85,13 @@ export default async function SpecPage({ params, searchParams }: { params: Promi
   ]);
   // Repeat orders: open jobs for the same client to duplicate onto, and what was bought last time if this is a repeat.
   const { data: jobRow } = await supabase.from("jobs").select("client_id").eq("id", spec.job_id).maybeSingle();
-  const [{ data: openJobs }, { data: repeatCtx }] = await Promise.all([
+  const [{ data: openJobs }, { data: repeatCtx }, { data: seedRow }] = await Promise.all([
     supabase.from("jobs").select("id, job_number, title, status").eq("client_id", (jobRow as { client_id: string } | null)?.client_id ?? "").order("job_number", { ascending: false }).limit(50),
     supabase.rpc("spec_repeat_context", { p_spec: id }),
+    // Seeded from a Briefing concept hand-off (one spec per hand-off).
+    supabase.from("brief_handoffs").select("brief_id, payload").eq("seeded_spec_id", id).maybeSingle(),
   ]);
+  const seed = seedRow as { brief_id: string; payload: { brief?: { code?: string; title?: string }; concept?: { name?: string } } } | null;
   const jobsForRepeat = ((openJobs ?? []) as { id: string; job_number: string; title: string; status: string }[]).filter((j) => !["closed", "cancelled"].includes(j.status));
   const repeat = repeatCtx as RepeatContext | null;
   const live = computeSpecCo2e({ spec, versions, components, substratesById: libs.substrates, factorsByCode: libs.factors, singleSubstrate: spec.substrate_id ? libs.substrates[spec.substrate_id] : null });
@@ -128,6 +131,13 @@ export default async function SpecPage({ params, searchParams }: { params: Promi
               {repeat.last_purchase.po_number ? ` on ${repeat.last_purchase.po_number}` : ""}{repeat.last_purchase.approved_at ? ` (${new Date(repeat.last_purchase.approved_at).toLocaleDateString("en-GB")})` : ""}</span>
           ) : <span className="text-muted">No approved purchase on the original yet.</span>}
           {repeat.verified_sheet && <span>Verified packaging data: <b>{repeat.verified_sheet.sheet_ref}</b> ({repeat.verified_sheet.supplier_name})</span>}
+        </Card>
+      )}
+      {seed && (
+        <Card className="flex flex-wrap items-start gap-x-6 gap-y-2 border-accent/30 px-5 py-3 text-sm">
+          <span className="inline-flex items-center gap-1.5 font-semibold"><MSymbol name="lightbulb" size={18} className="text-accent" /> Seeded from ideation concept</span>
+          <span><b>{seed.payload.concept?.name ?? spec.title}</b> on brief <Link className="font-semibold text-accent hover:underline" href={`/briefing/${seed.brief_id}#concepts`}>{[seed.payload.brief?.code, seed.payload.brief?.title].filter(Boolean).join(" · ") || "the brief"}</Link></span>
+          {spec.is_draft && <span className="text-muted">Sizes and substrate are the concept&apos;s indicative suggestion. Check them, add quantities and untick draft before triage.</span>}
         </Card>
       )}
       <ApprovalRequests entityIds={id} types={["TRIAGE_OVERRIDE"]} meId={me.id} title="Route change waiting for a sourcing lead" />

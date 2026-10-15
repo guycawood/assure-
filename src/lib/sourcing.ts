@@ -104,4 +104,5 @@ export const EVENT_LABEL: Record<string, string> = {
   revised: "Spec revised (new revision)", requote_requested: "Suppliers asked to re-quote", requote_submitted: "Re-quote submitted", copied: "Copied for a reorder",
   cost_split_set: "Cost split set", commercials_set: "Commission and rebate set", logistics_set: "Hand-off details set",
   client_po_added: "Client PO added", client_po_removed: "Client PO removed", handoff_refreshed: "Stocktool hand-off refreshed",
+  spec_seeded_from_concept: "Draft spec seeded from the ideation concept",
 };

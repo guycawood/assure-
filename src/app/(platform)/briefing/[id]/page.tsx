@@ -187,7 +187,10 @@ export default async function BriefDetail({ params, searchParams }: { params: Pr
                 {history.handoffs.map((h) => (
                   <li key={h.id} className="flex items-center justify-between gap-3 px-5 py-3 text-sm">
                     <span>{String((h.payload.concept as { name?: string })?.name ?? "Concept")} <span className="text-xs text-muted">· sent by {name(h.created_by)} · {formatDate(h.created_at)}</span></span>
-                    <Pill tone={h.status === "accepted" ? "ok" : "warn"}>{h.status === "accepted" ? "Opened as a job" : "Waiting for Sourcing"}</Pill>
+                    <span className="flex items-center gap-2">
+                      {h.seeded_spec_id && <Link href={`/sourcing/specs/${h.seeded_spec_id}`} className="text-xs font-semibold text-accent hover:underline">Draft spec</Link>}
+                      <Pill tone={h.status === "accepted" ? "ok" : "warn"}>{h.status === "accepted" ? (h.seeded_spec_id ? "Opened as a job with a draft spec" : "Opened as a job") : "Waiting for Sourcing"}</Pill>
+                    </span>
                   </li>
                 ))}
               </ul>

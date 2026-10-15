@@ -66,6 +66,24 @@ export async function updateJob(_: FormResult, fd: FormData): Promise<FormResult
   return { ok: true, message: "Job saved" };
 }
 
+/** Accept a Briefing concept hand-off: opens the job and seeds a draft spec from the concept (CO2e computed here). */
+export async function acceptHandoff(_: FormResult, fd: FormData): Promise<FormResult> {
+  await requireInternal();
+  const handoffId = id(fd, "handoff_id");
+  const clientId = id(fd, "client_id");
+  if (!handoffId) return { error: "Hand-off not found." };
+  if (!clientId) return { error: "Choose the client for the job." };
+  const supabase = await createClient();
+  const { data: jobId, error } = await supabase.rpc("job_create_from_handoff", { p_handoff: handoffId, p_client: clientId });
+  if (error) return { error: friendly(error) };
+  const { data: h } = await supabase.from("brief_handoffs").select("seeded_spec_id").eq("id", handoffId).maybeSingle();
+  const specId = (h as { seeded_spec_id: string | null } | null)?.seeded_spec_id;
+  if (specId) await recompute(supabase, specId);
+  revalidatePath("/sourcing", "layout");
+  revalidatePath("/briefing", "layout");
+  redirect(specId ? `/sourcing/specs/${specId}` : `/sourcing/jobs/${jobId as string}`);
+}
+
 export async function moveJob(_: FormResult, fd: FormData): Promise<FormResult> {
   await requireInternal();
   const supabase = await createClient();
