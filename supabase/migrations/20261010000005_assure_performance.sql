@@ -1,4 +1,4 @@
--- Assure+ performance: period scores per supplier and the performance issues feed.
+-- SRM performance: period scores per supplier and the performance issues feed.
 -- Scores are entered by staff through assure_record_performance() (audited); the composite is computed, never typed.
 -- Issues are generated here, on the server, from the latest period and the certificates (never by the vendor):
 --   NCRs raised in the period > 0 (critical at 5+, high at 3+), defect rate > 2% (critical at 8+, high at 5+),

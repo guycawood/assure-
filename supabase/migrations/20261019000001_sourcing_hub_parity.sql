@@ -474,7 +474,7 @@ begin
   if r.estimated_value is null then raise exception 'Add an estimated value or target prices so the control matrix can be applied'; end if;
   select string_agg(s.name, ', ') into v_bad from public.rfq_invitations i join public.suppliers s on s.id = i.supplier_id
    where i.rfq_id = p_rfq and (not s.active or s.purchasing_blocked);
-  if v_bad is not null then raise exception 'No longer eligible in Assure+: %. Remove them first.', v_bad; end if;
+  if v_bad is not null then raise exception 'No longer eligible in SRM: %. Remove them first.', v_bad; end if;
   select count(*), coalesce(bool_and(cross_border), false) into v_count, v_cb_only from public.rfq_invitations where rfq_id = p_rfq;
   if v_count = 0 then raise exception 'Choose suppliers from the eligible pool first'; end if;
   perform public._rfq_flag_high_value(p_rfq);

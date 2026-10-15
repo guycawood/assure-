@@ -1,6 +1,6 @@
 -- Vendor portal follow-up:
 --   1. View-only vendor users are blocked in every vendor write function, including the ones written before the
---      portal had team permissions (Sourcing+, Assure+, Logistics+, Execution+, files, RFI, pre-assessment).
+--      portal had team permissions (Sourcing+, SRM, Logistics+, Execution+, files, RFI, pre-assessment).
 --   2. Read-only library views the portal needs for shipping (carriers, the POD checklist).
 --
 -- How the gate works (no old migration is edited and no function body is copied):

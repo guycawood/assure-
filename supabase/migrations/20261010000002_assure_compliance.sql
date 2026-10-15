@@ -1,4 +1,4 @@
--- Assure+ compliance: certificates per supplier and the document review queue.
+-- SRM compliance: certificates per supplier and the document review queue.
 -- Certificate types come from the Watchtower library 'certification_types'.
 -- Expiry rule (one rule everywhere): expired when the expiry date has passed; expiring_soon within 90 days; otherwise valid.
 -- Verification is a decision: only staff verify or reject, never the person who uploaded, and vendors never.

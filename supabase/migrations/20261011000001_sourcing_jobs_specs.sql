@@ -484,7 +484,7 @@ begin
 
   if b.size_dev <= 0.5 and b.qty_ok then
     if v_sup.id is not null and (not v_sup.active or v_sup.purchasing_blocked) then
-      return public._triage_insert(p_spec, 'create', format('Exact match to rate card "%s", but its supplier %s is blocked for purchasing in Assure+: run an RFQ.', b.name, v_sup.name),
+      return public._triage_insert(p_spec, 'create', format('Exact match to rate card "%s", but its supplier %s is blocked for purchasing in SRM: run an RFQ.', b.name, v_sup.name),
         0.5, b.id, b.price, j.currency, v_qty, null, 'rule');
     end if;
     return public._triage_insert(p_spec, 'adopt', format('Exact match to rate card "%s": card price applies.', b.name),
@@ -533,7 +533,7 @@ begin
     select * into v_sup from public.suppliers where id = coalesce(t.supplier_id,
       (select s.id from public.library_records r join public.suppliers s on s.supplier_code = r.data->>'supplier_code' where r.id = t.rate_card_id));
     if v_sup.id is null or not v_sup.active or v_sup.purchasing_blocked then
-      raise exception 'The rate-card supplier is not eligible in Assure+; this line needs an RFQ';
+      raise exception 'The rate-card supplier is not eligible in SRM; this line needs an RFQ';
     end if;
   end if;
   select j2.* into j from public.jobs j2 join public.job_specs s on s.job_id = j2.id where s.id = p_spec;

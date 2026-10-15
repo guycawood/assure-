@@ -353,7 +353,7 @@ test("anonymous users see nothing", async () => {
 });
 
 // ---------------------------------------------------------------------------
-// Supplier scorecard methodology (Assure+ Watchtower)
+// Supplier scorecard methodology (SRM Watchtower)
 // ---------------------------------------------------------------------------
 test("scorecard: v1 is active and its weights add up", async () => {
   const m = await as("plain", "select id, version, status from public.scorecard_methodologies where status = 'active'");

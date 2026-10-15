@@ -1,4 +1,4 @@
--- Assure+ core identity + SRT Onboarding Desk
+-- SRM core identity + SRT Onboarding Desk
 -- Access is enforced here, in Postgres row-level security and security-definer
 -- functions. The app never relies on the browser to decide who can see or change what.
 
@@ -22,7 +22,7 @@ create table public.srt_settings (
 insert into public.srt_settings default values;
 
 -- ---------------------------------------------------------------------------
--- Suppliers (core record; other Assure+ modules extend this later)
+-- Suppliers (core record; other SRM modules extend this later)
 -- ---------------------------------------------------------------------------
 create table public.suppliers (
   id uuid primary key default gen_random_uuid(),

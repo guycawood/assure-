@@ -222,11 +222,37 @@ export const LIBRARY_SCHEMAS: Record<string, LibrarySchema> = {
       { key: "default", label: "Default for new RFQs", type: "boolean" },
     ],
   },
+  // CRM
+  crm_account_tiers: {
+    codeLabel: "Tier code", nameLabel: "Tier",
+    fields: [
+      { key: "description", label: "What it means", type: "textarea", column: true },
+      { key: "review_cadence_days", label: "Review every", type: "number", unit: "days", column: true },
+      { key: "order", label: "Order", type: "number", column: true },
+    ],
+  },
+  crm_opportunity_stages: {
+    codeLabel: "Stage key", nameLabel: "Stage",
+    note: "The stage keys (lead, qualified, proposal, negotiation, won, lost) are fixed; the label and default probability can change.",
+    fields: [
+      { key: "default_probability", label: "Default probability", type: "number", unit: "%", required: true, column: true },
+      { key: "order", label: "Order", type: "number", column: true },
+      { key: "open", label: "Open stage", type: "boolean", column: true },
+    ],
+  },
+  crm_lost_reasons: { codeLabel: "Code", fields: [{ key: "description", label: "When it applies", type: "textarea", column: true }] },
+  crm_interaction_types: {
+    codeLabel: "Code",
+    fields: [
+      { key: "description", label: "Description", type: "textarea", column: true },
+      { key: "counts_as_activity", label: "Counts as client contact", type: "boolean", column: true, filter: true },
+    ],
+  },
   approval_policies: {
     codeLabel: "Policy code", nameLabel: "Approval point", groupBy: "module",
     note: "Who approves what across the platform. The most specific active policy applies (client, then market, then the highest value threshold met). SLA days drive overdue flags in the approvals inbox.",
     fields: [
-      { key: "module", label: "Module", type: "enum", options: opts("watchtower", "briefing", "shopper-iq", "sourcing", "rfq", "orders", "logistics", "execution", "finance", "assure"), required: true, column: true, filter: true },
+      { key: "module", label: "Module", type: "enum", options: opts("watchtower", "crm", "briefing", "shopper-iq", "sourcing", "rfq", "orders", "logistics", "execution", "finance", "assure"), required: true, column: true, filter: true },
       { key: "approval_type", label: "Approval type", type: "text", required: true, column: true, help: "Code used by the module, e.g. BRIEF, CONCEPT, PO_DOA" },
       { key: "description", label: "What is approved", type: "textarea", column: true },
       { key: "approver_role", label: "Who approves", type: "enum", required: true, column: true, filter: true, options: [

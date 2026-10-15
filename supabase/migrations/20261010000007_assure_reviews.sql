@@ -1,4 +1,4 @@
--- Assure+ business reviews (QBRs, check-ins, escalations, renewals).
+-- SRM business reviews (QBRs, check-ins, escalations, renewals).
 -- Outcomes, discussion notes and sentiment are internal and are never shown to the vendor.
 -- Vendors see only reviews that are shared with them, through vendor_business_reviews, and can respond.
 -- Outcome approval: changing the outcomes puts them back to 'pending'; only the Procurement head (or an admin),

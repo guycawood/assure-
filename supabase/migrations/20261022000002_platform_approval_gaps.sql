@@ -659,7 +659,7 @@ begin
 end $$;
 
 -- ===========================================================================
--- Assure+ (internal) and the SRT desk
+-- SRM (internal) and the SRT desk
 -- ===========================================================================
 -- Critical onboarding gates: the verifier is never who requested or supplied the evidence (gate policy maker-checker).
 create or replace function public._gate_requester(p_supplier uuid, p_gate text) returns uuid[]

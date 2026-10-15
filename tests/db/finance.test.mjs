@@ -101,7 +101,7 @@ test("a vendor can only invoice its own accepted PO; view-only users are blocked
   const f = await one("agent", "select entity_type, entity_id from public.files where id = $1", [inv.file_id]);
   assert.deepEqual([f.entity_type, f.entity_id], ["supplier_invoice", id]);
   await rejects(submit("vA", A.po, "inv-1", 10), /already sent an invoice numbered/);
-  // vendor B keeps the default Assure+ terms (net 30)
+  // vendor B keeps the default SRM terms (net 30)
   const bId = await submit("vB", other.po, "B-1", 800);
   assert.equal((await one("agent", "select payment_terms_days d from public.supplier_invoices where id = $1", [bId])).d, 30);
   // each vendor sees only their own invoices, never match details; vendors read nothing directly

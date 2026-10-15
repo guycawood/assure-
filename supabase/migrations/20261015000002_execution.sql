@@ -331,7 +331,7 @@ create trigger visits_before before insert or update on public.visits for each r
 
 -- ---------------------------------------------------------------------------
 -- Job quality gates (white paper: vendor onboard -> mock-up -> production -> installation -> post-production closure).
--- Vendor onboarding is the Assure+ supplier gate; the four job-level gates live here. Documents are files with
+-- Vendor onboarding is the SRM supplier gate; the four job-level gates live here. Documents are files with
 -- entity_type 'job_quality_gate' and entity_id '<job id>:<gate key>'.
 -- ---------------------------------------------------------------------------
 create table public.job_quality_gates (
@@ -731,8 +731,8 @@ begin
     'detail', case when n_po = 0 then 'No approved purchase order on this job' when n_pending > 0 then n_pending || ' PO(s) still waiting for approval' else n_po || ' approved PO(s)' end);
   select count(*) into n_bad_sup from public.purchase_orders p join public.suppliers s on s.id = p.supplier_id
    where p.job_id = p_job and p.status in ('issued','accepted') and not s.active;
-  v := v || jsonb_build_object('key', 'vendor', 'label', 'Vendor onboarded (Assure+)', 'ok', n_bad_sup = 0, 'overridable', false,
-    'detail', case when n_bad_sup = 0 then 'Suppliers on the PO(s) are active in Assure+' else n_bad_sup || ' supplier(s) are inactive in Assure+' end);
+  v := v || jsonb_build_object('key', 'vendor', 'label', 'Vendor onboarded (SRM)', 'ok', n_bad_sup = 0, 'overridable', false,
+    'detail', case when n_bad_sup = 0 then 'Suppliers on the PO(s) are active in SRM' else n_bad_sup || ' supplier(s) are inactive in SRM' end);
   select count(*) filter (where status = 'passed'),
          string_agg(case when status <> 'passed' then gate_key end, ', ' order by public.execution_gate_order(gate_key))
     into n_gates, v_gate_detail from public.job_quality_gates where job_id = p_job;

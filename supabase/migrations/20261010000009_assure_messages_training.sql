@@ -1,4 +1,4 @@
--- Assure+ messages (one conversation thread per supplier topic) and training (modules + completion tracking).
+-- SRM messages (one conversation thread per supplier topic) and training (modules + completion tracking).
 -- Messages: sender and side come from the signed-in user, never from the client. Staff see every conversation;
 --           a vendor sees and writes only in their own supplier's conversations. Read state is per person.
 -- Training: admins manage modules (links must be https). Assignments are made by admins or SRT leads;

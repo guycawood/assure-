@@ -721,7 +721,7 @@ create view public.v_shipments with (security_invoker = true) as
     left join public.profiles ub on ub.id = s.pod_uploaded_by
     left join public.profiles vb on vb.id = s.pod_verified_by;
 
--- OTIF per supplier (the Assure+ scorecard reads this). On time = delivered on/before the planned date;
+-- OTIF per supplier (the SRM scorecard reads this). On time = delivered on/before the planned date;
 -- in full = quantity shipped covers the planned quantity. Failed deliveries count against both.
 create view public.v_supplier_otif with (security_invoker = true) as
   select d.supplier_id, su.name as supplier_name, su.supplier_code,

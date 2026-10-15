@@ -1,4 +1,4 @@
-export type ModuleKey = "watchtower" | "briefing" | "shopper-iq" | "rfq" | "sourcing" | "orders" | "logistics" | "execution" | "finance" | "assure";
+export type ModuleKey = "watchtower" | "crm" | "briefing" | "shopper-iq" | "rfq" | "sourcing" | "orders" | "logistics" | "execution" | "finance" | "assure";
 
 export type ModuleDef = {
   key: ModuleKey;
@@ -37,6 +37,23 @@ const ALL: ModuleDef[] = [
       "Shared libraries: taxonomy, geography, currency, emission factors, DOA matrix",
     ],
     flow: "Sits over every module. Each module has its own Watchtower that rolls up here.",
+  },
+  {
+    key: "crm",
+    name: "CRM",
+    tagline: "Client relationship management",
+    icon: "contacts",
+    colour: "#F28C38",
+    basePath: "/crm",
+    status: "live",
+    phase: "Live",
+    // The client-side mirror of SRM: owns the client relationship around the client master every section uses.
+    scope: [
+      "Clients, accounts per market and contacts; account plans and client health",
+      "Pipeline from lead to won; a won opportunity becomes a campaign in Briefing+",
+      "Contracts, renewals and commercial terms (markup, margin, commission, rebate, payment terms) under approval",
+    ],
+    flow: "Start of the flow and under every section: wins the work, sets the commercial terms Sourcing, Order Management and Finance+ apply, and hears back from the client through the Client Portal.",
   },
   {
     key: "briefing",
@@ -187,10 +204,11 @@ const ALL: ModuleDef[] = [
   },
 ];
 
-// Sections in tab order. Shopper IQ sits next to Briefing+ (insight decides what to brief).
+// Sections in tab order. CRM opens the flow (the client relationship and the won opportunity start every job).
+// Shopper IQ sits next to Briefing+ (insight decides what to brief).
 // Sourcing includes RFQs; Order Management includes Logistics and Execution (areas with partOf set, no tab of their own).
 // SRM goes last: it manages the supply base; vendors engage at set points (see LAYERS supplier touches).
-const TAB_ORDER: ModuleKey[] = ["watchtower", "briefing", "shopper-iq", "sourcing", "rfq", "orders", "logistics", "execution", "finance", "assure"];
+const TAB_ORDER: ModuleKey[] = ["watchtower", "crm", "briefing", "shopper-iq", "sourcing", "rfq", "orders", "logistics", "execution", "finance", "assure"];
 /** Modules that run across the whole workflow rather than being a step in it. */
 export const HORIZONTALS: ModuleKey[] = ["watchtower"];
 ALL.sort((a, b) => TAB_ORDER.indexOf(a.key) - TAB_ORDER.indexOf(b.key));
@@ -223,7 +241,7 @@ export const LAYERS: LayerDef[] = [
   {
     key: "data", name: "Data Management", colour: "#EE4E62", href: "/watchtower/data",
     summary: "One canonical record per thing, real links between modules, region and market kept separate, data-quality rules and BI-ready views.",
-    touches: { briefing: "Campaign taxonomy at source", "shopper-iq": "Effectiveness data model", sourcing: "Spec library, price history and benchmarks", orders: "Stocktool hand-off, LOCODEs and outlet master data", finance: "Spend and savings reporting", assure: "Supplier master" },
+    touches: { crm: "Client master, accounts per market and contacts", briefing: "Campaign taxonomy at source", "shopper-iq": "Effectiveness data model", sourcing: "Spec library, price history and benchmarks", orders: "Stocktool hand-off, LOCODEs and outlet master data", finance: "Spend and savings reporting", assure: "Supplier master" },
   },
   {
     key: "supplier", name: "Supplier Engagement", colour: "#6A2DD3", href: "/vendor",
@@ -233,12 +251,12 @@ export const LAYERS: LayerDef[] = [
   {
     key: "sustainability", name: "Sustainability", colour: "#78C7AE", href: "/watchtower/sustainability",
     summary: "Shared emission factors, substrates and Impact Grade from the Watchtower, applied the same way in every module.",
-    touches: { briefing: "Targets on the brief", "shopper-iq": "Footprint beside effectiveness", sourcing: "CO2e and Impact Grade per spec; weighting in evaluation", orders: "Transport CO2e per delivery; reuse and maintenance", finance: "Carbon cost alongside spend", assure: "Audits and certificates in the score" },
+    touches: { crm: "Client sustainability commitments in the contract", briefing: "Targets on the brief", "shopper-iq": "Footprint beside effectiveness", sourcing: "CO2e and Impact Grade per spec; weighting in evaluation", orders: "Transport CO2e per delivery; reuse and maintenance", finance: "Carbon cost alongside spend", assure: "Audits and certificates in the score" },
   },
   {
     key: "internal_reporting", name: "Internal Reporting", colour: "#9DC5ED", href: "/watchtower/reporting",
     summary: "Management reporting across every module from one data model: pipeline, spend and savings, supplier performance, compliance, delivery and carbon, cut by region and market.",
-    touches: { briefing: "Brief volume and approval times", "shopper-iq": "Effectiveness by campaign", sourcing: "Route mix and savings", orders: "POs awaiting approval, OTIF, install and audit pass rates", finance: "Spend, fee and savings", assure: "Compliance and PSL" },
+    touches: { crm: "Pipeline, renewals and client health", briefing: "Brief volume and approval times", "shopper-iq": "Effectiveness by campaign", sourcing: "Route mix and savings", orders: "POs awaiting approval, OTIF, install and audit pass rates", finance: "Spend, fee and savings", assure: "Compliance and PSL" },
   },
 ];
 
@@ -253,7 +271,7 @@ export type PortalDef = { key: string; name: string; href: string; colour: strin
 export const PORTALS: PortalDef[] = [
   {
     key: "client", name: "Client Portal", href: "/client-portal", colour: "#4896F7", icon: "storefront", status: "live",
-    summary: "Clients follow their campaigns, approve briefs and estimates, see delivery and installation progress, and view spend, savings, sustainability and effectiveness.",
+    summary: "Clients follow their campaigns, approve briefs, concepts and estimates, see delivery and installation progress, bills and reports, see their account team and give feedback to CRM.",
   },
   {
     key: "vendor", name: "Vendor Portal", href: "/vendor", colour: "#6A2DD3", icon: "handshake", status: "live",

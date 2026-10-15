@@ -1,4 +1,4 @@
--- Assure+ vendor pre-assessment and its two-stage review.
+-- SRM vendor pre-assessment and its two-stage review.
 -- Status flow (legal transitions only, enforced in assure_pa_transition):
 --   draft -> submitted (vendor) -> under_review (vendor manager) -> vm_approved | vm_rejected
 --   vm_approved -> procurement_review (procurement) -> negotiation -> onboarded | rejected

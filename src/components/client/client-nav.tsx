@@ -14,6 +14,7 @@ const ITEMS = [
   { href: "/client-portal/orders", label: "Orders", icon: "local_shipping" },
   { href: "/client-portal/bills", label: "Bills", icon: "receipt_long" },
   { href: "/client-portal/reports", label: "Reports", icon: "monitoring" },
+  { href: "/client-portal/feedback", label: "Feedback & team", icon: "reviews" },
 ];
 
 /** Client Portal sidebar links; keeps ?preview=<client> on every link while adm Indicia staff preview a client. */

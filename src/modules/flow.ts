@@ -6,6 +6,13 @@ import type { ModuleKey } from "./registry";
 export type ProcessStep = { step: string; detail: string; handoff?: ModuleKey };
 
 export const PROCESS: Record<ModuleKey, ProcessStep[]> = {
+  crm: [
+    { step: "Win the opportunity", detail: "Lead to won through the pipeline; large wins confirmed by a sales lead." },
+    { step: "Set up the client", detail: "Client, accounts per market and contacts; Finance checks a new client before it is used on jobs.", handoff: "finance" },
+    { step: "Agree commercial terms", detail: "Contract, markup or margin, commission, rebate and payment terms, approved by a second person.", handoff: "sourcing" },
+    { step: "Start the campaign", detail: "The won opportunity becomes a campaign in Briefing+.", handoff: "briefing" },
+    { step: "Keep the relationship healthy", detail: "Activity, account plans, renewals, client health and feedback from the Client Portal.", handoff: "watchtower" },
+  ],
   briefing: [
     { step: "Set up campaign", detail: "Central campaign: brand, objective, channels, path-to-purchase.", handoff: "shopper-iq" },
     { step: "Brief per market", detail: "Market brief with timings, quantities and store formats." },
@@ -93,6 +100,13 @@ export type Connection = { from: ModuleKey; to: ModuleKey; what: string };
 
 /** Every handoff between modules: the links that make standalone modules one workflow. */
 export const CONNECTIONS: Connection[] = [
+  { from: "crm", to: "briefing", what: "Won opportunity becomes a campaign; client and account context on every brief" },
+  { from: "crm", to: "sourcing", what: "Client commercial rules: minimum quotes, tolerance, markup or margin" },
+  { from: "crm", to: "orders", what: "Commission, rebate and client PO terms on every estimate" },
+  { from: "crm", to: "finance", what: "Billing entities and payment terms; new clients checked by Finance" },
+  { from: "finance", to: "crm", what: "Spend and overdue bills for client health" },
+  { from: "orders", to: "crm", what: "Delivery and installation issues for client health" },
+  { from: "crm", to: "watchtower", what: "Pipeline, renewals and client health" },
   { from: "shopper-iq", to: "briefing", what: "Insight on what worked shapes the brief" },
   { from: "briefing", to: "shopper-iq", what: "Campaign taxonomy captured at the start" },
   { from: "briefing", to: "sourcing", what: "Approved concept becomes a job and specs" },

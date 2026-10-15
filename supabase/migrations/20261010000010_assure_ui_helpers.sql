@@ -1,4 +1,4 @@
--- Assure+ UI helpers: JSON-in wrappers so the app can save records with array fields in one call.
+-- SRM UI helpers: JSON-in wrappers so the app can save records with array fields in one call.
 -- These run as the caller (security invoker), so row-level security and the field guards still apply.
 
 create or replace function public.assure_review_save(p_id uuid, p jsonb)

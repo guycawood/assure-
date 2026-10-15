@@ -10,9 +10,9 @@ System Guy is adm Indicia's platform. It is made of **modules that each stand al
 | 4 | Sourcing+ | `/sourcing` | Jobs, specs, triage (Adopt/Adapt/Create/Push), RFQs, quotes, estimates, POs |
 | 5 | Logistics+ | `/logistics` | Deliveries, shipments, POD, transport CO2e |
 | 6 | Execution+ | `/execution` | Outlets, recces, deployments, installs, audits |
-| 7 | Assure+ | `/assure` + `/vendor` | Horizontal SRM: internal supply-chain management + external vendor portal |
+| 7 | SRM | `/assure` + `/vendor` | Horizontal SRM: internal supply-chain management + external vendor portal |
 
-Assure+ is **one module**, not the platform. Its external half is the vendor portal (`/vendor`), where vendors subscribe, quote, update production, upload QA/QC, invoices and control documents. Vendor-facing steps of other modules surface through it.
+SRM is **one module**, not the platform. Its external half is the vendor portal (`/vendor`), where vendors subscribe, quote, update production, upload QA/QC, invoices and control documents. Vendor-facing steps of other modules surface through it.
 
 ## Stack
 Next.js 15 App Router (server components + server actions), Postgres via Supabase with RLS, zod, Tailwind 3. **Demo mode** runs the same SQL on PGlite in-process (`src/lib/demo/*`) when no Supabase URL is set.

@@ -232,7 +232,7 @@ begin
   values (
     v_email,
     'adm Indicia: please register and complete your vendor information',
-    format(E'Hello%s,\n\nadm Indicia would like to onboard %s as a vendor. Please register on Assure+ and complete your company information, certifications and bank details using the link below. The link works once and expires in 14 days.\n\n%s\n\nIf you weren''t expecting this, you can ignore this email.\n\nadm Indicia Supplier Team',
+    format(E'Hello%s,\n\nadm Indicia would like to onboard %s as a vendor. Please register on SRM and complete your company information, certifications and bank details using the link below. The link works once and expires in 14 days.\n\n%s\n\nIf you weren''t expecting this, you can ignore this email.\n\nadm Indicia Supplier Team',
            coalesce(' ' || nullif(trim(p_contact_name), ''), ''), v_name, v_link),
     v_link, t.id, v_supplier, auth.uid());
 

@@ -1,4 +1,4 @@
--- DUMMY DATA for the Assure+ internal SRM functions (supplier 360, compliance, pre-assessment, quality, performance,
+-- DUMMY DATA for the SRM internal SRM functions (supplier 360, compliance, pre-assessment, quality, performance,
 -- contracts, business reviews, tasks, surveys, workflows, messages, training).
 -- Every value here is made up. Suppliers come from demo_data.sql (DEMO-001..DEMO-030); library records
 -- (certification_types, ncr_categories) come from m10_watchtower.sql and are referenced by code.
@@ -358,8 +358,8 @@ update public.conversations c set last_message_at = (select max(created_at) from
 -- Training modules
 -- ---------------------------------------------------------------------------
 insert into public.training_modules (title, resource_type, description, url, content, category, audience, duration_minutes, display_order) values
-  ('Getting started with Assure+', 'document', 'What Assure+ does and where to find things.', null,
-   'Assure+ is where adm Indicia manages suppliers: onboarding, compliance, quality, performance and contracts.', 'Getting started', 'all', 10, 1),
+  ('Getting started with SRM', 'document', 'What SRM does and where to find things.', null,
+   'SRM is where adm Indicia manages suppliers: onboarding, compliance, quality, performance and contracts.', 'Getting started', 'all', 10, 1),
   ('Reviewing vendor documents', 'document', 'How to check and verify certificates and documents.', null,
    'Open the document review queue, check the document matches the supplier and dates, then verify or reject with a reason.', 'Compliance', 'internal', 8, 2),
   ('Raising and closing an NCR', 'document', 'From failed inspection to verified corrective action.', null,
@@ -367,7 +367,7 @@ insert into public.training_modules (title, resource_type, description, url, con
   ('Responding to a non-conformance', 'document', 'For vendors: how to acknowledge and respond to an NCR.', null,
    'Acknowledge within two working days, then send your root cause and corrective actions.', 'Quality', 'vendor', 6, 4),
   ('Why do I need to verify my own work twice?', 'faq', null, null,
-   'You don''t. Assure+ asks a different person to verify, so every decision has a second pair of eyes.', 'FAQ', 'all', null, 5),
+   'You don''t. SRM asks a different person to verify, so every decision has a second pair of eyes.', 'FAQ', 'all', null, 5),
   ('Supplier relationship basics (video)', 'video', 'A short introduction to working with suppliers.', 'https://example.com/training/srm-basics', null, 'Getting started', 'internal', 15, 6);
 
 drop view demo_s;

@@ -1,5 +1,5 @@
--- Supplier Engagement layer: the Assure+ vendor portal (/vendor) and the public vendor application (/apply).
--- Vendors engage at set points in the journey. Everything here follows the same rules as the rest of Assure+:
+-- Supplier Engagement layer: the SRM vendor portal (/vendor) and the public vendor application (/apply).
+-- Vendors engage at set points in the journey. Everything here follows the same rules as the rest of SRM:
 --   * a vendor's company always comes from my_supplier_id() (never from the client);
 --   * vendors read only their own rows, through views that leave out internal fields;
 --   * every vendor write goes through a security-definer function that checks the vendor's team permission

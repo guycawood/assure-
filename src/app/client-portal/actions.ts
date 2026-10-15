@@ -35,7 +35,32 @@ export async function decideEstimate(_prev: ClientFormResult, fd: FormData): Pro
   return { ok: true, message: parsed.data.decision === "approve" ? "Thanks. Your approval is with adm Indicia." : "Thanks. adm Indicia will follow up." };
 }
 
-const commentSchema = z.object({ brief_id: uuid, body: z.string().trim().min(1, "Write a comment first.").max(4000) });
+const feedbackSchema = z.object({
+  client_id: uuid,
+  score: z.coerce.number().int().min(0).max(10),
+  comment: z.string().max(4000).optional(),
+  market: z.string().max(2).optional(),
+});
+
+/** Client user (approver or viewer) rates adm Indicia 0-10 for one of their own accounts. Recorded in CRM. */
+export async function sendFeedback(_prev: ClientFormResult, fd: FormData): Promise<ClientFormResult> {
+  const me = await requireClient();
+  if (me.is_admin || me.user_type === "internal") return { error: PREVIEW_MSG };
+  const parsed = feedbackSchema.safeParse({
+    client_id: fd.get("client_id"), score: fd.get("score"),
+    comment: String(fd.get("comment") ?? "").trim() || undefined, market: String(fd.get("market") ?? "") || undefined,
+  });
+  if (!parsed.success) return { error: "Choose a score from 0 to 10." };
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("client_feedback_submit", {
+    p_client: parsed.data.client_id, p_score: parsed.data.score, p_comment: parsed.data.comment ?? null, p_market: parsed.data.market ?? null,
+  });
+  if (error) return { error: error.message };
+  revalidatePath("/client-portal/feedback");
+  return { ok: true, message: "Thank you. Your account team will see this straight away." };
+}
+
+const commentSchema =z.object({ brief_id: uuid, body: z.string().trim().min(1, "Write a comment first.").max(4000) });
 
 export async function commentOnBrief(_prev: ClientFormResult, fd: FormData): Promise<ClientFormResult> {
   const me = await requireClient();

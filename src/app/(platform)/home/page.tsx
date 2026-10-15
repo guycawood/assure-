@@ -134,8 +134,8 @@ export default async function Home() {
       </section>
 
       <section>
-        <h2 className="mb-3 text-xl font-bold">Modules</h2>
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
+        <h2 className="mb-3 text-xl font-bold">Sections</h2>
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           {MODULES.map((m) => (
             <Link key={m.key} href={m.basePath} className="group">
               <Card className="relative h-full overflow-hidden p-4 transition group-hover:shadow-raised">

@@ -37,11 +37,12 @@ export default async function ClientPortalHome({ searchParams }: { searchParams:
   }
 
   const s = scope(ctx);
-  const [summary, estimates, briefs, orders] = await Promise.all([
+  const [summary, estimates, briefs, orders, team] = await Promise.all([
     rpc<Summary>(ctx.supabase, "client_portal_summary", s),
     rpc<EstimateRow[]>(ctx.supabase, "client_portal_estimates", s),
     rpc<BriefRow[]>(ctx.supabase, "client_portal_briefs", s),
     rpc<OrderRow[]>(ctx.supabase, "client_portal_orders", s),
+    rpc<{ client_name: string; market: string; market_name: string | null; lead_name: string; lead_email: string }[]>(ctx.supabase, "client_portal_account_team", s),
   ]);
   const names = ctx.accounts.map((a) => a.name).join(", ");
   const waiting = (estimates ?? []).filter((e) => e.status === "sent");
@@ -62,6 +63,17 @@ export default async function ClientPortalHome({ searchParams }: { searchParams:
         <Stat label="Spend this year" value={moneyList(summary?.spend_ytd ?? [], (n, c) => fmtMoney(n, c))}
           hint={`Savings reported: ${moneyList(summary?.savings_ytd ?? [], (n, c) => fmtMoney(n, c))}`} icon={<MSymbol name="savings" />} />
       </section>
+
+      {(team ?? []).length > 0 && (
+        <Card className="flex flex-wrap items-center gap-x-6 gap-y-2 px-5 py-3 text-sm">
+          <span className="eyebrow">Your account team</span>
+          {(team ?? []).map((t) => (
+            <span key={`${t.client_name}-${t.market}`}><span className="font-semibold">{t.lead_name}</span> <span className="text-muted">({t.market_name ?? t.market})</span>{" "}
+              <a className="text-accent hover:underline" href={`mailto:${t.lead_email}`}>{t.lead_email}</a></span>
+          ))}
+          <Link href={ctx.link("/client-portal/feedback")} className="ml-auto text-xs font-semibold text-accent hover:underline">Give feedback</Link>
+        </Card>
+      )}
 
       <div className="grid gap-6 xl:grid-cols-2">
         <Panel title="Estimates waiting for you" sub="Review the price and approve or decline" actions={<Link href={ctx.link("/client-portal/estimates")} className="text-xs font-semibold text-accent hover:underline">All estimates</Link>}>

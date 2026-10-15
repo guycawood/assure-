@@ -1,11 +1,11 @@
--- Assure+ internal SRM: Supplier 360 foundations.
---   * assure_activity: one append-only activity/audit trail for every Assure+ record (the supplier timeline).
+-- SRM internal SRM: Supplier 360 foundations.
+--   * assure_activity: one append-only activity/audit trail for every SRM record (the supplier timeline).
 --   * supplier_profiles: the internal-only commercial and classification side of a supplier (NTI, payment terms, risk).
 --   * audited functions for the decision fields (supplier status, risk level).
 -- Vendors never read anything in this file.
 
 -- ---------------------------------------------------------------------------
--- Shared helpers for the Assure+ internal functions
+-- Shared helpers for the SRM internal functions
 -- ---------------------------------------------------------------------------
 create or replace function public._assure_require_internal() returns void
 language plpgsql stable security definer set search_path = public as $$
@@ -35,7 +35,7 @@ begin
 end $$;
 
 -- ---------------------------------------------------------------------------
--- Activity trail (the supplier timeline). Written by the functions in every Assure+ migration,
+-- Activity trail (the supplier timeline). Written by the functions in every SRM migration,
 -- in the same transaction as the change. Staff can add notes, calls, meetings and emails by hand.
 -- ---------------------------------------------------------------------------
 create table public.assure_activity (

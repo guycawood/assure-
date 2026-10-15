@@ -32,7 +32,7 @@ const estimate = await one(`insert into public.estimates (job_id, supplier_id, s
   values ($1, $2, 'rfq', 'EUR', 9000, 'EMEA', 'Germany', 'approved', $3) returning id`, [job.id, supplier, ids.agent]);
 await asSuper("select set_config('sourcing.system_write', 'off', false)");
 
-test("Watchtower: scorecard activation is requested, a second admin or Assure+ owner approves, and it shows in their inbox", async () => {
+test("Watchtower: scorecard activation is requested, a second admin or SRM owner approves, and it shows in their inbox", async () => {
   await policy("AP-G-SCORECARD", { module: "assure", approval_type: "SCORECARD", approver_role: "module_owner", maker_checker: true });
   const draft = (await as("admin", "select public.scorecard_create_draft() as id")).rows[0].id;
   await as("admin", "select public.scorecard_activate($1, 'New weights')", [draft]);
@@ -169,7 +169,7 @@ test("Execution: a production-ready recce needs a second person", async () => {
   assert.equal((await one("select status from public.recces where id = $1", [recce])).status, "production_ready");
 });
 
-test("Assure+: fast-track is requested and approved by an SRT lead; critical gates are never verified by who requested the evidence", async () => {
+test("SRM: fast-track is requested and approved by an SRT lead; critical gates are never verified by who requested the evidence", async () => {
   await policy("AP-G-FAST", { module: "assure", approval_type: "FAST_TRACK", approver_role: "srt_lead", maker_checker: true });
   await policy("AP-G-GATE", { module: "assure", approval_type: "SRT_GATE", approver_role: "srt_agent", maker_checker: true });
   const s = (await one("insert into public.suppliers (supplier_code, name, market, region) values ('G-FT','Fast Ltd','Germany','EMEA') returning id")).id;

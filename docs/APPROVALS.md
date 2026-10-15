@@ -11,7 +11,7 @@ library **Approval policies** (`approval_policies`, seeded by `supabase/seed/m15
 |---|---|
 | Policy library (maker-checker) | `approval_policies` in `20261021000001_watchtower_approval_policies.sql`; fields in `src/modules/libraries.ts` |
 | Most specific active policy | `approval_policy_for(type, client, market, value)`: client policy beats market policy beats highest value threshold met; effective-dated via `library_effective` |
-| Approval roles | `approval_has_role(role)`: `admin`, `internal`, `named_person`, `srt_agent`, `srt_lead`, `finance`, `procurement`, `procurement_head`, `sourcing_lead`, `doa`, `module_owner`, `briefing_lead`, and (new) `quality` (SRT lead, Procurement head, sourcing lead, Assure+/Execution+ owner), `logistics_lead` (sourcing lead, Logistics+ owner), `line_manager` (SRT lead, Procurement head, sourcing lead). External roles `client_approver` (client_users) and `vendor` are decided in their portals. `approval_role_people(role)` lists who holds a role |
+| Approval roles | `approval_has_role(role)`: `admin`, `internal`, `named_person`, `srt_agent`, `srt_lead`, `finance`, `procurement`, `procurement_head`, `sourcing_lead`, `doa`, `module_owner`, `briefing_lead`, and (new) `quality` (SRT lead, Procurement head, sourcing lead, SRM/Execution+ owner), `logistics_lead` (sourcing lead, Logistics+ owner), `line_manager` (SRT lead, Procurement head, sourcing lead). External roles `client_approver` (client_users) and `vendor` are decided in their portals. `approval_role_people(role)` lists who holds a role |
 | Requests (new) | `approval_requests` in `20261022000001_watchtower_approval_requests.sql`: a gated function opens a request instead of acting; the policy at request time sets approver role, maker-checker and DOA level. `approval_request_decide(id, approve, note)` checks maker-checker (never the requester or `excluded_users`, e.g. the RFQ creator), the role and DOA, then applies the action in the same transaction (`run_as`: the approver applies it, it runs with the requester's rights, or approval only unlocks the next step). `approval_request_cancel` withdraws. Audit: append-only `approval_request_events`; direct decisions without a request go to append-only `approval_decisions` |
 | How functions are gated | `20261022000002_platform_approval_gaps.sql`: each changed function was renamed to `public._core_<name>` and a wrapper with the same signature checks the rule, then calls the core. To change the logic later, replace `_core_<name>` |
 | Inbox | Every module exposes a view `approvals_<module>` (columns: module, approval_type, item_id, ref, title, requested_by, requested_at, amount, currency, client, market, region, status, approver_rule, href, can_decide, market_name). Pending requests of a module are part of its view (`approval_requests_pending_v`). `approvals_inbox('mine' \| 'all')` unions every `approvals_%` view at run time; `'all'` is admin-only; `'mine'` = `can_decide` and never your own request where the policy is maker-checker |
@@ -45,7 +45,7 @@ MC = maker-checker (decider is never the requester). "Inbox" = approval type sho
 | Library version (libraries with `requires_approval`: core principles, DOA, Impact Grade, rate cards, high-value thresholds, sourcing control matrix, POD checklist, display scoring, finance rules, approval policies; demo also substrates, material and transport emission factors, bypass reasons) | `library_approve` | Admin or owner of the library's module (`can_govern`) | Yes | – | `/watchtower/libraries/<key>` | LIBRARY, RATE_CARD |
 | Change request review | `cr_start_review`, `cr_review` | Admin or module owner; every principle in the category checked; 20 s minimum | No | – | `/watchtower/change-requests` | CR_REVIEW |
 | Change request verification | `cr_verify` | Admin or module owner | Yes (not the implementer) | – | same | CR_VERIFY |
-| Scorecard methodology activation (closed gap) | `scorecard_activate` (request), `approval_request_decide` | SCORECARD policy role (demo: admin or Assure+ owner); weights must total 100 | Yes (policy) | – | request on `/assure/watchtower/methodology`, decide on `/assure/watchtower` | SCORECARD |
+| Scorecard methodology activation (closed gap) | `scorecard_activate` (request), `approval_request_decide` | SCORECARD policy role (demo: admin or SRM owner); weights must total 100 | Yes (policy) | – | request on `/assure/watchtower/methodology`, decide on `/assure/watchtower` | SCORECARD |
 | Client Portal access | `client_access_grant` / `client_access_revoke` | Admin (audited); approver rights confirmed by a second admin (closed gap, CLIENT_ACCESS policy) | Yes for approver grants (policy) | – | `/watchtower/client-access` | CLIENT_ACCESS |
 | User access (closed gap) | `admin_set_user_access` (request), `approval_request_decide` | ACCESS_USER policy role (demo: a second admin) | Yes (policy) | – | `/assure/admin/users` | ACCESS_USER |
 | Sourcing access and DOA levels (closed gap) | `sourcing_set_access` (request), `approval_request_decide` | Requested by admin or Sourcing owner; ACCESS_SOURCING policy role confirms (demo: Procurement head) | Yes (policy) | – | `/sourcing/admin` | ACCESS_SOURCING |
@@ -121,7 +121,7 @@ MC = maker-checker (decider is never the requester). "Inbox" = approval type sho
 | Job close with overrides (closed gap) | `execution_close_job` (request), `approval_request_decide` | JOB_CLOSE policy role (demo: sourcing lead) | Yes (policy) | – | `/execution/jobs/<id>` | JOB_CLOSE |
 | Recce production ready (closed gap) | `execution_recce_set_status` (request), `approval_request_decide` | RECCE_READY policy role (demo: anyone at adm Indicia but the requester) | Yes (policy) | – | `/execution/recces/<id>` | RECCE_READY |
 
-### Assure+ (internal) and SRT desk
+### SRM (internal) and SRT desk
 | What | Function | Who may approve | MC | Threshold | UI | Inbox |
 |---|---|---|---|---|---|---|
 | Onboarding gates | `update_supplier_gate` | SRT agent/lead; bank gate Finance; approval gate Procurement head; "not required" SRT lead; admin any. Critical gates never verified by who requested or supplied the evidence (closed gap, gate policy maker-checker) | Yes on critical gates (policy) | – | `/assure/suppliers/<id>` | SRT_GATE, SRT_BANK, SRT_ONBOARDING_APPROVAL |
@@ -160,7 +160,7 @@ MC = maker-checker (decider is never the requester). "Inbox" = approval type sho
 ## Gaps
 
 Closed: every gap listed in the previous audit for Watchtower, Shopper IQ, RFQ+, Sourcing+, Order Management+, Finance+,
-Logistics+, Execution+ and Assure+ (marked "closed gap" above), plus the Briefing+ gaps closed earlier. The inbox now
+Logistics+, Execution+ and SRM (marked "closed gap" above), plus the Briefing+ gaps closed earlier. The inbox now
 normalises markets to the market master.
 
 ### Still open

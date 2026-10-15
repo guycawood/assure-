@@ -248,7 +248,7 @@ language sql security definer set search_path = public as $$
   select public.notify_supplier(i.supplier_id, 'finance', p_title, p_body, '/vendor');
 $$;
 
--- Payment terms for a supplier: Assure+ supplier profile, else FR-TERMS (default net 30).
+-- Payment terms for a supplier: SRM supplier profile, else FR-TERMS (default net 30).
 create or replace function public._finance_terms(p_supplier uuid, p_date date) returns table (terms text, days int)
 language plpgsql stable security definer set search_path = public as $$
 declare sp public.supplier_profiles; d numeric;

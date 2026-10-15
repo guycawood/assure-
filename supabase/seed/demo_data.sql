@@ -1,4 +1,4 @@
--- DUMMY DATA for trying out Assure+. Every supplier name and code here is made up.
+-- DUMMY DATA for trying out SRM. Every supplier name and code here is made up.
 -- Run in the Supabase SQL Editor AFTER the migrations. Safe to run twice (it clears old demo rows first).
 -- Remove it all later with:  delete from public.suppliers where supplier_code like 'DEMO-%';
 --                            delete from public.srt_tickets where source_ref = 'demo';

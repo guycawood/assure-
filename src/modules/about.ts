@@ -39,6 +39,24 @@ const SECTIONS: Record<Exclude<ModuleKey, "rfq">, ModuleAbout> = {
     data: "Holds the canonical master data (regions, markets, clients, taxonomy) every other module references.",
     governance: "Rules are versioned and effective-dated; nothing is edited in place, it is superseded, with a named owner and an audit entry.",
   },
+  crm: {
+    headline: "Know every client, win the right work, keep the terms straight.",
+    summary:
+      "CRM manages the client relationship: clients and their accounts per market, contacts, activity, the pipeline from lead to won, account plans, contracts and renewals, and the commercial terms every other section applies. It is the client-side mirror of SRM, and it hears back from clients through feedback in the Client Portal.",
+    who: ["Account directors and account leads", "Client service teams", "Commercial and finance", "Leadership"],
+    functions: [
+      { title: "Clients, accounts and contacts", body: "One record per client, an account per market with its lead and tier, and the client's people with their decision roles.", status: "live" },
+      { title: "Pipeline", body: "Opportunities from lead to won or lost, weighted by stage; a won opportunity becomes a campaign in Briefing+.", status: "live" },
+      { title: "Account plans", body: "Objectives, growth targets and actions with owners and dates.", status: "live" },
+      { title: "Contracts and commercial terms", body: "MSAs and SOWs with renewal dates; markup, margin, commission, rebate and payment terms changed only through approval.", status: "live" },
+      { title: "Client health and feedback", body: "Spend, open issues, overdue bills, renewals, activity and satisfaction rolled into a RAG; feedback from the Client Portal.", status: "live" },
+    ],
+    inputs: ["Opportunities and client contact", "Spend, bills and issues from every section", "Feedback from the Client Portal"],
+    outputs: ["Won work as campaigns in Briefing+", "Commercial terms for Sourcing, Order Management and Finance+", "Client master and access for the Client Portal"],
+    sustainability: "Client sustainability commitments are held with the contract so briefs and specs start from them.",
+    data: "The client master every section links to: accounts per market, with region and market held separately.",
+    governance: "Account tiers, opportunity stages, lost reasons and interaction types in the CRM Watchtower; new clients need a Finance check and commercial terms changes need a second person.",
+  },
   briefing: {
     headline: "Better briefs, the cheapest lever on cost to serve.",
     summary:

@@ -200,14 +200,14 @@ test("vendors can't award, and can't quote or decline after the due date", async
   await rejects(as("vB", "select public.rfq_decline($1,'too late')", [rfq]), /due date has passed/);
 });
 
-test("award: finance gate, Assure+ block at award time, minimum valid quotes or bypass, losers declined", async () => {
+test("award: finance gate, SRM block at award time, minimum valid quotes or bypass, losers declined", async () => {
   await rejects(as("agent", "select public.rfq_award($1,$2,'Lowest',null)", [rfq, quoteA]), /Finance has not approved/);
   await rejects(as("agent", "select public.rfq_finance_decide($1,true,null)", [quoteA]), /Only Finance/);
   await as("finance", "select public.rfq_finance_decide($1,true,'Within budget')", [quoteA]);
   // 2 valid quotes against a minimum of 3
   await rejects(as("agent", "select public.rfq_award($1,$2,'Lowest',null)", [rfq, quoteA]), /Only 2 valid quote/);
   await rejects(as("agent", "select public.rfq_award($1,$2,'Lowest','NOPE')", [rfq, quoteA]), /bypass reason/);
-  // supplier becomes blocked in Assure+ before award
+  // supplier becomes blocked in SRM before award
   await asSuper("update public.supplier_gates set status = 'missing' where supplier_id = $1 and gate_key = 'msa'", [sA]);
   await rejects(as("agent", "select public.rfq_award($1,$2,'Lowest','BYP-T')", [rfq, quoteA]), /blocked for purchasing/);
   await asSuper("update public.supplier_gates set status = 'verified' where supplier_id = $1 and gate_key = 'msa'", [sA]);

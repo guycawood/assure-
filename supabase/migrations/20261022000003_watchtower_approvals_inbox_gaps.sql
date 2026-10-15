@@ -285,7 +285,7 @@ create or replace view public.approvals_execution with (security_invoker = true)
   select * from public.approval_requests_pending_v where module = 'execution';
 
 -- ---------------------------------------------------------------------------
--- Assure+ (internal SRM and SRT desk) and the vendor portal's internal decisions
+-- SRM (internal SRM and SRT desk) and the vendor portal's internal decisions
 -- ---------------------------------------------------------------------------
 create or replace view public.approvals_assure with (security_invoker = true) as
   select 'assure'::text as module,

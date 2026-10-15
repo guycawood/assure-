@@ -1,4 +1,4 @@
--- Supplier scorecard and Preferred Supplier List (Assure+).
+-- Supplier scorecard and Preferred Supplier List (SRM).
 -- Methodology from the Global PSL work (Jeffrey Alex / BI, "Supplier Ranking Criteria.xlsx", Review tab, Sep 2026).
 -- The methodology is governed data: versioned, one active version, edits only on a draft, every change audited.
 -- Admins change it through the functions below; nobody writes the tables directly.

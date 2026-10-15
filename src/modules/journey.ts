@@ -38,7 +38,15 @@ export const JOURNEY: JourneyStage[] = [
     { step: "Gates verified", detail: "14 onboarding gates checked; Finance verifies bank details.", lane: "internal", module: "assure", href: "/assure/srt", as: U.arjun, gate: "Agent verifies; bank details only by Finance" },
     { step: "Procurement head approves", detail: "Final onboarding approval; purchasing unblocked and the vendor joins the eligible pool.", lane: "internal", module: "assure", href: "/assure/srt", as: U.hana, gate: "Procurement head only" },
   ] },
-  { key: "brief", title: "1. Plan and brief", summary: "From the client's objective to an approved brief per market.", steps: [
+  { key: "win", title: "Win the work and set up the client", summary: "CRM: the opportunity is won, the client is set up and the commercial terms are agreed before any brief.", steps: [
+    { step: "Work the opportunity", detail: "Lead to won through the pipeline, with activity logged against the account.", lane: "internal", module: "crm", href: "/crm/pipeline", as: U.ada },
+    { step: "Confirm the win", detail: "Large wins are confirmed before work starts.", lane: "internal", module: "crm", href: "/crm/pipeline", as: U.lena, gate: "Sales lead above the value threshold" },
+    { step: "Set up the client", detail: "Client, accounts per market and contacts; billing entity and payment terms.", lane: "internal", module: "crm", href: "/crm/clients", as: U.ada },
+    { step: "Check the new client", detail: "Credit and KYC check before the client can be used on jobs.", lane: "internal", module: "finance", href: "/watchtower/approvals", as: U.fiona, gate: "Finance" },
+    { step: "Agree commercial terms", detail: "Contract, markup or margin, commission, rebate and payment terms that every section applies.", lane: "internal", module: "crm", href: "/crm/contracts", as: U.ada, gate: "Second person approves any change" },
+    { step: "Give client access", detail: "Client approvers and viewers set up for the Client Portal.", lane: "internal", module: "crm", href: "/watchtower/client-access", as: U.ada, gate: "Approver rights confirmed by a second admin" },
+  ] },
+  { key: "brief", title: "1. Plan and brief", summary: "From the won opportunity to an approved brief per market; the campaign is created from the CRM opportunity.", steps: [
     { step: "Client shares the objective", detail: "Client follows campaigns and briefs, and comments, in the Client Portal.", lane: "client", module: "briefing", href: "/client-portal/briefs", as: U.claire },
     { step: "Set up the campaign", detail: "Brand, objective, channels, path-to-purchase: the Shopper IQ taxonomy starts here.", lane: "internal", module: "briefing", href: "/briefing/campaigns", as: U.ada },
     { step: "Use past performance", detail: "What worked before, by channel, touchpoint and market.", lane: "internal", module: "shopper-iq", href: "/shopper-iq/insights", as: U.ada },
@@ -88,6 +96,8 @@ export const JOURNEY: JourneyStage[] = [
   { key: "learn", title: "8. Learn and govern", summary: "Results feed the next brief and the supplier scorecard.", steps: [
     { step: "Measure effectiveness", detail: "Spend and execution effectiveness by campaign and market.", lane: "internal", module: "shopper-iq", href: "/shopper-iq/campaigns", as: U.ada },
     { step: "Update the supplier scorecard", detail: "Delivery, quality and compliance feed the PSL.", lane: "internal", module: "assure", href: "/assure/scorecard", as: U.ada },
+    { step: "Client gives feedback", detail: "A 0-10 score and comment from the Client Portal, straight into CRM.", lane: "client", module: "crm", href: "/client-portal", as: U.claire },
+    { step: "Review client health", detail: "Spend, issues, overdue bills, renewals, activity and satisfaction as a RAG; account plan updated.", lane: "internal", module: "crm", href: "/crm/health", as: U.ada },
     { step: "Watch health and approvals", detail: "Every module's health, change requests and audit in one place.", lane: "internal", module: "watchtower", href: "/watchtower", as: U.ada },
     { step: "See every approval", detail: "Admins see every pending approval in every module; overdue ones flagged against the policy.", lane: "internal", module: "watchtower", href: "/watchtower/approvals", as: U.ada },
   ] },

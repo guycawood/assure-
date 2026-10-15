@@ -52,6 +52,31 @@ const SECTION_NAV: Record<Exclude<ModuleKey, "rfq" | "logistics" | "execution">,
       ] },
     ],
   },
+  crm: {
+    portal: "Client relationships",
+    groups: [
+      about("crm", "CRM"),
+      { label: "Overview", items: [{ label: "Dashboard", href: "/crm", icon: "space_dashboard", exact: true }] },
+      { label: "Clients", items: [
+        { label: "Clients", href: "/crm/clients", icon: "apartment" },
+        { label: "Contacts", href: "/crm/contacts", icon: "contacts" },
+        { label: "Activity", href: "/crm/activity", icon: "forum" },
+      ] },
+      { label: "Growth", items: [
+        { label: "Pipeline", href: "/crm/pipeline", icon: "filter_alt" },
+        { label: "Account plans", href: "/crm/plans", icon: "flag" },
+      ] },
+      { label: "Commercial", items: [
+        { label: "Contracts & renewals", href: "/crm/contracts", icon: "contract" },
+      ] },
+      { label: "Relationship health", items: [
+        { label: "Client health", href: "/crm/health", icon: "monitor_heart" },
+        { label: "Feedback", href: "/crm/feedback", icon: "reviews" },
+        { label: "Client Portal access", href: "/watchtower/client-access", icon: "badge" },
+      ] },
+      watchtower("crm"),
+    ],
+  },
   briefing: {
     portal: "Creative intake",
     groups: [

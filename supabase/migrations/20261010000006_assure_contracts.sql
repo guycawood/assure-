@@ -1,4 +1,4 @@
--- Assure+ contracts: templates, contracts, parties (signing order), activity, negotiation log.
+-- SRM contracts: templates, contracts, parties (signing order), activity, negotiation log.
 -- Status flow (assure_contract_action, legal moves only):
 --   draft -> sent -> (viewed | in_review) -> signed parties -> counter_signed (all signers done, atomic)
 --   sent/viewed/in_review -> expired ; any non-final -> cancelled ; any -> amended (a new draft version is created)

@@ -2,7 +2,7 @@
 
 export const MODULE_LABEL: Record<string, string> = {
   watchtower: "Watchtower", briefing: "Briefing+", "shopper-iq": "Shopper IQ", sourcing: "Sourcing", rfq: "Sourcing",
-  orders: "Order Management", logistics: "Logistics", execution: "Execution", finance: "Finance+", assure: "SRM",
+  orders: "Order Management", logistics: "Logistics", execution: "Execution", finance: "Finance+", assure: "SRM", crm: "CRM",
 };
 
 export const TYPE_LABEL: Record<string, string> = {
@@ -23,6 +23,7 @@ export const TYPE_LABEL: Record<string, string> = {
   RECCE_READY: "Production-ready recce", FAST_TRACK: "Fast-track onboarding", SUPPLIER_REACTIVATE: "Supplier reactivation",
   CONTRACT_APPROVE: "Contract approval", INSPECTION_CHANGE: "Inspection result change", NCR_CLOSE: "NCR close", ISSUE_RESOLVE: "Issue resolution",
   PAYMENT_TERMS: "Non-standard payment terms", SIQ_EFFECTIVENESS: "Result verification", SIQ_ASSET: "Asset rights sign-off",
+  CRM_CLIENT_SETUP: "New client set-up", CRM_TERMS: "Client commercial terms", CRM_CONTRACT: "Client contract", CRM_OPP_WON: "Opportunity won",
 };
 
 export const typeLabel = (t: string) => TYPE_LABEL[t] ?? t.replace(/_/g, " ").toLowerCase().replace(/^./, (c) => c.toUpperCase());

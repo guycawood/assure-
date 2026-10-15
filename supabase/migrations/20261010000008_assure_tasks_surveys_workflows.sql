@@ -1,4 +1,4 @@
--- Assure+ action plans (tasks), surveys and approval workflows.
+-- SRM action plans (tasks), surveys and approval workflows.
 -- Tasks: open -> in_progress -> completed -> verified. Staff or the supplier's vendor users move a task to completed;
 --        only staff verify, and not the person who completed it.
 -- Surveys: staff build versioned templates and launch them; the vendor answers; staff review. Answers are kept

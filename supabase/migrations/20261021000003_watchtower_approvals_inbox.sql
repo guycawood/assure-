@@ -208,7 +208,7 @@ create or replace view public.approvals_execution with (security_invoker = true)
                       and public.execution_gate_order(g2.gate_key) < public.execution_gate_order(g.gate_key));
 
 -- ---------------------------------------------------------------------------
--- Assure+ (internal SRM and SRT desk) and the vendor portal's internal decisions
+-- SRM (internal SRM and SRT desk) and the vendor portal's internal decisions
 -- ---------------------------------------------------------------------------
 create or replace view public.approvals_assure with (security_invoker = true) as
   select 'assure'::text as module,

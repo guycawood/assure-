@@ -1,7 +1,7 @@
 -- RFQ+ and Order Management+ data (same schema as Sourcing+; separate modules in the app):
--- RFQs with quantity breaks and targets, supplier selection from the Assure+ eligible pool, minimum quotes from the
+-- RFQs with quantity breaks and targets, supplier selection from the SRM eligible pool, minimum quotes from the
 -- Watchtower sourcing control matrix, high-value threshold alerts, sealed quotes (vendors only through functions),
--- finance approval, award with Assure+ checks, estimates (markup or margin), supplier POs with DOA approval,
+-- finance approval, award with SRM checks, estimates (markup or margin), supplier POs with DOA approval,
 -- vendor PO acceptance and the estimate.approved integration event.
 
 -- ---------------------------------------------------------------------------
@@ -144,7 +144,7 @@ create trigger spec_components_locked before insert or update or delete on publi
 -- ---------------------------------------------------------------------------
 -- Control matrix, high-value thresholds, eligibility
 -- ---------------------------------------------------------------------------
--- Supplier eligibility comes from Assure+: active and not purchasing-blocked.
+-- Supplier eligibility comes from SRM: active and not purchasing-blocked.
 create or replace function public.supplier_is_eligible(p_supplier uuid) returns boolean
 language sql stable security definer set search_path = public as $$
   select coalesce((select active and not purchasing_blocked from public.suppliers where id = p_supplier), false);
@@ -286,7 +286,7 @@ begin
   perform public._sourcing_event(r.job_id, 'rfq', p_rfq, 'edited', '{}'::jsonb);
 end $$;
 
--- Suppliers come only from the Assure+ eligible pool.
+-- Suppliers come only from the SRM eligible pool.
 create or replace function public.rfq_set_suppliers(p_rfq uuid, p_suppliers jsonb) returns int
 language plpgsql security definer set search_path = public as $$
 declare r public.rfqs; v_sup public.suppliers; v uuid; n int := 0;
@@ -300,7 +300,7 @@ begin
     select * into v_sup from public.suppliers where id = v;
     if v_sup.id is null then raise exception 'Supplier not found'; end if;
     if not v_sup.active or v_sup.purchasing_blocked then
-      raise exception '% is not eligible in Assure+ (inactive or blocked for purchasing)', v_sup.name;
+      raise exception '% is not eligible in SRM (inactive or blocked for purchasing)', v_sup.name;
     end if;
     insert into public.rfq_invitations (rfq_id, supplier_id, cross_border, invited_by)
     values (p_rfq, v, v_sup.market is distinct from r.market, auth.uid());
@@ -335,7 +335,7 @@ begin
   if r.estimated_value is null then raise exception 'Add an estimated value or target prices so the control matrix can be applied'; end if;
   select string_agg(s.name, ', ') into v_bad from public.rfq_invitations i join public.suppliers s on s.id = i.supplier_id
    where i.rfq_id = p_rfq and (not s.active or s.purchasing_blocked);
-  if v_bad is not null then raise exception 'No longer eligible in Assure+: %. Remove them first.', v_bad; end if;
+  if v_bad is not null then raise exception 'No longer eligible in SRM: %. Remove them first.', v_bad; end if;
   select count(*), coalesce(bool_and(cross_border), false) into v_count, v_cb_only from public.rfq_invitations where rfq_id = p_rfq;
   if v_count = 0 then raise exception 'Choose suppliers from the eligible pool first'; end if;
   perform public._rfq_flag_high_value(p_rfq);
@@ -620,7 +620,7 @@ begin
 end $$;
 create trigger estimates_before before insert or update on public.estimates for each row execute function public.trg_estimates_before();
 
--- Award: only through this function. Checks bidding has closed, finance approval, Assure+ eligibility at award time,
+-- Award: only through this function. Checks bidding has closed, finance approval, SRM eligibility at award time,
 -- minimum valid quotes (or a governed bypass reason); marks losing quotes declined; drafts the estimate; audits.
 create or replace function public.rfq_award(p_rfq uuid, p_response uuid, p_reason text, p_bypass_code text default null)
 returns uuid language plpgsql security definer set search_path = public as $$
@@ -641,7 +641,7 @@ begin
   if q.status <> 'submitted' then raise exception 'Only a submitted quote can be awarded'; end if;
   if q.finance_status <> 'approved' then raise exception 'Finance has not approved this quote yet'; end if;
   select * into s from public.suppliers where id = q.supplier_id;
-  if not s.active or s.purchasing_blocked then raise exception '% is blocked for purchasing in Assure+, so it can''t be awarded', s.name; end if;
+  if not s.active or s.purchasing_blocked then raise exception '% is blocked for purchasing in SRM, so it can''t be awarded', s.name; end if;
   if coalesce(trim(p_reason), '') = '' then raise exception 'Say why this supplier was chosen'; end if;
   select count(*) into v_valid from public.rfq_responses where rfq_id = p_rfq and status = 'submitted';
   if v_valid < coalesce(r.min_quotes_required, 1) then
@@ -706,7 +706,7 @@ begin
                         where el.spec_id = s.id and e.status <> 'declined')
   loop
     if not public.supplier_is_eligible(v_sup) then
-      raise exception '% is no longer eligible in Assure+; re-run triage', (select name from public.suppliers where id = v_sup);
+      raise exception '% is no longer eligible in SRM; re-run triage', (select name from public.suppliers where id = v_sup);
     end if;
     select min(t3.route) into v_src from public.spec_triage t3 join public.job_specs s3 on s3.id = t3.spec_id
      where s3.job_id = p_job and t3.is_current and t3.supplier_id = v_sup;
@@ -906,7 +906,7 @@ begin
     raise exception 'This estimate already has a live purchase order';
   end if;
   select * into s from public.suppliers where id = e.supplier_id;
-  if not s.active or s.purchasing_blocked then raise exception '% is blocked for purchasing in Assure+', s.name; end if;
+  if not s.active or s.purchasing_blocked then raise exception '% is blocked for purchasing in SRM', s.name; end if;
   select * into j from public.jobs where id = e.job_id;
   select * into c from public.sourcing_clients where id = j.client_id;
   select * into d from public.doa_required_level(e.base_cost, e.currency, current_date);
@@ -933,7 +933,7 @@ begin
     raise exception 'This PO needs DOA level % approval; your level is %', p.required_doa_level, v_level using errcode = '42501';
   end if;
   select * into s from public.suppliers where id = p.supplier_id;
-  if not s.active or s.purchasing_blocked then raise exception '% is blocked for purchasing in Assure+', s.name; end if;
+  if not s.active or s.purchasing_blocked then raise exception '% is blocked for purchasing in SRM', s.name; end if;
   update public.purchase_orders set status = 'issued', approved_by = auth.uid(), approver_doa_level = v_level, approved_at = now() where id = p_po;
   insert into public.email_outbox (to_email, subject, body, supplier_id, created_by)
   select s.primary_contact_email, 'Purchase order ' || p.po_number, format('Purchase order %s for %s %s is ready. Open your vendor portal to accept it.', p.po_number, p.currency, p.total_value), s.id, auth.uid()
@@ -1034,7 +1034,7 @@ create view public.v_purchase_orders with (security_invoker = true) as
     join public.suppliers s on s.id = p.supplier_id join public.estimates e on e.id = p.estimate_id
     left join public.profiles ab on ab.id = p.approved_by;
 
--- The Assure+ eligible pool for RFQ supplier selection.
+-- The SRM eligible pool for RFQ supplier selection.
 create view public.v_eligible_suppliers with (security_invoker = true) as
   select id, supplier_code, name, market, region, category, tier, rag
     from public.suppliers where active and not purchasing_blocked;

@@ -11,7 +11,7 @@ insert into public.library_records (library_key, code, name, data, status, effec
 select 'finance_rules', v.code, v.name, v.data::jsonb, 'active', date '2026-01-01'
   from (values
     ('FR-TOL', 'Invoice match tolerance', '{"value":2,"unit":"percent","note":"Total invoiced on a PO may exceed the PO value by up to this much"}'),
-    ('FR-TERMS', 'Default supplier payment terms', '{"value":30,"unit":"days","note":"Used when the supplier has no terms in Assure+"}'),
+    ('FR-TERMS', 'Default supplier payment terms', '{"value":30,"unit":"days","note":"Used when the supplier has no terms in SRM"}'),
     ('FR-DUE-WINDOW', 'Payments shown as due', '{"value":7,"unit":"days","note":"Unpaid instalments due within this many days show as due"}'),
     ('FR-CLIENT-TERMS', 'Client payment terms', '{"value":30,"unit":"days","note":"Due date on client bills"}'),
     ('FR-MIN-MARGIN', 'Minimum margin before finance review', '{"value":10,"unit":"percent"}'),

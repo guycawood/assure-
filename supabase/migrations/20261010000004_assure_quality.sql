@@ -1,4 +1,4 @@
--- Assure+ quality: inspections, non-conformance reports (NCRs) and corrective actions.
+-- SRM quality: inspections, non-conformance reports (NCRs) and corrective actions.
 -- NCR categories come from the Watchtower library 'ncr_categories'.
 -- Results, closure and verification are decisions made by staff through functions; the inspector is the signed-in user.
 -- Vendors see their own inspections and NCRs (without internal notes), acknowledge or respond to NCRs,

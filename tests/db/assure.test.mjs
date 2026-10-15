@@ -1,4 +1,4 @@
-// Assure+ internal SRM: supplier 360, compliance, pre-assessment, quality, performance, contracts, reviews,
+// SRM internal SRM: supplier 360, compliance, pre-assessment, quality, performance, contracts, reviews,
 // tasks, surveys, workflows, messages and training. Access rules, transitions and calculations.
 import assert from "node:assert/strict";
 import { test } from "node:test";
@@ -404,7 +404,7 @@ test("messages: sender comes from the session; vendors only in their own supplie
 test("training: https links only; start before completing; waive is admin-only", async () => {
   await rejects(as("admin", "insert into public.training_modules (title, url) values ('Bad','javascript:alert(1)')"), /check constraint/);
   await rejects(as("plain", "insert into public.training_modules (title) values ('x')"), /row-level security/);
-  const tm = await one("admin", "insert into public.training_modules (title, url, audience) values ('Using Assure+','https://example.com/v','internal') returning id", []);
+  const tm = await one("admin", "insert into public.training_modules (title, url, audience) values ('Using SRM','https://example.com/v','internal') returning id", []);
   await rejects(as("plain", "select public.assure_training_assign($1,$2,null)", [tm.id, [ids.plain]]), /Only admins and SRT leads/);
   assert.equal((await one("lead", "select public.assure_training_assign($1,$2,current_date + 7) as n", [tm.id, [ids.plain, ids.agent]])).n, 2);
   assert.equal((await one("lead", "select public.assure_training_assign($1,$2,null) as n", [tm.id, [ids.plain]])).n, 0);

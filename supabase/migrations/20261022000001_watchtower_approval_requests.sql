@@ -54,7 +54,7 @@ begin
     when 'module_owner' then p.is_admin or exists (select 1 from public.module_owners mo where mo.user_id = p_user and (p_module is null or mo.module = p_module))
     when 'briefing_lead' then p.is_admin or coalesce(a.is_lead, false) or coalesce(p.srt_role, '') in ('lead','head')
                               or exists (select 1 from public.module_owners mo where mo.user_id = p_user and mo.module = 'briefing')
-    -- Quality: SRT lead, Procurement head, sourcing lead, or an owner of Assure+ / Execution+.
+    -- Quality: SRT lead, Procurement head, sourcing lead, or an owner of SRM / Execution+.
     when 'quality' then p.is_admin or coalesce(p.srt_role, '') in ('lead','head') or coalesce(a.is_lead, false)
                         or exists (select 1 from public.module_owners mo where mo.user_id = p_user and mo.module in ('assure','execution'))
     -- Logistics lead: sourcing lead or a Logistics+ owner.
