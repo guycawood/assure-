@@ -8,6 +8,7 @@ import { daysUntil, human, money, statusTone, tierName } from "@/lib/vendor";
 import { ButtonLink, Card, Empty, Panel, Pill, Stat } from "@/components/ui";
 import { MSymbol } from "@/components/symbol";
 import { Stepper, type Step } from "@/components/stepper";
+import { SubscriptionInsights, type InsightData } from "@/components/vendor/subscription-insights";
 
 export const metadata = { title: "Dashboard" };
 
@@ -32,7 +33,7 @@ export default async function VendorDashboard() {
   }
   const c = ctx.company;
   const supabase = await createClient();
-  const [rfqs, pushes, pos, certs, tasks, ncrs, issues, surveys, contracts, rfis, deliveries, deployments] = await Promise.all([
+  const [rfqs, pushes, pos, certs, tasks, ncrs, issues, surveys, contracts, rfis, deliveries, deployments, scores, reviews] = await Promise.all([
     rpcList<VendorRfqRow>("rfq_vendor_list"),
     rpcList<PushRow>("triage_push_list"),
     rpcList<VendorPoRow>("po_vendor_list"),
@@ -45,6 +46,8 @@ export default async function VendorDashboard() {
     rows<VendorRfi>(supabase.from("vendor_rfis").select(RFI_COLUMNS).order("sent_at", { ascending: false }).limit(1)),
     rpcList<{ delivery_number: string; planned_delivery_date: string | null; remaining: number; status: string; shipments: { shipment_number: string; pod_status: string }[] }>("logistics_vendor_deliveries"),
     rpcList<{ id: string; deployment_code: string; outlet_name: string; planned_date: string | null; stage: string }>("execution_vendor_deployments"),
+    rows<InsightData["scores"][number]>(supabase.from("vendor_performance_records").select("period, composite_score, sustainability_score").order("period", { ascending: false }).limit(2)),
+    rows<InsightData["reviews"][number]>(supabase.from("vendor_business_reviews").select("title, meeting_date, next_review_date")),
   ]);
 
   const openRfqs = rfqs.filter((r) => r.open && r.invitation_status !== "declined" && r.quote_status !== "submitted");
@@ -124,6 +127,9 @@ export default async function VendorDashboard() {
         <Stat label="POs to accept" value={poWaiting.length} hint={pendingPush.length ? `${pendingPush.length} pushed price${pendingPush.length > 1 ? "s" : ""} to confirm` : "Purchase orders waiting for you"} icon={<MSymbol name="inventory_2" />} tone={poWaiting.length ? "warn" : undefined} />
         <Stat label="Compliance alerts" value={alerts.length + rejected.length} hint={`${expired.length} expired · ${rejected.length} rejected`} icon={<MSymbol name="verified" />} tone={expired.length || rejected.length ? "bad" : alerts.length ? "warn" : "ok"} />
       </div>
+
+      <SubscriptionInsights data={{ tier: c.subscription_tier, active: c.subscription_status === "active" || c.subscription_status === "pending",
+        scores, certs, pos, rfqs, pushes, reviews }} />
 
       <div className="grid gap-6 xl:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
         <Panel title="Needs your attention" sub="Everything waiting for you, soonest first">
