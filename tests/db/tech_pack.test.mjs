@@ -10,7 +10,7 @@ const t = await setupDb();
 const { as, asSuper, rejects, ids } = t;
 const V = { vA: "00000000-0000-0000-0000-0000000000e1", vB: "00000000-0000-0000-0000-0000000000e2", vAview: "00000000-0000-0000-0000-0000000000e3" };
 Object.assign(ids, V);
-const day = (offset) => new Date(Date.now() + offset * 864e5).toISOString().slice(0, 10);
+const day = (offset) => new Date(Date.now() + offset * 864e5).toLocaleDateString("en-CA"); // local date, matching the database current_date
 const one = async (user, sql, params) => (await as(user, sql, params)).rows[0];
 
 async function lib(key, code, name, data) {

@@ -11,7 +11,7 @@ const { as, asSuper, rejects, ids } = t;
 const V = { vA: "00000000-0000-0000-0000-0000000000d1", vB: "00000000-0000-0000-0000-0000000000d2", vAview: "00000000-0000-0000-0000-0000000000d3",
   client: "00000000-0000-0000-0000-0000000000d4" };
 Object.assign(ids, V);
-const day = (offset) => new Date(Date.now() + offset * 864e5).toISOString().slice(0, 10);
+const day = (offset) => new Date(Date.now() + offset * 864e5).toLocaleDateString("en-CA"); // local date, matching the database current_date
 const one = async (user, sql, params) => (await as(user, sql, params)).rows[0];
 
 async function lib(key, code, name, data) {
@@ -99,7 +99,7 @@ test("upload verification: a complete L1 auto-verifies and the plan passes", asy
   const c = await cp(L1.plan.id, "pre_shipment");
   const f = await upload("vA", c.id, sA);
   const r = (await one("vA", "select public.qaqc_vendor_submit($1, $2, $3) r", [c.id, JSON.stringify([{ type: "COC", file_id: f, issued_on: day(0) }]), JSON.stringify({ result: "pass" })])).r;
-  assert.equal(r.status, "auto_verified");
+  assert.equal(r.status, "auto_verified", JSON.stringify(r.checks.filter((x) => !x.ok)));
   assert.equal((await asSuper("select status from public.qaqc_plans where id = $1", [L1.plan.id])).rows[0].status, "passed");
   assert.equal((await asSuper("select first_time_pass from public.qaqc_checkpoints where id = $1", [c.id])).rows[0].first_time_pass, true);
 });

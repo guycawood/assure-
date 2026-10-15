@@ -14,7 +14,7 @@ const V = {
   vB: "00000000-0000-0000-0000-0000000000f3", // vendor B portal admin
 };
 Object.assign(ids, V);
-const day = (offset) => new Date(Date.now() + offset * 864e5).toISOString().slice(0, 10);
+const day = (offset) => new Date(Date.now() + offset * 864e5).toLocaleDateString("en-CA"); // local date, matching the database current_date
 const one = async (user, sql, params) => (await as(user, sql, params)).rows[0];
 
 async function lib(key, code, name, data) {

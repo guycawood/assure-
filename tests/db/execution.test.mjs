@@ -9,7 +9,7 @@ const { as, asSuper, rejects, ids } = t;
 
 const V = { vA: "00000000-0000-0000-0000-0000000000d1", vB: "00000000-0000-0000-0000-0000000000d2" };
 Object.assign(ids, V);
-const day = (offset) => new Date(Date.now() + offset * 864e5).toISOString().slice(0, 10);
+const day = (offset) => new Date(Date.now() + offset * 864e5).toLocaleDateString("en-CA"); // local date, matching the database current_date
 
 async function lib(key, code, name, data) {
   const { rows } = await asSuper("insert into public.library_records (library_key, code, name, data, status, effective_from) values ($1,$2,$3,$4,'active','2026-01-01') returning id", [key, code, name, JSON.stringify(data)]);

@@ -38,6 +38,7 @@ const SECTION_NAV: Record<Exclude<ModuleKey, "rfq" | "logistics" | "execution">,
       ] },
       { label: "Governed libraries", items: [
         { label: "All libraries", href: "/watchtower/libraries", icon: "library_books", exact: true },
+        { label: "Product taxonomy & AAC", href: "/watchtower/taxonomy", icon: "category" },
         { label: "Substrates", href: "/watchtower/libraries/substrates", icon: "layers" },
         { label: "Emission factors", href: "/watchtower/libraries/material_emission_factors", icon: "eco" },
         { label: "Impact Grade", href: "/watchtower/libraries/impact_grade_dimensions", icon: "grade" },

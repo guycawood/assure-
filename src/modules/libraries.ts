@@ -480,3 +480,31 @@ export function displayValue(f: LibraryField, v: unknown): string {
   if (f.type === "number" && f.unit) return `${v} ${f.unit}`;
   return String(v);
 }
+
+// AAC classification rules (master Watchtower → Product taxonomy → AAC rules). Scope codes come from the product
+// taxonomy; blank criteria fall back to the Sourcing settings. Migration 20261032000002.
+LIBRARY_SCHEMAS.aac_classification_rules = {
+  codeLabel: "Rule code", nameLabel: "Rule", groupBy: "route",
+  note: "For each route the most specific active rule in scope applies: product type, then subcategory, category, form type, then the default (no scope); client and market scope break ties, then the lowest priority number. Blank criteria use the Sourcing settings. A purchasing-blocked supplier always sends the line to an RFQ.",
+  fields: [
+    { key: "route", label: "Route", type: "enum", options: opts("adopt", "adapt", "push", "create"), required: true, column: true, filter: true },
+    { key: "definition", label: "What it means", type: "textarea", required: true },
+    { key: "scope_form_type", label: "Scope: form type", type: "enum", column: true, filter: true,
+      options: ["Print", "Packaging", "POS & Display", "Creative & Design", "Logistics", "Merchandise", "Digital", "Custom Goods & Services", "2D/3D", "Stocktool only"].map((v) => ({ value: v, label: v })) },
+    { key: "scope_category_code", label: "Scope: category code", type: "text", column: true, help: "Taxonomy category code, e.g. COUNTER. Set the form type too." },
+    { key: "scope_subcategory_code", label: "Scope: subcategory code", type: "text", column: true, help: "e.g. SHELF. Set the category too." },
+    { key: "scope_product_type_code", label: "Scope: product type code", type: "text", column: true, help: "e.g. WOBBLER. Set the subcategory too." },
+    { key: "scope_client_code", label: "Scope: client code", type: "text", help: "Sourcing client code; blank for every client" },
+    { key: "scope_market", label: "Scope: market", type: "text", help: "Market code or name; blank for every market" },
+    { key: "priority", label: "Priority", type: "number", column: true, help: "Lower wins when two rules have the same scope (default 100)" },
+    { key: "exact_match_percent", label: "Adopt: exact-match margin", type: "number", unit: "%", help: "Size difference still counted as the card item (default 0.5)" },
+    { key: "allow_quantity_outside_range", label: "Adopt: allow quantity outside the card range", type: "boolean" },
+    { key: "tolerance_percent", label: "Adapt: tolerance band", type: "number", unit: "%", help: "Blank = Sourcing settings" },
+    { key: "max_value", label: "Adapt / Push: value limit", type: "number", help: "Line value above this goes to an RFQ. Blank = Sourcing settings instant-price limit" },
+    { key: "min_confidence", label: "Push: minimum price confidence", type: "number", help: "0 to 1. Blank = Sourcing settings push threshold" },
+    { key: "min_supplier_score", label: "Minimum supplier quality score", type: "number", help: "Latest SRM composite score the card supplier needs for this route (blank = no floor)" },
+    { key: "force_spec_forms", label: "Create: spec forms that always go to an RFQ", type: "list", help: "ideation, open or fixed; one per line" },
+    { key: "force_complexity", label: "Create: complexities that always go to an RFQ", type: "list", help: "low, medium or high; one per line" },
+    { key: "note", label: "Note", type: "textarea" },
+  ],
+};
