@@ -19,9 +19,9 @@ on conflict (email) do nothing;
 -- Clients (commercial rules) and billing entities
 -- ---------------------------------------------------------------------------
 insert into public.sourcing_clients (id, code, name, default_currency, default_markup_percent, savings_target_percent, quote_tolerance_percent, min_quotes_required, e_tender_threshold) values
-  ('c5000000-0000-4000-8000-000000000001', 'UL',  'Unilever (demo)',  'GBP', 15, 5, 10, 3, 55000),
-  ('c5000000-0000-4000-8000-000000000002', 'HNK', 'Heineken (demo)',  'EUR', 14, 6, 15, 3, 50000),
-  ('c5000000-0000-4000-8000-000000000003', 'CPL', 'Coloplast (demo)', 'EUR', 12, 4, null, 2, 40000),
+  ('c5000000-0000-4000-8000-000000000001', 'BRL',  'Brightlane (demo)',  'GBP', 15, 5, 10, 3, 55000),
+  ('c5000000-0000-4000-8000-000000000002', 'NBW', 'Northbrew (demo)',  'EUR', 14, 6, 15, 3, 50000),
+  ('c5000000-0000-4000-8000-000000000003', 'CRW', 'Carewell (demo)', 'EUR', 12, 4, null, 2, 40000),
   ('c5000000-0000-4000-8000-000000000004', 'BAU', 'BAU clients (demo)', 'EUR', 18, 3, null, 3, null)
 on conflict (code) do nothing;
 
@@ -39,10 +39,10 @@ on conflict (code) do nothing;
 insert into public.library_records (library_key, code, name, data, status, effective_from)
 select v.key, v.code, v.name, v.data::jsonb, 'active', date '2026-01-01'
   from (values
-    ('rate_cards', 'RC-HNK-A2', 'Heineken A2 header card, FBB 350gsm', '{"spec_type":"2d","substrate_code":"SUB-FBB350","finished_length_mm":600,"finished_width_mm":400,"min_qty":500,"max_qty":10000,"unit_price":1.85,"currency":"EUR","supplier_code":"DEMO-015","client_code":"HNK"}'),
+    ('rate_cards', 'RC-NBW-A2', 'Northbrew A2 header card, FBB 350gsm', '{"spec_type":"2d","substrate_code":"SUB-FBB350","finished_length_mm":600,"finished_width_mm":400,"min_qty":500,"max_qty":10000,"unit_price":1.85,"currency":"EUR","supplier_code":"DEMO-015","client_code":"NBW"}'),
     ('rate_cards', 'RC-A1-POSTER', 'A1 poster, FBB 350gsm', '{"spec_type":"2d","substrate_code":"SUB-FBB350","finished_length_mm":594,"finished_width_mm":841,"min_qty":100,"max_qty":2000,"unit_price":4.20,"currency":"EUR","supplier_code":"DEMO-030"}'),
     ('rate_cards', 'RC-CLING-1000', 'Window cling 1000 x 700, vinyl', '{"spec_type":"2d","substrate_code":"SUB-VINYL","finished_length_mm":1000,"finished_width_mm":700,"min_qty":50,"max_qty":1000,"unit_price":9.50,"currency":"EUR","supplier_code":"DEMO-030"}'),
-    ('rate_cards', 'RC-WOBBLER', 'Shelf wobbler 100 x 150, SBS 300gsm', '{"spec_type":"2d","substrate_code":"SUB-SBS300","finished_length_mm":100,"finished_width_mm":150,"min_qty":5000,"max_qty":15000,"unit_price":0.30,"currency":"GBP","supplier_code":"DEMO-019","client_code":"UL"}'),
+    ('rate_cards', 'RC-WOBBLER', 'Shelf wobbler 100 x 150, SBS 300gsm', '{"spec_type":"2d","substrate_code":"SUB-SBS300","finished_length_mm":100,"finished_width_mm":150,"min_qty":5000,"max_qty":15000,"unit_price":0.30,"currency":"GBP","supplier_code":"DEMO-019","client_code":"BRL"}'),
     ('high_value_thresholds', 'HV-DEFAULT', 'All other markets', '{"market":null,"threshold":100000,"currency":"EUR"}'),
     ('high_value_thresholds', 'HV-DE', 'Germany', '{"market":"Germany","threshold":50000,"currency":"EUR"}'),
     ('high_value_thresholds', 'HV-UK', 'United Kingdom', '{"market":"United Kingdom","threshold":60000,"currency":"GBP"}'),
@@ -54,12 +54,12 @@ select v.key, v.code, v.name, v.data::jsonb, 'active', date '2026-01-01'
 -- Jobs
 -- ---------------------------------------------------------------------------
 insert into public.jobs (id, title, client_id, billing_entity_id, region, market, category, campaign_name, brand, budget, currency, quote_due_date, target_delivery_date, status, notes) values
-  ('a5000000-0000-4000-8000-000000000001', 'Summer cooler POS kit', 'c5000000-0000-4000-8000-000000000002', 'c6000000-0000-4000-8000-000000000002', 'EMEA', 'Germany', 'POSM', 'Summer refresh 2026', 'Heineken', 15000, 'EUR', current_date + 5, current_date + 45, 'quoting', 'Dummy job'),
-  ('a5000000-0000-4000-8000-000000000002', 'Dove shelf wobblers', 'c5000000-0000-4000-8000-000000000001', 'c6000000-0000-4000-8000-000000000001', 'EMEA', 'United Kingdom', 'Print', 'Real beauty in-store', 'Dove', 8000, 'GBP', current_date - 10, current_date + 20, 'quoting', 'Dummy job'),
+  ('a5000000-0000-4000-8000-000000000001', 'Summer cooler POS kit', 'c5000000-0000-4000-8000-000000000002', 'c6000000-0000-4000-8000-000000000002', 'EMEA', 'Germany', 'POSM', 'Summer refresh 2026', 'Northbrew', 15000, 'EUR', current_date + 5, current_date + 45, 'quoting', 'Dummy job'),
+  ('a5000000-0000-4000-8000-000000000002', 'Lumora shelf wobblers', 'c5000000-0000-4000-8000-000000000001', 'c6000000-0000-4000-8000-000000000001', 'EMEA', 'United Kingdom', 'Print', 'Real beauty in-store', 'Lumora', 8000, 'GBP', current_date - 10, current_date + 20, 'quoting', 'Dummy job'),
   ('a5000000-0000-4000-8000-000000000003', 'Store opening kit', 'c5000000-0000-4000-8000-000000000004', 'c6000000-0000-4000-8000-000000000003', 'APAC', 'Singapore', 'Print', 'Orchard Road opening', null, 6000, 'EUR', null, current_date + 30, 'open', 'Dummy job'),
   ('a5000000-0000-4000-8000-000000000004', 'Clinic display stands', 'c5000000-0000-4000-8000-000000000003', 'c6000000-0000-4000-8000-000000000004', 'Americas', 'United States', 'Fixtures', 'Clinic visibility', null, 12000, 'EUR', current_date - 20, current_date + 15, 'in_production', 'Dummy job'),
-  ('a5000000-0000-4000-8000-000000000005', 'Tet promo hampers', 'c5000000-0000-4000-8000-000000000001', 'c6000000-0000-4000-8000-000000000005', 'APAC', 'Vietnam', 'Premiums', 'Tet 2027', 'Knorr', 20000, 'EUR', null, current_date + 90, 'open', 'Dummy job'),
-  ('a5000000-0000-4000-8000-000000000006', 'Flagship bar fixture', 'c5000000-0000-4000-8000-000000000002', 'c6000000-0000-4000-8000-000000000002', 'EMEA', 'Germany', 'Fixtures', 'Flagship bars', 'Heineken', 80000, 'EUR', current_date + 14, current_date + 75, 'open', 'Dummy job');
+  ('a5000000-0000-4000-8000-000000000005', 'Tet promo hampers', 'c5000000-0000-4000-8000-000000000001', 'c6000000-0000-4000-8000-000000000005', 'APAC', 'Vietnam', 'Premiums', 'Tet 2027', 'Fresko', 20000, 'EUR', null, current_date + 90, 'open', 'Dummy job'),
+  ('a5000000-0000-4000-8000-000000000006', 'Flagship bar fixture', 'c5000000-0000-4000-8000-000000000002', 'c6000000-0000-4000-8000-000000000002', 'EMEA', 'Germany', 'Fixtures', 'Flagship bars', 'Northbrew', 80000, 'EUR', current_date + 14, current_date + 75, 'open', 'Dummy job');
 
 -- ---------------------------------------------------------------------------
 -- Specs, versions and components (substrates from the Watchtower library)
@@ -67,7 +67,7 @@ insert into public.jobs (id, title, client_id, billing_entity_id, region, market
 insert into public.job_specs (id, job_id, title, spec_type, description, size_unit, substrate_id, unit_weight_grams, weight_basis, hs_code, is_draft) values
   ('b5000000-0000-4000-8000-000000000011', 'a5000000-0000-4000-8000-000000000001', 'Cooler header card A2', '2d', 'Single-sided header card, 4/0 CMYK, matt varnish', 'mm', (select id from public.library_records where library_key = 'substrates' and code = 'SUB-FBB350' and status = 'active'), 84, 'calculated_from_material', '4911.10', false),
   ('b5000000-0000-4000-8000-000000000012', 'a5000000-0000-4000-8000-000000000001', 'Bar runner mat', 'promo_merch', 'Rubber-backed bar runner, full-colour print, 600 x 250 mm', 'mm', null, 420, 'supplier_confirmed', '4016.91', false),
-  ('b5000000-0000-4000-8000-000000000021', 'a5000000-0000-4000-8000-000000000002', 'Dove shelf wobbler', '2d', 'Die-cut wobbler with clear PET arm', 'mm', (select id from public.library_records where library_key = 'substrates' and code = 'SUB-SBS300' and status = 'active'), 5, 'calculated_from_material', '4911.10', false),
+  ('b5000000-0000-4000-8000-000000000021', 'a5000000-0000-4000-8000-000000000002', 'Lumora shelf wobbler', '2d', 'Die-cut wobbler with clear PET arm', 'mm', (select id from public.library_records where library_key = 'substrates' and code = 'SUB-SBS300' and status = 'active'), 5, 'calculated_from_material', '4911.10', false),
   ('b5000000-0000-4000-8000-000000000031', 'a5000000-0000-4000-8000-000000000003', 'Opening day poster A1', '2d', 'A1 poster, 4/0', 'mm', (select id from public.library_records where library_key = 'substrates' and code = 'SUB-FBB350' and status = 'active'), 175, 'calculated_from_material', '4911.10', false),
   ('b5000000-0000-4000-8000-000000000032', 'a5000000-0000-4000-8000-000000000003', 'Window cling', '2d', 'Static cling, reverse printed', 'mm', (select id from public.library_records where library_key = 'substrates' and code = 'SUB-VINYL' and status = 'active'), null, null, null, false),
   ('b5000000-0000-4000-8000-000000000041', 'a5000000-0000-4000-8000-000000000004', 'Freestanding clinic stand', '3d', 'Plywood stand with acrylic leaflet holders', 'mm', null, null, null, '9403.60', false),
@@ -101,7 +101,7 @@ insert into public.spec_triage (spec_id, route, reason, confidence, rate_card_id
 select v.spec_id::uuid, v.route, v.reason, v.conf, (select id from public.library_records where library_key = 'rate_cards' and code = v.card and status = 'active'),
        v.price, v.cur, v.qty, (select id from public.suppliers where supplier_code = v.sup), v.push, case when v.push is not null then current_date + 3 end, 'triage-rules-v1', v.src
   from (values
-    ('b5000000-0000-4000-8000-000000000011', 'adopt', 'Exact match to rate card "Heineken A2 header card, FBB 350gsm": card price applies.', 1.0, 'RC-HNK-A2', 1.85, 'EUR', 2000, 'DEMO-015', null, 'rule'),
+    ('b5000000-0000-4000-8000-000000000011', 'adopt', 'Exact match to rate card "Northbrew A2 header card, FBB 350gsm": card price applies.', 1.0, 'RC-NBW-A2', 1.85, 'EUR', 2000, 'DEMO-015', null, 'rule'),
     ('b5000000-0000-4000-8000-000000000012', 'create', 'No live rate card matches this spec type and material: run an RFQ.', 0, null, null, 'EUR', 500, null, null, 'rule'),
     ('b5000000-0000-4000-8000-000000000021', 'create', 'Override: Client asked for a competitive round this season', 0, 'RC-WOBBLER', 0.30, 'GBP', 20000, null, null, 'override'),
     ('b5000000-0000-4000-8000-000000000031', 'adopt', 'Exact match to rate card "A1 poster, FBB 350gsm": card price applies.', 0.95, 'RC-A1-POSTER', 4.20, 'EUR', 300, 'DEMO-030', null, 'rule'),
@@ -123,7 +123,7 @@ insert into public.rfqs (id, job_id, title, status, currency, due_at, estimated_
   ('d5000000-0000-4000-8000-000000000001', 'a5000000-0000-4000-8000-000000000001', 'Bar runner mats', 'sent', 'EUR', now() + interval '5 days', 3250, 'EMEA', 'Germany',
    (select id from public.library_records where library_key = 'sourcing_control_matrix' and code = 'SCM-1' and status = 'active'), 'Under €5k', 3, 'Band "Under €5k": at least 3 in-country supplier(s).',
    50000, false, 'Dummy RFQ', now() - interval '2 days', null, null),
-  ('d5000000-0000-4000-8000-000000000002', 'a5000000-0000-4000-8000-000000000002', 'Dove wobblers 2026', 'awarded', 'GBP', now() - interval '12 days', 6000, 'EMEA', 'United Kingdom',
+  ('d5000000-0000-4000-8000-000000000002', 'a5000000-0000-4000-8000-000000000002', 'Lumora wobblers 2026', 'awarded', 'GBP', now() - interval '12 days', 6000, 'EMEA', 'United Kingdom',
    (select id from public.library_records where library_key = 'sourcing_control_matrix' and code = 'SCM-2' and status = 'active'), '€5k to €25k', 3, 'Band "€5k to €25k": at least 3 in-country supplier(s).',
    60000, false, 'Dummy RFQ', now() - interval '20 days', now() - interval '11 days', 'Lowest price and shortest lead time'),
   ('d5000000-0000-4000-8000-000000000004', 'a5000000-0000-4000-8000-000000000004', 'Clinic stands', 'awarded', 'EUR', now() - interval '22 days', 10000, 'Americas', 'United States',
@@ -195,7 +195,7 @@ insert into public.estimates (id, job_id, rfq_id, response_id, supplier_id, sour
   pricing_mode, pricing_percent, savings_vs_benchmark, savings_vs_target, savings_target_percent, selection_reason, status, client_order_ref, sent_at, approved_at, region, market) values
   ('e5000000-0000-4000-8000-000000000002', 'a5000000-0000-4000-8000-000000000002', 'd5000000-0000-4000-8000-000000000002', 'd7000000-0000-4000-8000-000000000022',
    (select id from public.suppliers where supplier_code = 'DEMO-019'), 'rfq', 'GBP', 5400, 5800, 'live', 6000, 'markup', 15, 400, 600, 5,
-   'Lowest price and shortest lead time', 'approved', 'UL-PO-44821', now() - interval '9 days', now() - interval '7 days', 'EMEA', 'United Kingdom'),
+   'Lowest price and shortest lead time', 'approved', 'BRL-PO-44821', now() - interval '9 days', now() - interval '7 days', 'EMEA', 'United Kingdom'),
   ('e5000000-0000-4000-8000-000000000004', 'a5000000-0000-4000-8000-000000000004', 'd5000000-0000-4000-8000-000000000004', 'd7000000-0000-4000-8000-000000000041',
    (select id from public.suppliers where supplier_code = 'DEMO-024'), 'rfq', 'EUR', 9000, 9750, 'live', 10000, 'margin', 12, 750, 1000, 4,
    'Lowest price, in-country supplier', 'approved', 'CPL-77310', now() - interval '19 days', now() - interval '18 days', 'Americas', 'United States'),
@@ -236,7 +236,7 @@ select j.id, 'job', j.id, 'created', jsonb_build_object('job_number', j.job_numb
 insert into public.sourcing_events (job_id, entity, entity_id, event, detail, at) values
   ('a5000000-0000-4000-8000-000000000001', 'rfq', 'd5000000-0000-4000-8000-000000000001', 'sent', '{"suppliers":3,"min_required":3,"band":"Under €5k"}', now() - interval '2 days'),
   ('a5000000-0000-4000-8000-000000000002', 'rfq', 'd5000000-0000-4000-8000-000000000002', 'awarded', '{"reason":"Lowest price and shortest lead time","valid_quotes":3,"min_required":3}', now() - interval '11 days'),
-  ('a5000000-0000-4000-8000-000000000002', 'estimate', 'e5000000-0000-4000-8000-000000000002', 'approved', '{"client_order_ref":"UL-PO-44821"}', now() - interval '7 days'),
+  ('a5000000-0000-4000-8000-000000000002', 'estimate', 'e5000000-0000-4000-8000-000000000002', 'approved', '{"client_order_ref":"BRL-PO-44821"}', now() - interval '7 days'),
   ('a5000000-0000-4000-8000-000000000002', 'po', 'f5000000-0000-4000-8000-000000000002', 'created', '{"required_doa_level":1}', now() - interval '6 days'),
   ('a5000000-0000-4000-8000-000000000004', 'po', 'f5000000-0000-4000-8000-000000000004', 'vendor_accepted', '{}', now() - interval '15 days'),
   ('a5000000-0000-4000-8000-000000000006', 'rfq', 'd5000000-0000-4000-8000-000000000006', 'high_value_alert', '{"estimated_value":65000,"threshold":50000,"market":"Germany"}', now() - interval '1 day');

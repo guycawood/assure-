@@ -27,8 +27,8 @@ select 'approval_policies', x.code, x.name, x.data::jsonb, 'active', date '2026-
   ) x(code, name, data)
  where not exists (select 1 from public.library_records r where r.library_key = 'approval_policies' and r.code = x.code);
 
--- Coloplast's contract asks for production control (L3) or above on every line.
-update public.sourcing_clients set qa_min_level = 3 where code = 'CPL' and qa_min_level is null;
+-- Carewell's contract asks for production control (L3) or above on every line.
+update public.sourcing_clients set qa_min_level = 3 where code = 'CRW' and qa_min_level is null;
 
 -- ---------------------------------------------------------------------------
 -- Journey timestamps: the earlier demo seeds created rows "now"; move them to when they happened
@@ -48,7 +48,7 @@ update public.spec_triage t set decided_at = s.created_at + interval '2 days'
    and exists (select 1 from public.purchase_orders p where p.job_id = s.job_id and p.po_date < current_date - 7);
 update public.spec_triage t set decided_at = least(t.decided_at, (j.opened_date + 3 + time '11:00')::timestamptz)
   from public.job_specs s join public.jobs j on j.id = s.job_id where s.id = t.spec_id and t.decided_at::date > j.opened_date + 3 and j.opened_date < current_date - 10;
--- Briefs behind the two delivered Heineken jobs: submitted and approved before the job opened.
+-- Briefs behind the two delivered Northbrew jobs: submitted and approved before the job opened.
 update public.briefs b set submitted_at = (j.opened_date - 12 + time '10:00')::timestamptz, reviewed_at = (j.opened_date - 9 + time '15:30')::timestamptz,
        approval_status = coalesce(b.approval_status, 'approved')
   from public.jobs j where j.brief_id = b.id and j.id in ('a9000000-0000-4000-8000-000000000001', 'a9000000-0000-4000-8000-000000000002')
@@ -86,7 +86,7 @@ update public.jobs j set closed_at = j.delivered_at + interval '12 days' where j
    and (j.closed_at < j.delivered_at or j.closed_at::date = current_date);
 
 -- ---------------------------------------------------------------------------
--- Deliveries with POD timestamps: one late, one short-shipped (Heineken jobs)
+-- Deliveries with POD timestamps: one late, one short-shipped (Northbrew jobs)
 -- ---------------------------------------------------------------------------
 insert into public.deliveries (id, po_id, job_id, supplier_id, spec_id, quantity, uom, recipient_name, address_line, city, postcode, region, market,
   delivery_method, incoterm, planned_dispatch_date, planned_delivery_date, actual_delivery_date, status, gross_weight_kg, distance_km, delivered_at, special_instructions)
@@ -185,7 +185,7 @@ begin
   perform public._qaqc_plan_refresh(c.plan_id);
 end $$;
 
--- L1 (lowered with approval): Knorr shelf strips, a repeat print run. A certificate of conformity auto-verified.
+-- L1 (lowered with approval): Fresko shelf strips, a repeat print run. A certificate of conformity auto-verified.
 do $$
 declare v_plan uuid; v_req uuid;
 begin
@@ -193,7 +193,7 @@ begin
   if v_plan is not null then
     insert into public.approval_requests (module, approval_type, entity_type, entity_id, ref, title, payload, approver_role, approver_module, maker_checker, run_as,
       status, reason, requested_by, requested_at, decided_by, decided_at, decision_note)
-    select 'orders', 'QAQC_LOWER', 'qaqc_plan', v_plan::text, pl.plan_ref, 'Lower QA/QC from L' || pl.required_level || ' to L1 · Knorr shelf strips',
+    select 'orders', 'QAQC_LOWER', 'qaqc_plan', v_plan::text, pl.plan_ref, 'Lower QA/QC from L' || pl.required_level || ' to L1 · Fresko shelf strips',
       jsonb_build_object('level', 1, 'reason', 'Repeat of an approved print run; the client accepts a certificate of conformity'), 'quality', 'orders', true, 'approver',
       'approved', 'Repeat of an approved print run; the client accepts a certificate of conformity',
       (select id from public.profiles where email = 'pedro.procurement@adm-indicia.com'), now() - interval '109 days',
@@ -206,13 +206,13 @@ begin
 end $$;
 select public._m95_submit('65200000-0000-4000-8000-000000000003', 'pre_shipment', '[{"type":"COC","file":"coc-knorr-strips","issued_ago":92}]', 'pass', 92);
 
--- L2 passed: Amstel gift pack sleeves and Amstel bar runners (self-inspection with photos, then a CoC).
+-- L2 passed: Halden gift pack sleeves and Halden bar runners (self-inspection with photos, then a CoC).
 select public._m95_submit('f9000000-0000-4000-8000-000000000003', 'production', '[{"type":"CHECKLIST","file":"check-sheet-sleeves"},{"type":"PHOTO_SET","file":"sleeves-photo","ctype":"image/jpeg","count":4}]', 'pass', 58);
 select public._m95_submit('f9000000-0000-4000-8000-000000000003', 'pre_shipment', '[{"type":"COC","file":"coc-sleeves","issued_ago":52}]', 'pass', 52);
 select public._m95_submit('65200000-0000-4000-8000-000000000001', 'production', '[{"type":"CHECKLIST","file":"check-sheet-runners"},{"type":"PHOTO_SET","file":"runners-photo","ctype":"image/jpeg","count":3}]', 'pass', 40);
 select public._m95_submit('65200000-0000-4000-8000-000000000001', 'pre_shipment', '[{"type":"DECLARATION","file":"declaration-runners","issued_ago":37}]', 'pass', 37);
 
--- L4 passed: Heineken 0.0 gondola ends, independent inspection by Meridian, verified by a quality role.
+-- L4 passed: Northbrew 0.0 gondola ends, independent inspection by Meridian, verified by a quality role.
 select public._m95_submit('f9000000-0000-4000-8000-000000000001', 'mockup', '[{"type":"SAMPLE_APPROVAL","file":"gondola-mockup-approval","issued_ago":33}]', 'pass', 33);
 select public._m95_submit('f9000000-0000-4000-8000-000000000001', 'production', '[{"type":"CHECKLIST","file":"gondola-production-sheet"}]', 'pass', 22);
 select public._m95_submit('f9000000-0000-4000-8000-000000000001', 'pre_shipment', '[{"type":"INSPECTION_REPORT","file":"meridian-psi-gondola","inspected_ago":15,"body":"MERIDIAN","sample":32,"critical":0,"major":1,"minor":3,"result":"pass"}]', 'pass', 15);
@@ -220,7 +220,7 @@ select public._m95_signoff('f9000000-0000-4000-8000-000000000001', 'mockup', 32,
 select public._m95_signoff('f9000000-0000-4000-8000-000000000001', 'production', 21, null);
 select public._m95_signoff('f9000000-0000-4000-8000-000000000001', 'pre_shipment', 14, 'Within AQL 2.5; one major (scuffed header) reworked before shipping');
 
--- L5 passed: clinic leaflet dispensers (Coloplast), factory audit and certificate from Castellan, final inspection by adm Indicia QC.
+-- L5 passed: clinic leaflet dispensers (Carewell), factory audit and certificate from Castellan, final inspection by adm Indicia QC.
 select public._m95_submit('65200000-0000-4000-8000-000000000002', 'mockup', '[{"type":"SAMPLE_APPROVAL","file":"dispenser-sample-approval","issued_ago":76}]', 'pass', 76);
 select public._m95_submit('65200000-0000-4000-8000-000000000002', 'production', '[{"type":"AUDIT_REPORT","file":"castellan-factory-audit","issued_ago":120,"body":"CASTELLAN","result":"pass"}]', 'pass', 70);
 select public._m95_submit('65200000-0000-4000-8000-000000000002', 'pre_shipment', '[{"type":"INSPECTION_REPORT","file":"admqc-final-inspection","inspected_ago":60,"body":"ADM-QC","sample":50,"critical":0,"major":1,"minor":2,"result":"pass"},{"type":"CERTIFICATE","file":"castellan-recycled-content-cert","body":"CASTELLAN","cert":"CC-RC-2026-0412","issued_ago":200,"expires_in":300}]', 'pass', 60);
@@ -228,7 +228,7 @@ select public._m95_signoff('65200000-0000-4000-8000-000000000002', 'mockup', 75,
 select public._m95_signoff('65200000-0000-4000-8000-000000000002', 'production', 69, 'Audit by an accredited body, valid for this order');
 select public._m95_signoff('65200000-0000-4000-8000-000000000002', 'pre_shipment', 59, 'Certificate checked against the Castellan register');
 
--- L4 failed: Coloplast clinic displays (US). Mock-up and production signed off; the pre-shipment inspection failed AQL -> NCR.
+-- L4 failed: Carewell clinic displays (US). Mock-up and production signed off; the pre-shipment inspection failed AQL -> NCR.
 select public._m95_submit('f5000000-0000-4000-8000-000000000004', 'mockup', '[{"type":"SAMPLE_APPROVAL","file":"clinic-display-sample","issued_ago":12}]', 'pass', 12);
 select public._m95_signoff('f5000000-0000-4000-8000-000000000004', 'mockup', 11, null);
 select public._m95_submit('f5000000-0000-4000-8000-000000000004', 'production', '[{"type":"CHECKLIST","file":"clinic-display-production"}]', 'pass', 6);

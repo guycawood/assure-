@@ -12,7 +12,7 @@ await asSuper(`insert into public.library_records (library_key, code, name, stat
   ('touchpoint_types', 'TP-DISPLAY', 'Display', 'active'), ('touchpoint_types', 'TP-OLD', 'Old', 'retired'),
   ('p2p_stages', 'P2P-SELL', 'Sell', 'active')`);
 const { rows: [{ id: campaign }] } = await as("agent", "select public.campaign_save(null, $1) as id",
-  [JSON.stringify({ name: "Summer", client: "Heineken", brands: ["Heineken 0.0"], markets: [{ region: "EMEA", market: "GB" }] })]);
+  [JSON.stringify({ name: "Summer", client: "Northbrew", brands: ["Northbrew 0.0"], markets: [{ region: "EMEA", market: "GB" }] })]);
 
 test("effectiveness records reference the taxonomy by FK and keep region and market separate", async () => {
   const { rows: [{ id }] } = await as("agent", "select public.siq_record_effectiveness($1) as id", [JSON.stringify({
@@ -39,7 +39,7 @@ test("assets pick up campaign metadata automatically", async () => {
     touchpoint: "TP-DISPLAY", file_name: "photo.jpg", metadata: { headline: "Zero alcohol" },
   })]);
   const { rows: [a] } = await as("plain", "select brand, metadata_source, touchpoint_name, metadata, asset_code from public.siq_assets_v where id = $1", [id]);
-  assert.equal(a.brand, "Heineken 0.0");
+  assert.equal(a.brand, "Northbrew 0.0");
   assert.equal(a.metadata_source, "job");
   assert.equal(a.touchpoint_name, "Display");
   assert.equal(a.metadata.headline, "Zero alcohol");

@@ -2,7 +2,7 @@
 
 CRM in System Guy replaces HubSpot. This is what adm Indicia uses HubSpot for today (from the Client Services
 guides IWW326 Stakeholder Mapping, IWW327 Performance Tracker, IWW334 Customer Satisfaction Survey, Oct 2023;
-form-submission exports on the Nestlé team sites; marketing and internal comms emails, 2026; the Data Domain
+form-submission exports on client team sites; marketing and internal comms emails, 2026; the Data Domain
 Owners sheet, which names HubSpot as the source for client contacts), and what CRM must do to take each job over.
 
 ## 1. Stakeholder mapping (contacts)
@@ -42,9 +42,9 @@ contract says.
   services awareness; filters by client, country, NPS category and customer feeling; comment word cloud.
 
 ## 4. Forms, events and job surveys
-- Forms and landing pages: event registration and event feedback (e.g. Nestlé innovation workshops), QR codes
+- Forms and landing pages: event registration and event feedback (e.g. client innovation workshops), QR codes
   on stands pointing to a form, submissions exported to Excel today.
-- Online job survey after delivery: project number, spend, overall experience (e.g. Nespresso). In System Guy
+- Online job survey after delivery: project number, spend, overall experience (e.g. a client job survey). In System Guy
   this should go out when a job closes in Order Management.
 
 ## 5. Email to lists, with tracking

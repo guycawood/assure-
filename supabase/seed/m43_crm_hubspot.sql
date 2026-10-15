@@ -19,21 +19,21 @@ on conflict do nothing;
 insert into public.crm_contacts (id, client_id, account_id, full_name, job_title, email, phone, market, decision_role, consent, created_at)
 select x.id::uuid, a.client_id, a.id, x.name, x.title, x.email, null, a.market, x.role, false, now() - interval '120 days'
   from (values
-    ('43c00000-0000-4000-8000-000000000001', '42a00000-0000-4000-8000-000000000001', 'Katrin Vogel', 'Category manager, beer', 'katrin.vogel@heineken.example', 'user'),
-    ('43c00000-0000-4000-8000-000000000002', '42a00000-0000-4000-8000-000000000001', 'Felix Braun', 'Procurement manager', 'felix.braun@heineken.example', 'buyer'),
-    ('43c00000-0000-4000-8000-000000000003', '42a00000-0000-4000-8000-000000000002', 'Sanne Bakker', 'Global brand manager', 'sanne.bakker@heineken.example', 'sponsor'),
-    ('43c00000-0000-4000-8000-000000000004', '42a00000-0000-4000-8000-000000000002', 'Daan Visser', 'Sustainability lead', 'daan.visser@heineken.example', 'user'),
-    ('43c00000-0000-4000-8000-000000000005', '42a00000-0000-4000-8000-000000000003', 'Grace Lewis', 'Trade marketing manager', 'grace.lewis@heineken.example', 'approver'),
-    ('43c00000-0000-4000-8000-000000000006', '42a00000-0000-4000-8000-000000000004', 'Priya Shah', 'Head of procurement, marketing', 'priya.shah@unilever.example', 'buyer'),
-    ('43c00000-0000-4000-8000-000000000007', '42a00000-0000-4000-8000-000000000004', 'Martin Cole', 'Brand manager, Magnum', 'martin.cole@unilever.example', 'user'),
-    ('43c00000-0000-4000-8000-000000000008', '42a00000-0000-4000-8000-000000000004', 'Hannah Price', 'Shopper insight manager', 'hannah.price@unilever.example', 'user'),
-    ('43c00000-0000-4000-8000-000000000009', '42a00000-0000-4000-8000-000000000005', 'Minh Nguyen', 'Trade marketing lead', 'minh.nguyen@unilever.example', 'approver'),
-    ('43c00000-0000-4000-8000-000000000010', '42a00000-0000-4000-8000-000000000006', 'Camille Laurent', 'Customer marketing manager', 'camille.laurent@unilever.example', 'user'),
-    ('43c00000-0000-4000-8000-000000000011', '42a00000-0000-4000-8000-000000000007', 'Jordan Miller', 'Field marketing director', 'jordan.miller@coloplast.example', 'sponsor'),
-    ('43c00000-0000-4000-8000-000000000012', '42a00000-0000-4000-8000-000000000007', 'Ava Thompson', 'Purchasing specialist', 'ava.thompson@coloplast.example', 'buyer'),
-    ('43c00000-0000-4000-8000-000000000013', '42a00000-0000-4000-8000-000000000008', 'Sofie Jensen', 'Brand manager, Nordics', 'sofie.jensen@coloplast.example', 'user'),
+    ('43c00000-0000-4000-8000-000000000001', '42a00000-0000-4000-8000-000000000001', 'Katrin Vogel', 'Category manager, beer', 'katrin.vogel@northbrew.example', 'user'),
+    ('43c00000-0000-4000-8000-000000000002', '42a00000-0000-4000-8000-000000000001', 'Felix Braun', 'Procurement manager', 'felix.braun@northbrew.example', 'buyer'),
+    ('43c00000-0000-4000-8000-000000000003', '42a00000-0000-4000-8000-000000000002', 'Sanne Bakker', 'Global brand manager', 'sanne.bakker@northbrew.example', 'sponsor'),
+    ('43c00000-0000-4000-8000-000000000004', '42a00000-0000-4000-8000-000000000002', 'Daan Visser', 'Sustainability lead', 'daan.visser@northbrew.example', 'user'),
+    ('43c00000-0000-4000-8000-000000000005', '42a00000-0000-4000-8000-000000000003', 'Grace Lewis', 'Trade marketing manager', 'grace.lewis@northbrew.example', 'approver'),
+    ('43c00000-0000-4000-8000-000000000006', '42a00000-0000-4000-8000-000000000004', 'Priya Shah', 'Head of procurement, marketing', 'priya.shah@brightlane.example', 'buyer'),
+    ('43c00000-0000-4000-8000-000000000007', '42a00000-0000-4000-8000-000000000004', 'Martin Cole', 'Brand manager, Polaris', 'martin.cole@brightlane.example', 'user'),
+    ('43c00000-0000-4000-8000-000000000008', '42a00000-0000-4000-8000-000000000004', 'Hannah Price', 'Shopper insight manager', 'hannah.price@brightlane.example', 'user'),
+    ('43c00000-0000-4000-8000-000000000009', '42a00000-0000-4000-8000-000000000005', 'Minh Nguyen', 'Trade marketing lead', 'minh.nguyen@brightlane.example', 'approver'),
+    ('43c00000-0000-4000-8000-000000000010', '42a00000-0000-4000-8000-000000000006', 'Camille Laurent', 'Customer marketing manager', 'camille.laurent@brightlane.example', 'user'),
+    ('43c00000-0000-4000-8000-000000000011', '42a00000-0000-4000-8000-000000000007', 'Jordan Miller', 'Field marketing director', 'jordan.miller@carewell.example', 'sponsor'),
+    ('43c00000-0000-4000-8000-000000000012', '42a00000-0000-4000-8000-000000000007', 'Ava Thompson', 'Purchasing specialist', 'ava.thompson@carewell.example', 'buyer'),
+    ('43c00000-0000-4000-8000-000000000013', '42a00000-0000-4000-8000-000000000008', 'Sofie Jensen', 'Brand manager, Nordics', 'sofie.jensen@carewell.example', 'user'),
     ('43c00000-0000-4000-8000-000000000014', '42a00000-0000-4000-8000-000000000009', 'Daniel Lim', 'Store development manager', 'daniel.lim@bauclient.example', 'approver'),
-    ('43c00000-0000-4000-8000-000000000015', '42a00000-0000-4000-8000-000000000001', 'Lukas Schmidt', 'Former activation manager', 'lukas.schmidt@heineken.example', 'user')
+    ('43c00000-0000-4000-8000-000000000015', '42a00000-0000-4000-8000-000000000001', 'Lukas Schmidt', 'Former activation manager', 'lukas.schmidt@northbrew.example', 'user')
   ) x(id, account, name, title, email, role)
   join public.crm_accounts a on a.id = x.account::uuid
 on conflict do nothing;
@@ -207,7 +207,7 @@ select x.id::uuid, '43e00000-0000-4000-8000-000000000001', x.data::jsonb, x.emai
   from (values
     ('43f00000-0000-4000-8000-000000000001', 'elena.rossi@foodco.example', 'Elena Rossi', '{"full_name":"Elena Rossi","email":"elena.rossi@foodco.example","company":"FoodCo (demo)","job_title":"Shopper marketing lead","session":"Morning (10:00)"}', true, 20),
     ('43f00000-0000-4000-8000-000000000002', 'marc.dubois@foodco.example', 'Marc Dubois', '{"full_name":"Marc Dubois","email":"marc.dubois@foodco.example","company":"FoodCo (demo)","session":"Afternoon (14:00)","dietary":"Vegetarian"}', false, 18),
-    ('43f00000-0000-4000-8000-000000000003', 'katrin.vogel@heineken.example', 'Katrin Vogel', '{"full_name":"Katrin Vogel","email":"katrin.vogel@heineken.example","company":"Heineken","session":"Morning (10:00)"}', true, 15),
+    ('43f00000-0000-4000-8000-000000000003', 'katrin.vogel@northbrew.example', 'Katrin Vogel', '{"full_name":"Katrin Vogel","email":"katrin.vogel@northbrew.example","company":"Northbrew","session":"Morning (10:00)"}', true, 15),
     ('43f00000-0000-4000-8000-000000000004', 'tom.ito@foodco.example', 'Tom Ito', '{"full_name":"Tom Ito","email":"tom.ito@foodco.example","company":"FoodCo (demo)","job_title":"Category manager","session":"Afternoon (14:00)"}', true, 9)
   ) x(id, email, name, data, consent, d)
 on conflict do nothing;
@@ -217,7 +217,7 @@ on conflict do nothing;
 -- ---------------------------------------------------------------------------
 insert into public.crm_lists (id, name, description, kind, audience, filters, created_at)
 values ('43f10000-0000-4000-8000-000000000001', 'Sustainability report 2026 (signed off)', 'Marketing and sustainability contacts signed off for the annual report.', 'static', 'external', '{}', now() - interval '20 days'),
-       ('43f10000-0000-4000-8000-000000000002', 'Heineken stakeholders to grow', 'Dynamic: Heineken contacts in the Grow quadrant.', 'dynamic', 'external',
+       ('43f10000-0000-4000-8000-000000000002', 'Northbrew stakeholders to grow', 'Dynamic: Northbrew contacts in the Grow quadrant.', 'dynamic', 'external',
         '{"client_id":"c5000000-0000-4000-8000-000000000002","quadrant":"GROW"}', now() - interval '5 days')
 on conflict do nothing;
 
@@ -256,13 +256,13 @@ select r.email_id, r.id, x.ev, case when x.ev = 'click' then 'https://example.co
 insert into public.crm_import_logs (id, kind, file_name, mapping, row_count, created_count, updated_count, skipped_count, duplicates, warnings, created_at)
 values ('43f40000-0000-4000-8000-000000000001', 'contacts', 'hubspot-contacts-export-2026-09.csv',
   '{"Record ID":"hubspot_id","First Name":"first_name","Last Name":"last_name","Email":"email","Associated Company":"company","Job Title":"job_title","Legal basis for processing contact''s data":"legal_basis"}',
-  42, 15, 0, 27, '[{"row":3,"reason":"email","match":"Claire Martin <claire.martin@heineken.example>"}]', '[]', now() - interval '6 days')
+  42, 15, 0, 27, '[{"row":3,"reason":"email","match":"Claire Martin <claire.martin@northbrew.example>"}]', '[]', now() - interval '6 days')
 on conflict do nothing;
 
 -- ---------------------------------------------------------------------------
 -- Client business reviews and actions
 -- ---------------------------------------------------------------------------
--- Coloplast's accounts have been tiered for a while with no review yet, so it shows as overdue by cadence.
+-- Carewell's accounts have been tiered for a while with no review yet, so it shows as overdue by cadence.
 update public.crm_accounts set created_at = now() - interval '200 days' where client_id = 'c5000000-0000-4000-8000-000000000003' and created_at > now() - interval '200 days';
 
 insert into public.crm_reviews (id, client_id, account_id, review_type, title, scheduled_on, status, agenda, contact_attendees, client_visible, outcomes, notes, held_at, closed_at, created_at)
@@ -271,15 +271,15 @@ select x.id::uuid, a.client_id, a.id, x.typ, x.title, current_date + x.d, x.stat
        case when x.status in ('held','closed') then now() + make_interval(days => x.d) end, case when x.status = 'closed' then now() + make_interval(days => x.d + 2) end,
        now() + make_interval(days => x.d - 30)
   from (values
-    ('43aa0000-0000-4000-8000-000000000001', '42a00000-0000-4000-8000-000000000001', 'qbr', 'Heineken Germany Q3 business review', -18, 'closed',
+    ('43aa0000-0000-4000-8000-000000000001', '42a00000-0000-4000-8000-000000000001', 'qbr', 'Northbrew Germany Q3 business review', -18, 'closed',
      'Tournament results|Estimate turnaround|Christmas gifting proposal|Sustainability numbers', '42c00000-0000-4000-8000-000000000001,42c00000-0000-4000-8000-000000000002',
      'Tournament kit landed on time in 97% of stores. Agreed a 48-hour estimate turnaround target and a Christmas gifting proposal by month end. Client wants quarterly CO2e per campaign.',
      'Good energy; Jonas keen to extend the on-trade programme.'),
-    ('43aa0000-0000-4000-8000-000000000002', '42a00000-0000-4000-8000-000000000001', 'qbr', 'Heineken Germany Q4 business review', 40, 'planned',
+    ('43aa0000-0000-4000-8000-000000000002', '42a00000-0000-4000-8000-000000000001', 'qbr', 'Northbrew Germany Q4 business review', 40, 'planned',
      'Q4 delivery|Estimate turnaround progress|2027 planning', '42c00000-0000-4000-8000-000000000002', null, null),
-    ('43aa0000-0000-4000-8000-000000000003', '42a00000-0000-4000-8000-000000000004', 'half_year', 'Unilever UK half-year review', 12, 'planned',
-     'Survey results|Refill pilot|Magnum 2027 tender', '42c00000-0000-4000-8000-000000000004,42c00000-0000-4000-8000-000000000005', null, null),
-    ('43aa0000-0000-4000-8000-000000000004', '42a00000-0000-4000-8000-000000000002', 'annual', 'Heineken global annual review', 75, 'planned',
+    ('43aa0000-0000-4000-8000-000000000003', '42a00000-0000-4000-8000-000000000004', 'half_year', 'Brightlane UK half-year review', 12, 'planned',
+     'Survey results|Refill pilot|Polaris 2027 tender', '42c00000-0000-4000-8000-000000000004,42c00000-0000-4000-8000-000000000005', null, null),
+    ('43aa0000-0000-4000-8000-000000000004', '42a00000-0000-4000-8000-000000000002', 'annual', 'Northbrew global annual review', 75, 'planned',
      'Framework performance|Bar fixture framework|Sustainability roadmap', '42c00000-0000-4000-8000-000000000003', null, null),
     ('43aa0000-0000-4000-8000-000000000005', '42a00000-0000-4000-8000-000000000009', 'ad_hoc', 'BAU Singapore opening debrief', -3, 'held',
      'Orchard Road opening|Install photos', '43c00000-0000-4000-8000-000000000014', null, 'Outcomes to write up.')

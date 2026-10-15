@@ -1,13 +1,13 @@
 # Reporting: the balanced scorecard model
 
-Reference: Unilever "Unmissable Engine" PaaS view (RFP pack, 23 dashboard pages). It shows how client and
+Reference: a client balanced-scorecard pack shared as an example (23 dashboard pages; no client data is used in System Guy). It shows how client and
 internal reporting should work in System Guy: one data model, every measure cut the same way, so people can see
 how the elements of delivery affect each other.
 
 ## How the scorecard is organised
 - Four perspectives, each with objectives, a target, the current value and a status:
   - **Plan Better**: low-value jobs %, median spend per spec, urgent jobs %, median lead time (days).
-  - **Design Better**: design effectiveness score ("Unmissable Design" checklist of creative KPIs), Adopt %,
+  - **Design Better**: design effectiveness score (a checklist of creative effectiveness KPIs), Adopt %,
     specification harmonisation %, sustainability performance (EcoGrade, with its 8-part wheel: reuse design,
     recycle ready, recycled content, value engineered, supply-chain optimised, environment safe, end of life
     assured, carbon footprint), power-brand spend mix.
@@ -22,7 +22,7 @@ how the elements of delivery affect each other.
 - **The same breakdowns on every measure**: trend by AAC route over time, by market, by spec type
   (print / retail display) x AAC route, and by business unit x AAC route.
 - **Influence factors** (the relationships): savings, lead time, spend per spec, perfect job and supplier rating
-  split by urgent vs non-urgent, by governance model (business-group-led vs central "1 UL"), and by spec
+  split by urgent vs non-urgent, by governance model (business-group-led vs central), and by spec
   complexity (low / medium / high) across AAC routes. This is how a client sees that, for example, urgent Create
   jobs save less and take longer.
 - **Strategic KPI table by country**: KPI delivery %, savings % vs target, rate-card % vs target, OTIF % vs

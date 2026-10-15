@@ -28,5 +28,5 @@ export const DEMO_USERS: DemoUser[] = [
   { id: "d0000000-0000-4000-8000-000000000006", email: "vendor1@example.com", name: "Wei Chen (Northwind Print Co)", role: "Vendor", description: "A vendor user: sees only the vendor portal" },
   { id: "d0000000-0000-4000-8000-000000000019", email: "vendor19@example.com", name: "Priya Patel (Vistula Woodcraft)", role: "Vendor", description: "Vendor portal admin: a contract to sign, sites and team" },
   { id: "d0000000-0000-4000-8000-000000000030", email: "vendor30@example.com", name: "Tom Reyes (Straits Component Supply)", role: "Vendor", description: "Vendor portal admin: an open quote request, a pushed price and a PO to accept" },
-  { id: "d0000000-0000-4000-8000-0000000000c1", email: "claire.martin@heineken.example", name: "Claire Martin (Heineken)", role: "Client", description: "Client approver: sees only the Heineken account in the Client Portal" },
+  { id: "d0000000-0000-4000-8000-0000000000c1", email: "claire.martin@northbrew.example", name: "Claire Martin (Northbrew)", role: "Client", description: "Client approver: sees only the Northbrew account in the Client Portal" },
 ];

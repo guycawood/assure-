@@ -81,7 +81,7 @@ let otherSupplierId;
 
 test("new supplier gets 14 gates, starts red and blocked", async () => {
   const { rows } = await as("plain",
-    "insert into public.suppliers (name, market, client, ytd_spend, primary_contact_email) values ('Shanghai Print Co', 'China', 'Unilever', 184000, 'ops@shanghaiprint.example') returning id, rag, purchasing_blocked, created_by");
+    "insert into public.suppliers (name, market, client, ytd_spend, primary_contact_email) values ('Shanghai Print Co', 'China', 'Brightlane', 184000, 'ops@shanghaiprint.example') returning id, rag, purchasing_blocked, created_by");
   supplierId = rows[0].id;
   assert.equal(rows[0].created_by, ids.plain);
   const s = (await as("plain", "select rag, priority_tier, purchasing_blocked, gates_clear from public.suppliers where id = $1", [supplierId])).rows[0];
@@ -189,10 +189,10 @@ test("raise_gap_tickets creates one per open critical gate and never duplicates"
 });
 
 test("fast-track: lead approval required, not self-approval, lifts block until close-by", async () => {
-  await rejects(as("agent", "select public.approve_fast_track($1, 'UL incumbent', current_date + 14)", [otherSupplierId]), /Only an SRT lead/);
+  await rejects(as("agent", "select public.approve_fast_track($1, 'BRL incumbent', current_date + 14)", [otherSupplierId]), /Only an SRT lead/);
   const mine = (await as("lead", "insert into public.suppliers (name) values ('Lead Created Ltd') returning id")).rows[0].id;
   await rejects(as("lead", "select public.approve_fast_track($1, 'x', current_date + 14)", [mine]), /supplier you created/);
-  await as("lead", "select public.approve_fast_track($1, 'UL incumbent, approved by Unilever Procurement', current_date + 14)", [otherSupplierId]);
+  await as("lead", "select public.approve_fast_track($1, 'BRL incumbent, approved by Brightlane Procurement', current_date + 14)", [otherSupplierId]);
   const s = (await as("lead", "select onboarding_route, fast_track_approved_by, purchasing_blocked from public.suppliers where id = $1", [otherSupplierId])).rows[0];
   assert.deepEqual(s, { onboarding_route: "fast_track", fast_track_approved_by: ids.lead, purchasing_blocked: false });
   await as("lead", "update public.suppliers set fast_track_approved_by = null, fast_track_close_by = current_date - 1 where id = $1", [otherSupplierId]);
@@ -202,9 +202,9 @@ test("fast-track: lead approval required, not self-approval, lifts block until c
 
 test("import: lead only, creates suppliers with gates, audits, skips duplicates", async () => {
   const rows = JSON.stringify([
-    { name: "Guangzhou Display Ltd", supplier_code: "CN0201", market: "China", region: "APAC", client: "Unilever", ytd_spend: 250000,
+    { name: "Guangzhou Display Ltd", supplier_code: "CN0201", market: "China", region: "APAC", client: "Brightlane", ytd_spend: 250000,
       gates: { msa: "verified", bank: "verified", sustainability: "requested", bogus: "verified", coc: "nonsense" } },
-    { name: "Hanoi Packaging", market: "Vietnam", region: "Mars", client: "Heineken", ytd_spend: "12000" },
+    { name: "Hanoi Packaging", market: "Vietnam", region: "Mars", client: "Northbrew", ytd_spend: "12000" },
     { name: "Shanghai Print Co", market: "China" }, // already exists
     { name: "  " }, // blank name
   ]);
@@ -267,7 +267,7 @@ test("vendor RFI: send, register, submit, review by Procurement head", async () 
 
   // A new-vendor request ticket with no supplier yet.
   const ticket = (await as("agent",
-    "insert into public.srt_tickets (type, title, prospect_name, client, market) values ('new_onboarding', 'New vendor: Coastal Foam', 'Coastal Foam Inserts', 'Unilever', 'Vietnam') returning id")).rows[0].id;
+    "insert into public.srt_tickets (type, title, prospect_name, client, market) values ('new_onboarding', 'New vendor: Coastal Foam', 'Coastal Foam Inserts', 'Brightlane', 'Vietnam') returning id")).rows[0].id;
 
   await rejects(as("vendor", "select public.send_vendor_rfi($1, 'a@b.co', null, 'http://x')", [ticket]), /Only SRT, procurement or admin/);
   await rejects(as("agent", "select public.send_vendor_rfi($1, 'not-an-email', null, 'http://x')", [ticket]), /valid vendor email/);

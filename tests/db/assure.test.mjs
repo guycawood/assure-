@@ -13,7 +13,7 @@ const PROC = "00000000-0000-0000-0000-0000000000a6";
 
 // Fixtures: two suppliers, a vendor user for each (linked by contact email), a procurement user, library records.
 const { rows: [s1] } = await asSuper(
-  "insert into public.suppliers (supplier_code, name, market, region, client, category, primary_contact_email) values ('T-001','Test Print Ltd','China','APAC','Unilever','Print','v1@example.com') returning id");
+  "insert into public.suppliers (supplier_code, name, market, region, client, category, primary_contact_email) values ('T-001','Test Print Ltd','China','APAC','Brightlane','Print','v1@example.com') returning id");
 const { rows: [s2] } = await asSuper(
   "insert into public.suppliers (supplier_code, name, market, region, client, category, primary_contact_email) values ('T-002','Other Co','Germany','EMEA','BAU','POSM','v2@example.com') returning id");
 const S1 = s1.id, S2 = s2.id;
@@ -45,7 +45,7 @@ test("supplier profiles: staff only; risk only through the audited function", as
   assert.deepEqual([Number(p.nti_rate), p.payment_terms, p.risk_level], [4.5, "net_60", "low"]);
   await rejects(as("plain", "select public.assure_set_risk_level($1,'high','x')", [S1]), /Only vendor managers/);
   await rejects(as("agent", "select public.assure_set_risk_level($1,'high','')", [S1]), /Say why/);
-  await as("agent", "select public.assure_set_risk_level($1,'high','Single-source for UL China')", [S1]);
+  await as("agent", "select public.assure_set_risk_level($1,'high','Single-source for BRL China')", [S1]);
   assert.equal((await one("plain", "select risk_level from public.supplier_profiles where supplier_id = $1", [S1])).risk_level, "high");
   const log = await as("plain", "select action from public.assure_activity where supplier_id = $1 and entity = 'supplier' order by id", [S1]);
   assert.deepEqual(log.rows.map((x) => x.action), ["payment_terms_changed", "nti_changed", "risk_changed"]);

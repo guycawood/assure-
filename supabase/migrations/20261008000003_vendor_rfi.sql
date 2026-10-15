@@ -194,7 +194,7 @@ begin
   if v_supplier is null then
     insert into public.suppliers (name, client, market, primary_contact_email)
     values (t.prospect_name,
-            case when t.client in ('Unilever','Heineken','Coloplast','BAU','Other') then t.client end,
+            case when t.client in ('Brightlane','Northbrew','Carewell','BAU','Other') then t.client end,
             t.market, v_email)
     returning id into v_supplier;
     update public.srt_tickets set supplier_id = v_supplier where id = t.id;

@@ -8,7 +8,7 @@
 -- Client master: CRM fields for the demo clients (seed writes run without a signed-in user, so the CRM guard allows them)
 -- ---------------------------------------------------------------------------
 update public.sourcing_clients s set hq_market = x.m, sector = x.sector, credit_limit = x.credit, payment_terms_days = coalesce(s.payment_terms_days, x.days)
-  from (values ('UL', 'GB', 'Consumer goods', 750000, 60), ('HNK', 'NL', 'Beverages', 900000, 45), ('CPL', 'DK', 'Medical devices', 250000, 30),
+  from (values ('BRL', 'GB', 'Consumer goods', 750000, 60), ('NBW', 'NL', 'Beverages', 900000, 45), ('CRW', 'DK', 'Medical devices', 250000, 30),
                ('BAU', 'SG', 'Mixed (run-rate clients)', 100000, 30)) x(code, m, sector, credit, days)
  where s.code = x.code and s.hq_market is null;
 
@@ -43,7 +43,7 @@ select x.id::uuid, x.client::uuid, x.market, m.region_code,
     ('42a00000-0000-4000-8000-000000000002', 'c5000000-0000-4000-8000-000000000002', 'NL', 'KEY', 'active', 'Global brand team sits here.'),
     ('42a00000-0000-4000-8000-000000000003', 'c5000000-0000-4000-8000-000000000002', 'GB', 'GROWTH', 'active', null),
     ('42a00000-0000-4000-8000-000000000004', 'c5000000-0000-4000-8000-000000000001', 'GB', 'STRATEGIC', 'active', 'Personal care and ice cream.'),
-    ('42a00000-0000-4000-8000-000000000005', 'c5000000-0000-4000-8000-000000000001', 'VN', 'GROWTH', 'active', 'Tet and Knorr programmes.'),
+    ('42a00000-0000-4000-8000-000000000005', 'c5000000-0000-4000-8000-000000000001', 'VN', 'GROWTH', 'active', 'Tet and Fresko programmes.'),
     ('42a00000-0000-4000-8000-000000000006', 'c5000000-0000-4000-8000-000000000001', 'FR', 'KEY', 'prospect', null),
     ('42a00000-0000-4000-8000-000000000007', 'c5000000-0000-4000-8000-000000000003', 'US', 'KEY', 'active', 'Clinic visibility programme.'),
     ('42a00000-0000-4000-8000-000000000008', 'c5000000-0000-4000-8000-000000000003', 'DK', 'GROWTH', 'active', null),
@@ -60,16 +60,16 @@ on conflict do nothing;
 insert into public.crm_contacts (id, client_id, account_id, full_name, job_title, email, phone, market, decision_role, consent, consent_at, created_at)
 select x.id::uuid, a.client_id, a.id, x.name, x.title, x.email, x.phone, a.market, x.role, x.consent, case when x.consent then now() - interval '150 days' end, now() - interval '180 days'
   from (values
-    ('42c00000-0000-4000-8000-000000000001', '42a00000-0000-4000-8000-000000000001', 'Claire Martin', 'Shopper marketing manager', 'claire.martin@heineken.example', '+49 30 0000 0101', 'approver', true),
-    ('42c00000-0000-4000-8000-000000000002', '42a00000-0000-4000-8000-000000000001', 'Jonas Weber', 'Head of trade marketing', 'jonas.weber@heineken.example', '+49 30 0000 0102', 'sponsor', true),
-    ('42c00000-0000-4000-8000-000000000003', '42a00000-0000-4000-8000-000000000002', 'Femke de Vries', 'Global procurement lead', 'femke.devries@heineken.example', '+31 20 000 0103', 'buyer', true),
-    ('42c00000-0000-4000-8000-000000000004', '42a00000-0000-4000-8000-000000000004', 'Olivia Hart', 'Customer development director', 'olivia.hart@unilever.example', '+44 20 0000 0104', 'sponsor', true),
-    ('42c00000-0000-4000-8000-000000000005', '42a00000-0000-4000-8000-000000000004', 'Sam Okafor', 'In-store activation manager', 'sam.okafor@unilever.example', '+44 20 0000 0105', 'approver', true),
-    ('42c00000-0000-4000-8000-000000000006', '42a00000-0000-4000-8000-000000000005', 'Linh Tran', 'Brand manager, Knorr', 'linh.tran@unilever.example', '+84 28 0000 0106', 'user', false),
-    ('42c00000-0000-4000-8000-000000000007', '42a00000-0000-4000-8000-000000000007', 'Rachel Kim', 'Marketing operations', 'rachel.kim@coloplast.example', '+1 612 000 0107', 'approver', true),
-    ('42c00000-0000-4000-8000-000000000008', '42a00000-0000-4000-8000-000000000008', 'Mads Nielsen', 'Indirect procurement', 'mads.nielsen@coloplast.example', '+45 00 00 01 08', 'buyer', true),
+    ('42c00000-0000-4000-8000-000000000001', '42a00000-0000-4000-8000-000000000001', 'Claire Martin', 'Shopper marketing manager', 'claire.martin@northbrew.example', '+49 30 0000 0101', 'approver', true),
+    ('42c00000-0000-4000-8000-000000000002', '42a00000-0000-4000-8000-000000000001', 'Jonas Weber', 'Head of trade marketing', 'jonas.weber@northbrew.example', '+49 30 0000 0102', 'sponsor', true),
+    ('42c00000-0000-4000-8000-000000000003', '42a00000-0000-4000-8000-000000000002', 'Femke de Vries', 'Global procurement lead', 'femke.devries@northbrew.example', '+31 20 000 0103', 'buyer', true),
+    ('42c00000-0000-4000-8000-000000000004', '42a00000-0000-4000-8000-000000000004', 'Olivia Hart', 'Customer development director', 'olivia.hart@brightlane.example', '+44 20 0000 0104', 'sponsor', true),
+    ('42c00000-0000-4000-8000-000000000005', '42a00000-0000-4000-8000-000000000004', 'Sam Okafor', 'In-store activation manager', 'sam.okafor@brightlane.example', '+44 20 0000 0105', 'approver', true),
+    ('42c00000-0000-4000-8000-000000000006', '42a00000-0000-4000-8000-000000000005', 'Linh Tran', 'Brand manager, Fresko', 'linh.tran@brightlane.example', '+84 28 0000 0106', 'user', false),
+    ('42c00000-0000-4000-8000-000000000007', '42a00000-0000-4000-8000-000000000007', 'Rachel Kim', 'Marketing operations', 'rachel.kim@carewell.example', '+1 612 000 0107', 'approver', true),
+    ('42c00000-0000-4000-8000-000000000008', '42a00000-0000-4000-8000-000000000008', 'Mads Nielsen', 'Indirect procurement', 'mads.nielsen@carewell.example', '+45 00 00 01 08', 'buyer', true),
     ('42c00000-0000-4000-8000-000000000009', '42a00000-0000-4000-8000-000000000009', 'Wei Ling Tan', 'Retail projects', 'weiling.tan@bauclient.example', '+65 0000 0109', 'user', false),
-    ('42c00000-0000-4000-8000-000000000010', '42a00000-0000-4000-8000-000000000003', 'Tom Ellis', 'Category manager', 'tom.ellis@heineken.example', '+44 20 0000 0110', 'user', true)
+    ('42c00000-0000-4000-8000-000000000010', '42a00000-0000-4000-8000-000000000003', 'Tom Ellis', 'Category manager', 'tom.ellis@northbrew.example', '+44 20 0000 0110', 'user', true)
   ) x(id, account, name, title, email, phone, role, consent)
   join public.crm_accounts a on a.id = x.account::uuid
 on conflict do nothing;
@@ -89,8 +89,8 @@ select x.id::uuid, a.client_id, a.id, x.title, x.descr, x.stage, x.value, x.cur,
     ('42d00000-0000-4000-8000-000000000002', '42a00000-0000-4000-8000-000000000001', 'Christmas gifting displays 2026', 'Gift pack displays for German hypermarkets.', 'negotiation', 95000, 'EUR', 21, null, 45),
     ('42d00000-0000-4000-8000-000000000003', '42a00000-0000-4000-8000-000000000002', 'Global bar fixture framework', 'Three-year framework for permanent bar fixtures.', 'proposal', 420000, 'EUR', 60, null, 30),
     ('42d00000-0000-4000-8000-000000000004', '42a00000-0000-4000-8000-000000000003', '0.0 sampling stands', null, 'qualified', 38000, 'GBP', 75, null, 12),
-    ('42d00000-0000-4000-8000-000000000005', '42a00000-0000-4000-8000-000000000004', 'Dove refill station pilot', 'Refill station fixtures in 40 stores.', 'proposal', 64000, 'GBP', 40, null, 25),
-    ('42d00000-0000-4000-8000-000000000006', '42a00000-0000-4000-8000-000000000004', 'Magnum freezer toppers 2027', null, 'lead', 120000, 'GBP', 120, null, 6),
+    ('42d00000-0000-4000-8000-000000000005', '42a00000-0000-4000-8000-000000000004', 'Lumora refill station pilot', 'Refill station fixtures in 40 stores.', 'proposal', 64000, 'GBP', 40, null, 25),
+    ('42d00000-0000-4000-8000-000000000006', '42a00000-0000-4000-8000-000000000004', 'Polaris freezer toppers 2027', null, 'lead', 120000, 'GBP', 120, null, 6),
     ('42d00000-0000-4000-8000-000000000007', '42a00000-0000-4000-8000-000000000005', 'Tet 2027 hampers', 'Premium hampers for modern trade.', 'won', 26000, 'EUR', -30, null, 90),
     ('42d00000-0000-4000-8000-000000000008', '42a00000-0000-4000-8000-000000000006', 'France shelf-ready packaging', null, 'lost', 45000, 'EUR', -15, 'INCUMBENT', 70),
     ('42d00000-0000-4000-8000-000000000009', '42a00000-0000-4000-8000-000000000007', 'Clinic display refresh wave 2', 'Second wave of clinic stands, 120 sites.', 'negotiation', 72000, 'EUR', 14, null, 50),
@@ -101,7 +101,7 @@ select x.id::uuid, a.client_id, a.id, x.title, x.descr, x.stage, x.value, x.cur,
   join public.crm_accounts a on a.id = x.account::uuid
 on conflict do nothing;
 
--- The won Heineken opportunity is the Summer of Football campaign already in Briefing+ (linked both ways).
+-- The won Northbrew opportunity is the Summer of Football campaign already in Briefing+ (linked both ways).
 update public.campaigns set crm_opportunity_id = '42d00000-0000-4000-8000-000000000001'
  where campaign_code = 'CMP-2026-00001' and crm_opportunity_id is null
    and exists (select 1 from public.crm_opportunities where id = '42d00000-0000-4000-8000-000000000001')
@@ -129,7 +129,7 @@ select x.id::uuid, a.client_id, a.id, x.opp::uuid, x.contact::uuid,
     ('42e00000-0000-4000-8000-000000000010', '42a00000-0000-4000-8000-000000000009', null, '42c00000-0000-4000-8000-000000000009', 'CALL', 'Opening calendar', 'Two openings expected in Q1.', 75),
     ('42e00000-0000-4000-8000-000000000011', '42a00000-0000-4000-8000-000000000001', null, '42c00000-0000-4000-8000-000000000001', 'EMAIL', 'Feedback on estimate turnaround', 'Claire flagged estimates taking more than a week.', 2),
     ('42e00000-0000-4000-8000-000000000012', '42a00000-0000-4000-8000-000000000006', '42d00000-0000-4000-8000-000000000008', null, 'NOTE', 'Lost to incumbent', 'Incumbent matched our price and kept the business.', 20),
-    ('42e00000-0000-4000-8000-000000000013', '42a00000-0000-4000-8000-000000000004', '42d00000-0000-4000-8000-000000000006', '42c00000-0000-4000-8000-000000000004', 'CALL', 'Magnum 2027 early chat', 'Brand team open to a tender in the new year.', 5),
+    ('42e00000-0000-4000-8000-000000000013', '42a00000-0000-4000-8000-000000000004', '42d00000-0000-4000-8000-000000000006', '42c00000-0000-4000-8000-000000000004', 'CALL', 'Polaris 2027 early chat', 'Brand team open to a tender in the new year.', 5),
     ('42e00000-0000-4000-8000-000000000014', '42a00000-0000-4000-8000-000000000002', null, '42c00000-0000-4000-8000-000000000003', 'QBR', 'Global procurement review', 'Scorecard reviewed; on-time delivery 96%.', 48)
   ) x(id, account, opp, contact, typ, subject, summary, ago)
   join public.crm_accounts a on a.id = x.account::uuid
@@ -142,9 +142,9 @@ insert into public.crm_account_plans (id, client_id, account_id, title, period_s
 select x.id::uuid, a.client_id, a.id, x.title, date_trunc('year', current_date)::date, (date_trunc('year', current_date) + interval '1 year - 1 day')::date,
        x.obj, x.target, x.cur, x.status, now() - interval '160 days'
   from (values
-    ('42f00000-0000-4000-8000-000000000001', '42a00000-0000-4000-8000-000000000001', 'Heineken Germany growth plan', 'Grow on-trade fixtures; win the Christmas gifting programme; cut estimate turnaround to 48 hours.', 350000, 'EUR', 'active'),
-    ('42f00000-0000-4000-8000-000000000002', '42a00000-0000-4000-8000-000000000004', 'Unilever UK account plan', 'Land the Dove refill pilot; position for the Magnum 2027 tender; quarterly sustainability reporting.', 250000, 'GBP', 'active'),
-    ('42f00000-0000-4000-8000-000000000003', '42a00000-0000-4000-8000-000000000007', 'Coloplast US plan', 'Roll out wave 2 clinic displays and open the Nordic pharmacy channel.', 120000, 'EUR', 'draft')
+    ('42f00000-0000-4000-8000-000000000001', '42a00000-0000-4000-8000-000000000001', 'Northbrew Germany growth plan', 'Grow on-trade fixtures; win the Christmas gifting programme; cut estimate turnaround to 48 hours.', 350000, 'EUR', 'active'),
+    ('42f00000-0000-4000-8000-000000000002', '42a00000-0000-4000-8000-000000000004', 'Brightlane UK account plan', 'Land the Lumora refill pilot; position for the Polaris 2027 tender; quarterly sustainability reporting.', 250000, 'GBP', 'active'),
+    ('42f00000-0000-4000-8000-000000000003', '42a00000-0000-4000-8000-000000000007', 'Carewell US plan', 'Roll out wave 2 clinic displays and open the Nordic pharmacy channel.', 120000, 'EUR', 'draft')
   ) x(id, account, title, obj, target, cur, status)
   join public.crm_accounts a on a.id = x.account::uuid
 on conflict do nothing;
@@ -170,9 +170,9 @@ insert into public.crm_contracts (id, client_id, parent_id, contract_type, title
 select x.id::uuid, x.client::uuid, x.parent::uuid, x.typ, x.title, current_date + x.s, current_date + x.e, current_date + x.r, x.notice, x.auto, x.value, x.cur,
        x.days, x.markup, x.margin, x.gsc, x.rebate, x.sus, x.status, case when x.status = 'signed' then now() - make_interval(days => -x.s) end, now() - make_interval(days => greatest(-x.s, 0) + 10)
   from (values
-    ('42b00000-0000-4000-8000-000000000001', 'c5000000-0000-4000-8000-000000000002', null, 'msa', 'Heineken master services agreement', -1050, 45, 45, 90, false, 2400000, 'EUR', 45, 14, 10, 2.0, 1.0, 'FSC board on all 2D POS; 30% recycled content by 2027.', 'signed'),
+    ('42b00000-0000-4000-8000-000000000001', 'c5000000-0000-4000-8000-000000000002', null, 'msa', 'Northbrew master services agreement', -1050, 45, 45, 90, false, 2400000, 'EUR', 45, 14, 10, 2.0, 1.0, 'FSC board on all 2D POS; 30% recycled content by 2027.', 'signed'),
     ('42b00000-0000-4000-8000-000000000002', 'c5000000-0000-4000-8000-000000000002', '42b00000-0000-4000-8000-000000000001', 'sow', 'Summer of Football SOW', -150, 20, null, 30, false, 180000, 'EUR', 45, 14, 10, 2.0, 1.0, null, 'signed'),
-    ('42b00000-0000-4000-8000-000000000003', 'c5000000-0000-4000-8000-000000000001', null, 'msa', 'Unilever framework agreement', -400, 330, 240, 120, true, 1800000, 'GBP', 60, 15, 11, 2.5, 1.5, 'Report CO2e per campaign; no PVC.', 'signed'),
+    ('42b00000-0000-4000-8000-000000000003', 'c5000000-0000-4000-8000-000000000001', null, 'msa', 'Brightlane framework agreement', -400, 330, 240, 120, true, 1800000, 'GBP', 60, 15, 11, 2.5, 1.5, 'Report CO2e per campaign; no PVC.', 'signed'),
     ('42b00000-0000-4000-8000-000000000004', 'c5000000-0000-4000-8000-000000000003', null, 'sow', 'Clinic displays wave 2 SOW', 20, 200, null, 30, false, 72000, 'EUR', 30, 12, 9, 0, 2.0, null, 'draft'),
     ('42b00000-0000-4000-8000-000000000005', 'c5000000-0000-4000-8000-000000000004', null, 'msa', 'BAU client terms of business', -700, 400, 300, 60, true, 150000, 'EUR', 30, 18, 12, 3.0, 0, null, 'signed')
   ) x(id, client, parent, typ, title, s, e, r, notice, auto, value, cur, days, markup, margin, gsc, rebate, sus, status)
@@ -199,7 +199,7 @@ select x.id::uuid, a.client_id, a.id, x.contact::uuid, a.market, a.region, x.sco
 on conflict do nothing;
 
 -- ---------------------------------------------------------------------------
--- Pending approval requests: a commercial terms change (Unilever) and the new client set-up (Northstar Foods)
+-- Pending approval requests: a commercial terms change (Brightlane) and the new client set-up (Northstar Foods)
 -- ---------------------------------------------------------------------------
 insert into public.approval_requests (id, module, approval_type, entity_type, entity_id, ref, title, summary, payload, amount, currency, client_id, market, region, href,
   policy_record_id, approver_role, approver_module, maker_checker, run_as, reason, requested_at)
@@ -210,9 +210,9 @@ select '42ab0000-0000-4000-8000-000000000001', 'crm', 'CRM_TERMS', 'client_terms
          'before', jsonb_build_object('markup', c.default_markup_percent, 'commission', c.gsc_commission_percent, 'rebate', c.year_end_rebate_percent, 'payment_terms_days', c.payment_terms_days)),
        null, c.default_currency, c.id, 'GB', 'EMEA', '/crm/clients/' || c.id || '?tab=contract',
        (select id from public.library_records where library_key = 'approval_policies' and code = 'AP-CRM-TERMS' and status = 'active'),
-       'module_owner', 'crm', true, 'approver', 'Unilever procurement asked for 75-day terms in exchange for a higher markup on the refill programme.', now() - interval '1 day'
+       'module_owner', 'crm', true, 'approver', 'Brightlane procurement asked for 75-day terms in exchange for a higher markup on the refill programme.', now() - interval '1 day'
   from public.sourcing_clients c
- where c.code = 'UL'
+ where c.code = 'BRL'
    and not exists (select 1 from public.approval_requests r where r.approval_type = 'CRM_TERMS' and r.entity_id = c.id::text and r.status in ('pending','applying'))
 on conflict do nothing;
 

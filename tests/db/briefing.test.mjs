@@ -142,13 +142,13 @@ test("hand-off from a brief that is not approved is refused", async () => {
 test("campaign ideation needs an objective; campaigns keep region and market per market row", async () => {
   await rejects(as("agent", "select public.ideation_start('campaign', null, '  ', '{}', '{}')"), /objective/);
   const { rows: [{ id }] } = await as("agent", `select public.campaign_save(null, $1) as id`, [JSON.stringify({
-    name: "Summer", client: "Heineken", brands: ["Heineken", " "], campaign_type: "seasonal", activation_objective: "trial",
+    name: "Summer", client: "Northbrew", brands: ["Northbrew", " "], campaign_type: "seasonal", activation_objective: "trial",
     markets: [{ region: "EMEA", market: "gb" }, { region: "EMEA", market: "IT" }],
   })]);
   const m = await as("plain", "select region, market from public.campaign_markets where campaign_id = $1 order by market", [id]);
   assert.deepEqual(m.rows, [{ region: "EMEA", market: "GB" }, { region: "EMEA", market: "IT" }]);
   const v = await as("plain", "select brands, markets, campaign_code from public.campaigns_v where id = $1", [id]);
-  assert.deepEqual(v.rows[0].brands, ["Heineken"]);
+  assert.deepEqual(v.rows[0].brands, ["Northbrew"]);
   assert.deepEqual(v.rows[0].markets, ["GB", "IT"]);
   await rejects(as("agent", "select public.campaign_save(null, $1)", [JSON.stringify({ name: "x", markets: [{ market: "GB" }] })]), /region and a market/);
 });

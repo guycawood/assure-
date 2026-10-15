@@ -3,7 +3,7 @@
 -- ---------------------------------------------------------------------------
 -- Bulk import (SRT lead / admin). Rows come from the import page as JSON:
 --   [{ "name": "...", "supplier_code": "...", "market": "...", "region": "APAC",
---      "client": "Unilever", "category": "...", "ytd_spend": 184000,
+--      "client": "Brightlane", "category": "...", "ytd_spend": 184000,
 --      "primary_contact_email": "...", "gates": { "msa": "missing", "bank": "verified" } }]
 -- Duplicates (same supplier_code, or same name + market) are skipped, never overwritten.
 -- ---------------------------------------------------------------------------
@@ -53,7 +53,7 @@ begin
     values (
       v_name, v_code, v_market,
       case when r->>'region' in ('APAC','EMEA','Americas','GSC') then r->>'region' end,
-      case when r->>'client' in ('Unilever','Heineken','Coloplast','BAU','Other') then r->>'client' end,
+      case when r->>'client' in ('Brightlane','Northbrew','Carewell','BAU','Other') then r->>'client' end,
       nullif(trim(r->>'category'), ''),
       greatest(coalesce(nullif(r->>'ytd_spend', '')::numeric, 0), 0),
       nullif(lower(trim(r->>'primary_contact_email')), ''),

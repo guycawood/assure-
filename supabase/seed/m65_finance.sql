@@ -23,10 +23,10 @@ select 'finance_rules', v.code, v.name, v.data::jsonb, 'active', date '2026-01-0
 -- Extra finished orders for the finance demo (dummy jobs, estimates and accepted POs)
 -- ---------------------------------------------------------------------------
 insert into public.jobs (id, title, client_id, billing_entity_id, region, market, category, campaign_name, brand, budget, currency, opened_date, target_delivery_date, status, notes) values
-  ('65000000-0000-4000-8000-000000000001', 'Amstel bar runners', 'c5000000-0000-4000-8000-000000000002', 'c6000000-0000-4000-8000-000000000002', 'EMEA', 'Netherlands', 'Print', 'Amstel on-trade', 'Amstel', 7000, 'EUR', current_date - 70, current_date - 20, 'delivered', 'Dummy job'),
+  ('65000000-0000-4000-8000-000000000001', 'Halden bar runners', 'c5000000-0000-4000-8000-000000000002', 'c6000000-0000-4000-8000-000000000002', 'EMEA', 'Netherlands', 'Print', 'Halden on-trade', 'Halden', 7000, 'EUR', current_date - 70, current_date - 20, 'delivered', 'Dummy job'),
   ('65000000-0000-4000-8000-000000000002', 'Clinic leaflet dispensers', 'c5000000-0000-4000-8000-000000000003', 'c6000000-0000-4000-8000-000000000002', 'EMEA', 'Germany', 'Fixtures', 'Clinic visibility', null, 5000, 'EUR', current_date - 90, current_date - 45, 'delivered', 'Dummy job'),
-  ('65000000-0000-4000-8000-000000000003', 'Knorr shelf strips', 'c5000000-0000-4000-8000-000000000001', 'c6000000-0000-4000-8000-000000000002', 'EMEA', 'Germany', 'Print', 'Knorr winter', 'Knorr', 3000, 'EUR', current_date - 120, current_date - 80, 'closed', 'Dummy job'),
-  ('65000000-0000-4000-8000-000000000004', 'Heineken festival bar kit', 'c5000000-0000-4000-8000-000000000002', 'c6000000-0000-4000-8000-000000000002', 'EMEA', 'Germany', 'Fixtures', 'Festival season 2027', 'Heineken', 14000, 'EUR', current_date - 5, current_date + 60, 'quoting', 'Dummy job')
+  ('65000000-0000-4000-8000-000000000003', 'Fresko shelf strips', 'c5000000-0000-4000-8000-000000000001', 'c6000000-0000-4000-8000-000000000002', 'EMEA', 'Germany', 'Print', 'Fresko winter', 'Fresko', 3000, 'EUR', current_date - 120, current_date - 80, 'closed', 'Dummy job'),
+  ('65000000-0000-4000-8000-000000000004', 'Northbrew festival bar kit', 'c5000000-0000-4000-8000-000000000002', 'c6000000-0000-4000-8000-000000000002', 'EMEA', 'Germany', 'Fixtures', 'Festival season 2027', 'Northbrew', 14000, 'EUR', current_date - 5, current_date + 60, 'quoting', 'Dummy job')
 on conflict (id) do nothing;
 
 insert into public.estimates (id, job_id, supplier_id, source, currency, base_cost, benchmark_value, benchmark_source, pricing_mode, pricing_percent,
@@ -34,9 +34,9 @@ insert into public.estimates (id, job_id, supplier_id, source, currency, base_co
 select v.id::uuid, v.job::uuid, s.id, 'adopt', 'EUR', v.cost, v.bench, 'rate_card', 'markup', v.pct, v.bench - v.cost, 5, 'Dummy: rate-card price',
        v.status, v.ref, now() - (v.age || ' days')::interval, case when v.status = 'approved' then now() - ((v.age - 2) || ' days')::interval end, 'EMEA', v.market
   from (values
-    ('65100000-0000-4000-8000-000000000001', '65000000-0000-4000-8000-000000000001', 'DEMO-015', 5800, 6200, 14, 'approved', 'HNK-PO-2026-151', 65, 'Netherlands'),
+    ('65100000-0000-4000-8000-000000000001', '65000000-0000-4000-8000-000000000001', 'DEMO-015', 5800, 6200, 14, 'approved', 'NBW-PO-2026-151', 65, 'Netherlands'),
     ('65100000-0000-4000-8000-000000000002', '65000000-0000-4000-8000-000000000002', 'DEMO-019', 4800, 5000, 12, 'approved', 'CPL-77402', 85, 'Germany'),
-    ('65100000-0000-4000-8000-000000000003', '65000000-0000-4000-8000-000000000003', 'DEMO-024', 2500, 2650, 15, 'approved', 'UL-PO-44102', 115, 'Germany'),
+    ('65100000-0000-4000-8000-000000000003', '65000000-0000-4000-8000-000000000003', 'DEMO-024', 2500, 2650, 15, 'approved', 'BRL-PO-44102', 115, 'Germany'),
     -- Waiting for a finance review: big and thin (over FR-REVIEW-VALUE, margin under FR-MIN-MARGIN).
     ('65100000-0000-4000-8000-000000000004', '65000000-0000-4000-8000-000000000004', 'DEMO-024', 12800, 13200, 7, 'draft', null, 2, 'Germany')
   ) v(id, job, sup, cost, bench, pct, status, ref, age, market)

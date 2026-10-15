@@ -75,16 +75,19 @@ export const JOURNEY: JourneyStage[] = [
     { step: "Vendor accepts the PO", detail: "Accept or decline with a reason in the vendor portal.", lane: "vendor", module: "orders", href: "/vendor/orders", as: U.tom },
     { step: "Hand off to Stocktool", detail: "estimate.approved with article, PO and SO data; orders on hold show missing fields.", lane: "system", module: "orders", href: "/orders", as: U.ada },
   ] },
-  { key: "deliver", title: "5. Produce and deliver", summary: "Production, QA/QC and verified proof of delivery.", steps: [
-    { step: "Production and QA/QC", detail: "Vendor submits quality results and control documents.", lane: "vendor", module: "assure", href: "/vendor/quality", as: U.tom },
-    { step: "Plan deliveries", detail: "Per destination and spec, from the PO.", lane: "internal", module: "logistics", href: "/logistics/plan", as: U.ada },
-    { step: "Ship and upload POD", detail: "Carrier, tracking and proof of delivery in the vendor portal.", lane: "vendor", module: "logistics", href: "/vendor/shipping", as: U.tom },
-    { step: "Verify proof of delivery", detail: "8-point check before a delivery counts; transport CO2e recorded.", lane: "internal", module: "logistics", href: "/logistics/pods", as: U.ada, gate: "8-point POD check" },
+  { key: "deliver", title: "5. Produce, check and deliver", summary: "QA/QC at the level the job needs, then a timestamped, verified proof of delivery.", steps: [
+    { step: "QA/QC level set", detail: "Rules read the spec and job profile and set L1 (document upload) up to L5 (third-party audit), with the reasons.", lane: "system", module: "assure", href: "/orders/qaqc", as: U.ada, gate: "Lowering the level needs a quality reviewer" },
+    { step: "Upload QA/QC evidence", detail: "Per checkpoint; checked at upload: documents, dates, approved bodies, AQL limits, photos.", lane: "vendor", module: "assure", href: "/vendor/qaqc", as: U.wei },
+    { step: "Verify QA/QC", detail: "Auto for L1-L3 when every check passes; failures raise an NCR in SRM.", lane: "internal", module: "orders", href: "/orders/qaqc", as: U.lena, gate: "Quality reviewer for L4-L5 and failures, never the uploader" },
+    { step: "Plan deliveries", detail: "Per destination and spec, with the promised delivery date.", lane: "internal", module: "logistics", href: "/logistics/plan", as: U.ada },
+    { step: "Ship and upload POD", detail: "Carrier, tracking and proof of delivery; the delivery time on the POD is the delivery timestamp.", lane: "vendor", module: "logistics", href: "/vendor/shipping", as: U.tom },
+    { step: "Verify proof of delivery", detail: "8-point check; OTIF recorded (on time against the promised date, in full against the order); transport CO2e.", lane: "internal", module: "logistics", href: "/logistics/pods", as: U.ada, gate: "8-point POD check" },
   ] },
   { key: "execute", title: "6. Execute in store", summary: "Install, prove and audit.", steps: [
     { step: "Schedule deployment", detail: "Install plan per outlet once goods arrive; recces can raise new specs.", lane: "internal", module: "execution", href: "/execution/deployments", as: U.ada },
     { step: "Vendor installs", detail: "Photos and a GPS check in the vendor portal.", lane: "vendor", module: "execution", href: "/vendor/installations", as: U.tom },
     { step: "Audit the install", detail: "Pass or fail; maintenance tickets if needed.", lane: "internal", module: "execution", href: "/execution/deployments", as: U.ada, gate: "Audit pass" },
+    { step: "Close the job", detail: "Every step from brief to delivery is timestamped, so speed to market is measured.", lane: "internal", module: "execution", href: "/execution/jobs", as: U.lena, gate: "QA/QC passed at the required level, or an approved waiver" },
   ] },
   { key: "pay", title: "7. Pay and bill", summary: "Invoice matched to evidence, vendor paid, client billed.", steps: [
     { step: "Vendor sends the invoice", detail: "Against the accepted PO, in the PO currency, with the PDF.", lane: "vendor", module: "finance", href: "/vendor/invoices", as: U.tom },
@@ -96,6 +99,7 @@ export const JOURNEY: JourneyStage[] = [
   { key: "learn", title: "8. Learn and govern", summary: "Results feed the next brief and the supplier scorecard.", steps: [
     { step: "Measure effectiveness", detail: "Spend and execution effectiveness by campaign and market.", lane: "internal", module: "shopper-iq", href: "/shopper-iq/campaigns", as: U.ada },
     { step: "Update the supplier scorecard", detail: "Delivery, quality and compliance feed the PSL.", lane: "internal", module: "assure", href: "/assure/scorecard", as: U.ada },
+    { step: "Report quality and speed", detail: "Per client: QA/QC pass rate, NCRs, OTIF and speed to market, in CRM, the review pack and the Client Portal.", lane: "internal", module: "crm", href: "/crm/clients", as: U.ada },
     { step: "Client gives feedback", detail: "A 0-10 score and comment from the Client Portal, straight into CRM.", lane: "client", module: "crm", href: "/client-portal", as: U.claire },
     { step: "Review client health", detail: "Spend, issues, overdue bills, renewals, activity and satisfaction as a RAG; account plan updated.", lane: "internal", module: "crm", href: "/crm/health", as: U.ada },
     { step: "Watch health and approvals", detail: "Every module's health, change requests and audit in one place.", lane: "internal", module: "watchtower", href: "/watchtower", as: U.ada },

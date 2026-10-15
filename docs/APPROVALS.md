@@ -55,7 +55,7 @@ MC = maker-checker (decider is never the requester). "Inbox" = approval type sho
 |---|---|---|---|---|---|---|
 | Brief approval | `brief_decide` | Any colleague; the BRIEF policy role when a policy names one (demo: briefing lead) | Yes (not the author) | Policy `min_value` on `budget_high` | `/briefing/<id>` | BRIEF |
 | Concept approval | `concept_submit`, `concept_decide` | CONCEPT policy role (default briefing lead) | Yes (not the submitter) | Policy by client / market / `budget_high` (demo: 40,000+ needs Procurement head) | `/briefing/<id>#concepts`, `/briefing/campaign-ideation` | CONCEPT |
-| Client concept approval | `client_concept_decide` | Client approver (`client_users.role = 'approver'`); viewers refused | n/a | When the policy sets `client_approval_required` (demo: Heineken) | `/client-portal/briefs/<id>` | CONCEPT_CLIENT |
+| Client concept approval | `client_concept_decide` | Client approver (`client_users.role = 'approver'`); viewers refused | n/a | When the policy sets `client_approval_required` (demo: Northbrew) | `/client-portal/briefs/<id>` | CONCEPT_CLIENT |
 | Hand-off to Sourcing | `brief_handoff_create` | Internal; requires an approved concept (and client approval when required) whenever a CONCEPT policy applies | – | – | `/briefing/<id>` | – |
 | Campaign concept to briefs | `campaign_concept_to_briefs` | Internal, approved concept only | – | – | `/briefing/campaign-ideation` | – |
 | Sourcing accepts a hand-off | `brief_handoff_accept`, `job_create_from_handoff` | Internal | No | – | Sourcing | – |

@@ -9,7 +9,7 @@
 --
 -- CLIENT IDENTITY RULE for Briefing+ / Shopper IQ: campaigns.client and briefs.client are free text. They are resolved to
 -- sourcing_clients by _client_match(text): case-insensitive, trimmed, exact match on the client CODE, the client NAME, or
--- the name without a trailing parenthetical (so "Heineken" matches "Heineken (demo)"). Code matches win over name matches.
+-- the name without a trailing parenthetical (so "Northbrew" matches "Northbrew (demo)"). Code matches win over name matches.
 -- The result is stored in the new nullable campaigns.client_id / briefs.client_id columns (kept in step by triggers when the
 -- text changes; a brief with no matching text inherits its campaign's client). client_link_backfill() (admin) re-links rows
 -- that were saved before a client existed. Shopper IQ rows belong to a client through their campaign.

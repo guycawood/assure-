@@ -30,7 +30,7 @@ create table public.suppliers (
   name text not null,
   market text,
   region text check (region in ('APAC','EMEA','Americas','GSC')),
-  client text check (client in ('Unilever','Heineken','Coloplast','BAU','Other')),
+  client text check (client in ('Brightlane','Northbrew','Carewell','BAU','Other')),
   category text,
   status text not null default 'onboarding'
     check (status in ('active','pending_approval','onboarding','under_review','suspended','offboarded','inactive')),

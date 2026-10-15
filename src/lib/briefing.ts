@@ -55,7 +55,7 @@ export const MARKETS: { code: string; name: string; region: string }[] = [
   { code: "CN", name: "China", region: "APAC" }, { code: "JP", name: "Japan", region: "APAC" }, { code: "IN", name: "India", region: "APAC" },
 ];
 export const marketName = (code: string | null | undefined) => (code ? MARKETS.find((m) => m.code === code)?.name ?? code : "");
-export const CLIENT_OPTIONS = ["Heineken", "Unilever", "Coloplast", "BAU", "Other"] as const;
+export const CLIENT_OPTIONS = ["Northbrew", "Brightlane", "Carewell", "BAU", "Other"] as const;
 
 export const CAMPAIGN_TYPES = [
   { value: "always_on", label: "Always-on" }, { value: "seasonal", label: "Seasonal" }, { value: "tactical", label: "Tactical" },

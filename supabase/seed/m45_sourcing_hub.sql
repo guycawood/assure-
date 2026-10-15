@@ -36,9 +36,9 @@ select v.key, v.code, v.name, v.data::jsonb, 'active', date '2026-01-01'
 -- ---------------------------------------------------------------------------
 -- Client commercial rules: GSC commission and year-end rebate
 -- ---------------------------------------------------------------------------
-update public.sourcing_clients set gsc_commission_percent = 2.5, year_end_rebate_percent = 1.5 where code = 'UL' and gsc_commission_percent = 0 and year_end_rebate_percent = 0;
-update public.sourcing_clients set gsc_commission_percent = 2.0, year_end_rebate_percent = 1.0 where code = 'HNK' and gsc_commission_percent = 0 and year_end_rebate_percent = 0;
-update public.sourcing_clients set gsc_commission_percent = 0, year_end_rebate_percent = 2.0 where code = 'CPL' and gsc_commission_percent = 0 and year_end_rebate_percent = 0;
+update public.sourcing_clients set gsc_commission_percent = 2.5, year_end_rebate_percent = 1.5 where code = 'BRL' and gsc_commission_percent = 0 and year_end_rebate_percent = 0;
+update public.sourcing_clients set gsc_commission_percent = 2.0, year_end_rebate_percent = 1.0 where code = 'NBW' and gsc_commission_percent = 0 and year_end_rebate_percent = 0;
+update public.sourcing_clients set gsc_commission_percent = 0, year_end_rebate_percent = 2.0 where code = 'CRW' and gsc_commission_percent = 0 and year_end_rebate_percent = 0;
 update public.sourcing_clients set gsc_commission_percent = 3.0, year_end_rebate_percent = 0 where code = 'BAU' and gsc_commission_percent = 0 and year_end_rebate_percent = 0;
 
 -- ---------------------------------------------------------------------------
@@ -51,7 +51,7 @@ update public.job_specs set spec_form = 'fixed', product_category = 'Bar accesso
   life_expectancy = '12 months of daily bar use', finished_style = 'Flat, sealed edges', testing_checklist = '{pre_screen,lab_test,final_inspection}',
   aql_level_id = (select id from public.library_records where library_key = 'aql_levels' and code = 'AQL-2.5' and status = 'active'),
   units_per_inner = 10, units_per_outer = 50, carton_length_cm = 62, carton_width_cm = 27, carton_height_cm = 30, packing_method = 'Rolled in tens, polybag, 5 inners per carton',
-  design_guidelines = 'Heineken brand book 2026; green PMS 356 C', end_market = 'Germany', reusable = true, number_of_uses = 300, designed_for_disassembly = false,
+  design_guidelines = 'Northbrew brand book 2026; green PMS 356 C', end_market = 'Germany', reusable = true, number_of_uses = 300, designed_for_disassembly = false,
   recycled_content_percent = 20, origin_country = 'China', unit_of_measure = 'EA', selling_unit_qty = 1, moq = 250, net_weight_kg = 0.420, gross_weight_kg = 0.450
  where id = 'b5000000-0000-4000-8000-000000000012' and product_category is null;
 
@@ -61,7 +61,7 @@ update public.job_specs set spec_form = 'ideation', product_category = 'Gifting'
   branding_method_id = (select id from public.library_records where library_key = 'branding_methods' and code = 'BM-OFFSET' and status = 'active'),
   life_expectancy = 'Keepsake: reusable as a storage box', finished_style = 'Lidded box with ribbon', testing_checklist = '{pre_screen,drop_test,final_inspection}',
   aql_level_id = (select id from public.library_records where library_key = 'aql_levels' and code = 'AQL-2.5' and status = 'active'),
-  units_per_outer = 10, packing_method = 'Flat-packed, assembled at the co-packer', design_guidelines = 'Knorr Tet key visual; red and gold, no plastic windows',
+  units_per_outer = 10, packing_method = 'Flat-packed, assembled at the co-packer', design_guidelines = 'Fresko Tet key visual; red and gold, no plastic windows',
   end_market = 'Vietnam', reusable = true, number_of_uses = 10, designed_for_disassembly = true, recycled_content_percent = 60, unit_of_measure = 'EA', moq = 1000
  where id = 'b5000000-0000-4000-8000-000000000051' and product_category is null;
 update public.job_specs set spec_form = 'open', product_category = 'Gifting', product_sub_type = 'Ribbon and tag'
@@ -83,7 +83,7 @@ update public.job_specs set spec_form = 'fixed', product_category = 'Fixture', p
   origin_country = 'Germany', unit_of_measure = 'EA', designed_for_disassembly = true
  where id = 'b5000000-0000-4000-8000-000000000061' and product_category is null;
 
--- Dove wobbler (awarded): origin known, weights still missing (shows up on the hand-off dashboard).
+-- Lumora wobbler (awarded): origin known, weights still missing (shows up on the hand-off dashboard).
 update public.job_specs set spec_form = 'fixed', product_category = 'POS print', product_sub_type = 'Wobbler', origin_country = 'United Kingdom', unit_of_measure = 'EA', moq = 5000
  where id = 'b5000000-0000-4000-8000-000000000021' and product_category is null;
 
@@ -117,7 +117,7 @@ update public.rfq_invitations i set requote_needed = (s.supplier_code <> 'DEMO-0
 -- ---------------------------------------------------------------------------
 update public.rfqs set incoterm_id = (select id from public.library_records where library_key = 'incoterms' and code = 'DDP' and status = 'active'), incoterm_place = 'Berlin and Munich DCs'
  where id = 'd5000000-0000-4000-8000-000000000001' and incoterm_id is null;
-update public.rfqs set incoterm_id = (select id from public.library_records where library_key = 'incoterms' and code = 'DDP' and status = 'active'), incoterm_place = 'Unilever UK DC, Leeds'
+update public.rfqs set incoterm_id = (select id from public.library_records where library_key = 'incoterms' and code = 'DDP' and status = 'active'), incoterm_place = 'Brightlane UK DC, Leeds'
  where id = 'd5000000-0000-4000-8000-000000000002' and incoterm_id is null;
 update public.rfqs set incoterm_id = (select id from public.library_records where library_key = 'incoterms' and code = 'DAP' and status = 'active'), incoterm_place = 'Amsterdam'
  where id = 'd5000000-0000-4000-8000-000000000006' and incoterm_id is null;
@@ -187,19 +187,19 @@ update public.estimates e set additional_cost = x.total, gsc_commission_percent 
 insert into public.client_pos (estimate_id, po_number, amount, currency, po_date)
 select e.id, v.po, least(v.amount, e.sell_price), e.currency, current_date - v.days
   from (values
-    ('e5000000-0000-4000-8000-000000000002', 'UL-PO-44821', 3000.00, 7),
-    ('e5000000-0000-4000-8000-000000000002', 'UL-PO-44907', 2000.00, 3),
+    ('e5000000-0000-4000-8000-000000000002', 'BRL-PO-44821', 3000.00, 7),
+    ('e5000000-0000-4000-8000-000000000002', 'BRL-PO-44907', 2000.00, 3),
     ('e5000000-0000-4000-8000-000000000004', 'CPL-77310', 1000000.00, 18)
   ) v(est, po, amount, days)
   join public.estimates e on e.id = v.est::uuid and e.status = 'approved'
 on conflict (estimate_id, po_number) do nothing;
 
-update public.estimates set port_of_loading = 'Felixstowe', forwarder = 'DemoFreight UK', consignee = 'Unilever UK DC (demo)', hub = 'UK hub'
+update public.estimates set port_of_loading = 'Felixstowe', forwarder = 'DemoFreight UK', consignee = 'Brightlane UK DC (demo)', hub = 'UK hub'
  where id = 'e5000000-0000-4000-8000-000000000002' and port_of_loading is null;
-update public.estimates set forwarder = 'DemoFreight US', consignee = 'Coloplast clinic network (demo)', hub = 'US hub'
+update public.estimates set forwarder = 'DemoFreight US', consignee = 'Carewell clinic network (demo)', hub = 'US hub'
  where id = 'e5000000-0000-4000-8000-000000000004' and forwarder is null;
 
--- The Coloplast hand-off went to Stocktool two days after approval; the Unilever one is waiting (weights missing).
+-- The Carewell hand-off went to Stocktool two days after approval; the Brightlane one is waiting (weights missing).
 update public.integration_outbox o set sent_at = e.approved_at + interval '2 days'
   from public.estimates e
  where e.id = o.aggregate_id and o.event = 'estimate.approved' and o.status = 'sent' and o.sent_at is null and o.aggregate_id::text like 'e5000000-%';
@@ -213,7 +213,7 @@ select v.job::uuid, v.entity, v.eid::uuid, v.event, v.detail::jsonb || '{"demo":
     ('a5000000-0000-4000-8000-000000000001', 'spec', 'b5000000-0000-4000-8000-000000000012', 'revised', '{"revision":2,"note":"Corner radius increased to 10 mm (bar safety audit)"}', '1 day'),
     ('a5000000-0000-4000-8000-000000000001', 'rfq', 'd5000000-0000-4000-8000-000000000001', 'requote_requested', '{"spec":"Bar runner mat","revision":2}', '1 day'),
     ('a5000000-0000-4000-8000-000000000001', 'rfq', 'd5000000-0000-4000-8000-000000000001', 'requote_submitted', '{"source":"vendor_portal"}', '6 hours'),
-    ('a5000000-0000-4000-8000-000000000002', 'estimate', 'e5000000-0000-4000-8000-000000000002', 'client_po_added', '{"po_number":"UL-PO-44907","amount":2000}', '3 days')
+    ('a5000000-0000-4000-8000-000000000002', 'estimate', 'e5000000-0000-4000-8000-000000000002', 'client_po_added', '{"po_number":"BRL-PO-44907","amount":2000}', '3 days')
   ) v(job, entity, eid, event, detail, ago)
  where exists (select 1 from public.jobs where id = v.job::uuid)
    and not exists (select 1 from public.sourcing_events se where se.entity_id = v.eid::uuid and se.event = v.event);

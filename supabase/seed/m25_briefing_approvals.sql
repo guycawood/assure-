@@ -1,5 +1,5 @@
 -- DUMMY DATA: Briefing+ concept approvals (runs after m20_briefing). Ideation sessions with concepts in every approval
--- state: waiting for approval (one overdue), approved and waiting for the Heineken client approver, proposed, a high-budget
+-- state: waiting for approval (one overdue), approved and waiting for the Northbrew client approver, proposed, a high-budget
 -- concept that needs the Procurement head, and campaign ideation concepts (one approved, ready to become briefs).
 -- People are matched by email: directly when the profiles already exist, otherwise when the demo users are created
 -- (concept_approvals is append-only, so its demo rows keep a blank actor on a fresh build).
@@ -27,7 +27,7 @@ declare v_s uuid; v_m bigint; b public.briefs; v_c uuid;
 begin
   if exists (select 1 from public.ideation_concepts where name = 'Shelf-ready gondola tray') then return; end if;
 
-  -- BR-2026-00001 (Heineken GB, approved brief): three concepts.
+  -- BR-2026-00001 (Northbrew GB, approved brief): three concepts.
   select * into b from public.briefs where brief_code = 'BR-2026-00001';
   if b.id is not null then
     insert into public.ideation_sessions (kind, brief_id, context, creative_params, created_by, created_at)
@@ -35,7 +35,7 @@ begin
             '{"innovation":"balanced","sustainability":"high","budget":"respect"}', public._demo_person('pedro.procurement@adm-indicia.com'), now() - interval '6 days')
     returning id into v_s;
     insert into public.ideation_messages (session_id, role, content, model, prompt_version, demo, created_at)
-    values (v_s, 'assistant', 'Three buildable directions for the Heineken 0.0 gondola end, all board-first and tool-free.', 'demo-rules', 'brief-ideation/v1', true, now() - interval '6 days')
+    values (v_s, 'assistant', 'Three buildable directions for the Northbrew 0.0 gondola end, all board-first and tool-free.', 'demo-rules', 'brief-ideation/v1', true, now() - interval '6 days')
     returning id into v_m;
     insert into public.ideation_concepts (session_id, message_id, brief_id, kind, idx, is_top, name, data, model, prompt_version, demo, created_at,
       status, submitted_by, submitted_at, submit_note, decided_by, decided_at, decision_comments, client_approval_required, client_status)
@@ -48,7 +48,7 @@ begin
        '{"name":"Corrugated gondola end with QR header","suggested_spec_type":"3d","creative_direction":"A corrugated gondola end holding 4-packs and 10-packs, with a QR header linking to the match-day promotion.","suggested_substrate_name":"Corrugated board E/B flute (kraft)","suggested_length":1250,"suggested_width":600,"suggested_depth":1900,"suggested_unit":"mm","fit_score":79,"indicative_unit_price":52,"price_currency":"GBP","indicative_quantity":50,"indicative_total":2600,"price_basis":"Demo rate card","rationale":"Holds both pack sizes and survives six weeks."}',
        'demo-rules', 'brief-ideation/v1', true, now() - interval '6 days',
        'approved', public._demo_person('pedro.procurement@adm-indicia.com'), now() - interval '3 days', null,
-       public._demo_person('lena.lead@adm-indicia.com'), now() - interval '2 days', 'Approved. Over to Heineken for sign-off.', true, 'pending'),
+       public._demo_person('lena.lead@adm-indicia.com'), now() - interval '2 days', 'Approved. Over to Northbrew for sign-off.', true, 'pending'),
       (v_s, v_m, b.id, 'spec_concept', 2, false, 'Modular board display',
        '{"name":"Modular board display","suggested_spec_type":"3d","creative_direction":"Modular board cubes that stack to fit any gondola height.","suggested_substrate_name":"Solid bleached board 300gsm","fit_score":68,"rationale":"Flexible but slower to build."}',
        'demo-rules', 'brief-ideation/v1', true, now() - interval '6 days',
@@ -65,7 +65,7 @@ begin
       (b.id, 'concept_approved', 'in_ideation', 'in_ideation', 'Corrugated gondola end with QR header', public._demo_person('lena.lead@adm-indicia.com'), now() - interval '2 days');
   end if;
 
-  -- BR-2026-00005 (Magnum Italy, top budget 45,000): a concept that needs the Procurement head (AP-CONCEPT-HIGH).
+  -- BR-2026-00005 (Polaris Italy, top budget 45,000): a concept that needs the Procurement head (AP-CONCEPT-HIGH).
   select * into b from public.briefs where brief_code = 'BR-2026-00005';
   if b.id is not null then
     insert into public.ideation_sessions (kind, brief_id, context, creative_params, created_by, created_at)
@@ -85,9 +85,9 @@ begin
     values (v_c, b.id, 'internal', 'submitted', public._demo_person('lena.lead@adm-indicia.com'), now() - interval '1 day');
   end if;
 
-  -- Campaign ideation (Heineken): one approved product type ready to become briefs, one waiting for approval.
+  -- Campaign ideation (Northbrew): one approved product type ready to become briefs, one waiting for approval.
   insert into public.ideation_sessions (kind, objective, context, creative_params, created_by, created_at)
-  values ('campaign', 'Drive trial of Heineken 0.0 in bars and convenience stores this winter.', '{"client":"Heineken","brand":"Heineken 0.0","division":"Beer"}', '{}',
+  values ('campaign', 'Drive trial of Northbrew 0.0 in bars and convenience stores this winter.', '{"client":"Northbrew","brand":"Northbrew 0.0","division":"Beer"}', '{}',
           public._demo_person('arjun.agent@adm-indicia.com'), now() - interval '5 days')
   returning id into v_s;
   insert into public.ideation_messages (session_id, role, content, model, prompt_version, demo, created_at)

@@ -9,36 +9,36 @@ delete from public.suppliers where supplier_code like 'DEMO-%';
 -- 30 fictional suppliers across clients, markets and spend levels.
 with names(n, name, market, region, client, category, spend, route, strategic) as (
   values
-  (1,  'Northwind Print Co',        'China',          'APAC',     'Unilever',  'Print',      412000, 'fast_track', true),
-  (2,  'Lotus Display Works',       'China',          'APAC',     'Unilever',  'POSM',       268000, 'fast_track', false),
-  (3,  'Jade River Packaging',      'China',          'APAC',     'Heineken',  'Packaging',  155000, 'fast_track', false),
-  (4,  'Harbourline Logistics',     'Hong Kong',      'APAC',     'Unilever',  'Logistics',   98000, 'standard',   false),
-  (5,  'Saigon Craft Displays',     'Vietnam',        'APAC',     'Heineken',  'POSM',        76000, 'fast_track', false),
-  (6,  'Mekong Board Products',     'Vietnam',        'APAC',     'Unilever',  'Packaging',   43000, 'standard',   false),
-  (7,  'Bangkok Signage Studio',    'Thailand',       'APAC',     'Heineken',  'Signage',    121000, 'fast_track', false),
-  (8,  'Klang Valley Fixtures',     'Malaysia',       'APAC',     'Unilever',  'Fixtures',   188000, 'standard',   true),
-  (9,  'Manila Bay Printworks',     'Philippines',    'APAC',     'Unilever',  'Print',       35000, 'fast_track', false),
-  (10, 'Garuda Merchandising',      'Indonesia',      'APAC',     'Heineken',  'Premiums',    22000, 'standard',   false),
-  (11, 'Southern Cross Shopfit',    'Australia',      'APAC',     'Coloplast', 'Fixtures',    64000, 'standard',   false),
-  (12, 'Pune Metal Displays',       'India',          'APAC',     'Unilever',  'Fixtures',   143000, 'fast_track', false),
+  (1,  'Northwind Print Co',        'China',          'APAC',     'Brightlane',  'Print',      412000, 'fast_track', true),
+  (2,  'Lotus Display Works',       'China',          'APAC',     'Brightlane',  'POSM',       268000, 'fast_track', false),
+  (3,  'Jade River Packaging',      'China',          'APAC',     'Northbrew',  'Packaging',  155000, 'fast_track', false),
+  (4,  'Harbourline Logistics',     'Hong Kong',      'APAC',     'Brightlane',  'Logistics',   98000, 'standard',   false),
+  (5,  'Saigon Craft Displays',     'Vietnam',        'APAC',     'Northbrew',  'POSM',        76000, 'fast_track', false),
+  (6,  'Mekong Board Products',     'Vietnam',        'APAC',     'Brightlane',  'Packaging',   43000, 'standard',   false),
+  (7,  'Bangkok Signage Studio',    'Thailand',       'APAC',     'Northbrew',  'Signage',    121000, 'fast_track', false),
+  (8,  'Klang Valley Fixtures',     'Malaysia',       'APAC',     'Brightlane',  'Fixtures',   188000, 'standard',   true),
+  (9,  'Manila Bay Printworks',     'Philippines',    'APAC',     'Brightlane',  'Print',       35000, 'fast_track', false),
+  (10, 'Garuda Merchandising',      'Indonesia',      'APAC',     'Northbrew',  'Premiums',    22000, 'standard',   false),
+  (11, 'Southern Cross Shopfit',    'Australia',      'APAC',     'Carewell', 'Fixtures',    64000, 'standard',   false),
+  (12, 'Pune Metal Displays',       'India',          'APAC',     'Brightlane',  'Fixtures',   143000, 'fast_track', false),
   (13, 'Thameside Litho',           'United Kingdom', 'EMEA',     'BAU',       'Print',      231000, 'standard',   true),
-  (14, 'Midlands Point-of-Sale',    'United Kingdom', 'EMEA',     'Coloplast', 'POSM',        87000, 'standard',   false),
-  (15, 'Rhine Valley Kartonagen',   'Germany',        'EMEA',     'Heineken',  'Packaging',  176000, 'standard',   false),
-  (16, 'Hanseatic Displays',        'Germany',        'EMEA',     'Unilever',  'POSM',        54000, 'standard',   false),
+  (14, 'Midlands Point-of-Sale',    'United Kingdom', 'EMEA',     'Carewell', 'POSM',        87000, 'standard',   false),
+  (15, 'Rhine Valley Kartonagen',   'Germany',        'EMEA',     'Northbrew',  'Packaging',  176000, 'standard',   false),
+  (16, 'Hanseatic Displays',        'Germany',        'EMEA',     'Brightlane',  'POSM',        54000, 'standard',   false),
   (17, 'Lyon Atelier Vitrine',      'France',         'EMEA',     'BAU',       'Fixtures',    29000, 'standard',   false),
-  (18, 'Tagus Print & Pack',        'Portugal',       'EMEA',     'Unilever',  'Print',       91000, 'fast_track', false),
-  (19, 'Vistula Woodcraft',         'Poland',         'EMEA',     'Heineken',  'Fixtures',   112000, 'standard',   false),
+  (18, 'Tagus Print & Pack',        'Portugal',       'EMEA',     'Brightlane',  'Print',       91000, 'fast_track', false),
+  (19, 'Vistula Woodcraft',         'Poland',         'EMEA',     'Northbrew',  'Fixtures',   112000, 'standard',   false),
   (20, 'Danube Plastics',           'Slovakia',       'EMEA',     'BAU',       'Components',  47000, 'standard',   false),
-  (21, 'Bosphorus Signage',         'Turkey',         'EMEA',     'Heineken',  'Signage',         0, 'standard',   false),
-  (22, 'Nordic Fibre Board',        'Sweden',         'EMEA',     'Coloplast', 'Packaging',   38000, 'standard',   false),
+  (21, 'Bosphorus Signage',         'Turkey',         'EMEA',     'Northbrew',  'Signage',         0, 'standard',   false),
+  (22, 'Nordic Fibre Board',        'Sweden',         'EMEA',     'Carewell', 'Packaging',   38000, 'standard',   false),
   (23, 'Lakeshore Fixtures Inc',    'United States',  'Americas', 'BAU',       'Fixtures',   204000, 'standard',   false),
-  (24, 'Prairie Print Group',       'United States',  'Americas', 'Unilever',  'Print',       69000, 'standard',   false),
-  (25, 'Sierra Display Co',         'Mexico',         'Americas', 'Heineken',  'POSM',        58000, 'fast_track', false),
-  (26, 'Andes Packaging SA',        'Colombia',       'Americas', 'Unilever',  'Packaging',   17000, 'standard',   false),
+  (24, 'Prairie Print Group',       'United States',  'Americas', 'Brightlane',  'Print',       69000, 'standard',   false),
+  (25, 'Sierra Display Co',         'Mexico',         'Americas', 'Northbrew',  'POSM',        58000, 'fast_track', false),
+  (26, 'Andes Packaging SA',        'Colombia',       'Americas', 'Brightlane',  'Packaging',   17000, 'standard',   false),
   (27, 'Rio Merch Solutions',       'Brazil',         'Americas', 'BAU',       'Premiums',        0, 'standard',   false),
-  (28, 'Maple Leaf Shopfitters',    'Canada',         'Americas', 'Coloplast', 'Fixtures',    41000, 'standard',   false),
+  (28, 'Maple Leaf Shopfitters',    'Canada',         'Americas', 'Carewell', 'Fixtures',    41000, 'standard',   false),
   (29, 'Global Freight Partners',   'Singapore',      'GSC',      'BAU',       'Logistics',  322000, 'standard',   true),
-  (30, 'Straits Component Supply',  'Singapore',      'GSC',      'Unilever',  'Components',  83000, 'standard',   false)
+  (30, 'Straits Component Supply',  'Singapore',      'GSC',      'Brightlane',  'Components',  83000, 'standard',   false)
 )
 insert into public.suppliers (supplier_code, name, market, region, client, category, ytd_spend, onboarding_route, strategic,
                               primary_contact_email, active, notes)
@@ -100,7 +100,7 @@ select t.type, t.title || ': ' || s.name, t.description, s.id, t.gate_key, t.pri
     ('DEMO-001', 'remediation',          'MSA signature outstanding',            'Vendor says signed copy is with their legal team.', 'msa',            'high',   'waiting_vendor',  3),
     ('DEMO-001', 'remediation',          'Capability assessment not completed', null,                                                 'capability',     'high',   'in_progress',     5),
     ('DEMO-002', 'missing_document',     'Code of Conduct not returned',        null,                                                 'coc',            'normal', 'triage',          4),
-    ('DEMO-003', 'remediation',          'Sedex membership not evidenced',      'Fast-tracked UL incumbent.',                         'sustainability', 'normal', 'new',             8),
+    ('DEMO-003', 'remediation',          'Sedex membership not evidenced',      'Fast-tracked BRL incumbent.',                         'sustainability', 'normal', 'new',             8),
     ('DEMO-005', 'document_verification','Check uploaded ISO 9001 certificate', null,                                                 'quality',        'normal', 'new',             2),
     ('DEMO-007', 'bank_change',          'Bank details changed by vendor',      'New account in Bangkok; needs callback verification.', 'bank',          'urgent', 'waiting_finance', 1),
     ('DEMO-009', 'missing_document',     'Company registration documents',      null,                                                 'registration',   'normal', 'waiting_vendor', -2),
@@ -115,7 +115,7 @@ select t.type, t.title || ': ' || s.name, t.description, s.id, t.gate_key, t.pri
 
 -- A new-vendor request that isn't a supplier yet.
 insert into public.srt_tickets (type, title, prospect_name, client, market, priority, status, source, source_ref)
-values ('new_onboarding', 'New supplier request: Coastal Foam Inserts', 'Coastal Foam Inserts', 'Unilever', 'Vietnam', 'normal', 'new', 'manual', 'demo');
+values ('new_onboarding', 'New supplier request: Coastal Foam Inserts', 'Coastal Foam Inserts', 'Brightlane', 'Vietnam', 'normal', 'new', 'manual', 'demo');
 
 -- ---------------------------------------------------------------------------
 -- Supplier scorecard inputs (dummy). Deterministic per supplier number so the demo is stable;

@@ -1,5 +1,5 @@
 -- Sourcing Hub parity (Sourcing+ / RFQ+ / Order Management+), closing the gaps raised in the Sourcing Hub gap analysis
--- (Promo, Premiums), the Unilever pilot UAT and the E2E process / Wave 2 / Wave 4 decks:
+-- (Promo, Premiums), the Brightlane pilot UAT and the E2E process / Wave 2 / Wave 4 decks:
 --   1. Spec forms (ideation / open / fixed) and structured Promo & Merch, sustainability and Stocktool article fields;
 --      governed libraries branding_methods, aql_levels, incoterms. HS code is mandatory to send a promo RFQ.
 --   2. Spec revisions instead of a hard lock: revising a spec that is on a sent RFQ creates a new revision (snapshot,

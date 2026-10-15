@@ -204,7 +204,7 @@ export const PRIORITIES: { value: Priority; label: string }[] = [
   { value: "low", label: "Low" },
 ];
 
-export const CLIENTS = ["Unilever", "Heineken", "Coloplast", "BAU", "Other"] as const;
+export const CLIENTS = ["Brightlane", "Northbrew", "Carewell", "BAU", "Other"] as const;
 export const REGIONS = ["APAC", "EMEA", "Americas", "GSC"] as const;
 
 export const SRT_ROLES: { value: SrtRole; label: string; description: string }[] = [
