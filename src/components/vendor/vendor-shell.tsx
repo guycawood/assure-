@@ -44,7 +44,7 @@ export function VendorShell({ user, company, demo, notices, children }: {
             <span className="grid h-9 w-9 place-items-center rounded-xl" style={{ background: ACCENT + "26", color: ACCENT }}><MSymbol name="handshake" size={20} /></span>
           ) : (
             <>
-              <span className="text-[0.6rem] font-bold uppercase tracking-[0.16em] text-muted/80">adm Indicia · Assure<span style={{ color: ACCENT }}>+</span></span>
+              <span className="text-[0.6rem] font-bold uppercase tracking-[0.16em] text-muted/80">adm Indicia · <span style={{ color: ACCENT }}>SRM</span></span>
               <span className="text-[1.05rem] font-extrabold uppercase leading-none tracking-[0.1em] text-brand-navy">Vendor Portal</span>
               {company && <span className="mt-1 truncate text-[0.7rem] font-semibold text-muted" title={company}>{company}</span>}
             </>

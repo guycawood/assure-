@@ -23,7 +23,7 @@ export default function VendorPortalLanding() {
     <div className="min-h-screen bg-bg">
       <header className="border-b border-line bg-surface">
         <div className="mx-auto flex max-w-6xl items-center gap-3 px-5 py-3">
-          <span className="text-[1rem] font-extrabold uppercase tracking-[0.1em] text-brand-navy">adm Indicia · Assure<span className="text-[#2E9E8F]">+</span></span>
+          <span className="text-[1rem] font-extrabold uppercase tracking-[0.1em] text-brand-navy">adm Indicia · <span className="text-[#2E9E8F]">SRM</span></span>
           <span className="hidden text-xs font-semibold uppercase tracking-[0.14em] text-muted sm:inline">Vendor portal</span>
           <nav className="ml-auto flex items-center gap-2">
             <Link href="/login?next=/vendor" className="rounded-lg px-3 py-2 text-sm font-semibold text-brand-navy hover:bg-surface-2">Sign in</Link>

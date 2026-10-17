@@ -10,7 +10,7 @@ export default function ApplyPage() {
     <div className="min-h-screen bg-bg">
       <header className="border-b border-line bg-surface">
         <div className="mx-auto flex max-w-5xl items-center gap-3 px-5 py-3">
-          <Link href="/vendor-portal" className="text-[1rem] font-extrabold uppercase tracking-[0.1em] text-brand-navy">adm Indicia · Assure<span className="text-[#2E9E8F]">+</span></Link>
+          <Link href="/vendor-portal" className="text-[1rem] font-extrabold uppercase tracking-[0.1em] text-brand-navy">adm Indicia · <span className="text-[#2E9E8F]">SRM</span></Link>
           <Link href="/login?next=/vendor" className="ml-auto rounded-lg px-3 py-2 text-sm font-semibold text-brand-navy hover:bg-surface-2">Already a vendor? Sign in</Link>
         </div>
       </header>

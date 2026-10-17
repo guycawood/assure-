@@ -1,6 +1,6 @@
-# Assure+
+# System Guy
 
-adm Indicia's supplier relationship management platform. This repo is the fresh build that replaces the Base44 prototype.
+adm Indicia's platform (CRM, Briefing, Shopper IQ, Sourcing, Order Management, SRM, Finance, Watchtower). It started as the supplier relationship management (SRM) build. This repo is the fresh build that replaces the Base44 prototype.
 
 **Phase 1 (this release): internal portal + SRT Onboarding Desk**
 
@@ -72,4 +72,4 @@ Runs the migrations in an in-process Postgres with stubbed Supabase auth and che
 
 ## What's next
 
-See the module spec in Claude Docs ("Assure+ SRT Onboarding Desk — Module Spec"). Upcoming: CSV import of the fast-track tracker, vendor portal (registration, pre-assessment, document upload into gates), notifications, and the PO-creation check against `purchasing_blocked`.
+See the module spec in Claude Docs ("SRT Onboarding Desk — Module Spec"). Upcoming: CSV import of the fast-track tracker, vendor portal (registration, pre-assessment, document upload into gates), notifications, and the PO-creation check against `purchasing_blocked`.
