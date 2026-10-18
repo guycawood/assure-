@@ -14,6 +14,10 @@ export interface DemoUser {
   name: string;
   role: string;
   description: string;
+  /** SRT role set when the user is first wired (never overrides a role changed in the app). */
+  srtRole?: string;
+  /** Scoped SRM roles, e.g. Local Finance for a region. */
+  scopes?: { role: "local_finance" | "category_manager" | "quality"; region?: string; market?: string }[];
 }
 
 // Fictional people. Emails on adm-indicia.com join as internal staff, as they will in production.
@@ -21,10 +25,12 @@ export const DEMO_USERS: DemoUser[] = [
   { id: "d0000000-0000-4000-8000-000000000001", email: "ada.admin@adm-indicia.com", name: "Ada Admin", role: "Admin", description: "Everything, including user access" },
   { id: "d0000000-0000-4000-8000-000000000002", email: "lena.lead@adm-indicia.com", name: "Lena Lead", role: "SRT lead", description: "Approves fast-track, marks gates not required, changes due dates" },
   { id: "d0000000-0000-4000-8000-000000000003", email: "arjun.agent@adm-indicia.com", name: "Arjun Agent", role: "SRT agent", description: "Works tickets, verifies gates except bank details" },
-  { id: "d0000000-0000-4000-8000-000000000004", email: "fiona.finance@adm-indicia.com", name: "Fiona Finance", role: "Finance", description: "Verifies bank details" },
+  { id: "d0000000-0000-4000-8000-000000000004", email: "fiona.finance@adm-indicia.com", name: "Fiona Finance", role: "Finance", description: "Verifies bank details; Local Finance for APAC and the Americas", scopes: [{ role: "local_finance", region: "APAC" }, { role: "local_finance", region: "Americas" }] },
   { id: "d0000000-0000-4000-8000-000000000005", email: "pedro.procurement@adm-indicia.com", name: "Pedro Procurement", role: "In-market procurement", description: "Raises tickets, sends vendor information requests" },
   { id: "d0000000-0000-4000-8000-000000000007", email: "hana.head@adm-indicia.com", name: "Hana Head", role: "Procurement head", description: "Reviews vendor information and gives final onboarding approval" },
   { id: "d0000000-0000-4000-8000-000000000008", email: "omar.ops@adm-indicia.com", name: "Omar Ops", role: "Admin (second)", description: "Second platform admin: approves access changes and client approver grants another admin requested" },
+  { id: "d0000000-0000-4000-8000-0000000000d1", email: "dara.director@adm-indicia.com", name: "Dara Director", role: "Procurement Director", description: "Approves fast-track exceptions (with Local Finance), triages requests and releases suppliers", srtRole: "director" },
+  { id: "d0000000-0000-4000-8000-0000000000f2", email: "felix.finance@adm-indicia.com", name: "Felix Finance (EMEA)", role: "Local Finance (EMEA)", description: "Verifies bank details and gives Finance approval for EMEA suppliers", srtRole: "finance", scopes: [{ role: "local_finance", region: "EMEA" }] },
   { id: "d0000000-0000-4000-8000-000000000006", email: "vendor1@example.com", name: "Wei Chen (Northwind Print Co)", role: "Vendor", description: "A vendor user: sees only the vendor portal" },
   { id: "d0000000-0000-4000-8000-000000000019", email: "vendor19@example.com", name: "Priya Patel (Vistula Woodcraft)", role: "Vendor", description: "Vendor portal admin: a contract to sign, sites and team" },
   { id: "d0000000-0000-4000-8000-000000000030", email: "vendor30@example.com", name: "Tom Reyes (Straits Component Supply)", role: "Vendor", description: "Vendor portal admin: an open quote request, a pushed price and a PO to accept" },

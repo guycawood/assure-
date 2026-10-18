@@ -7,7 +7,7 @@ export type TicketType =
   | "new_onboarding" | "document_verification" | "missing_document" | "remediation"
   | "certificate_renewal" | "bank_change" | "query" | "deactivation";
 export type Priority = "urgent" | "high" | "normal" | "low";
-export type SrtRole = "agent" | "lead" | "finance" | "procurement" | "head";
+export type SrtRole = "agent" | "lead" | "finance" | "procurement" | "head" | "director";
 
 export type RfiStatus = "sent" | "submitted" | "returned" | "approved" | "rejected" | "cancelled";
 
@@ -94,6 +94,15 @@ export interface Supplier {
   critical_open: number;
   onboarding_status: string;
   purchasing_blocked: boolean;
+  /** Nine-stage onboarding standard (computed in the database). */
+  onboarding_baseline: "standard" | "legacy";
+  onboarding_stage: number;
+  onboarding_stage_since: string;
+  onboarding_released: boolean;
+  onboarding_state: "submitted" | "in_review" | "approved" | "declined" | "exception" | "on_hold";
+  onboarding_block_reason: string | null;
+  next_review_due: string | null;
+  ids_synced_at: string | null;
   created_by: string | null;
   created_at: string;
   updated_at: string;
@@ -212,7 +221,8 @@ export const SRT_ROLES: { value: SrtRole; label: string; description: string }[]
   { value: "lead", label: "SRT lead", description: "Also approves fast-track, marks gates not required, changes due dates" },
   { value: "finance", label: "Finance", description: "Verifies bank details" },
   { value: "procurement", label: "In-market procurement", description: "Raises requests, sends vendor information requests, chases vendors" },
-  { value: "head", label: "Procurement head", description: "Reviews vendor information and gives final onboarding approval" },
+  { value: "head", label: "Procurement head", description: "Reviews vendor information, triages onboarding requests, approves category fit" },
+  { value: "director", label: "Procurement Director", description: "Approves fast-track exceptions (with Local Finance), triages and releases suppliers" },
 ];
 
 export type Tone = "ok" | "warn" | "bad" | "info" | "accent" | "neutral";

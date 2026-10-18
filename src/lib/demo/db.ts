@@ -96,6 +96,7 @@ async function freshBuild(db: PGlite) {
     await db.query("insert into demo_meta.applied (kind, name) values ('seed', $1)", [f]);
   }
   await wireDemoUsers(db);
+  await wireRoles(db);
 }
 
 /** Existing on-disk database: apply only migrations and seeds added since it was created. */
@@ -120,6 +121,17 @@ async function catchUp(db: PGlite) {
     await db.query("insert into auth.users (id, email, raw_user_meta_data) values ($1, $2, $3) on conflict (id) do nothing", [u.id, u.email, JSON.stringify({ full_name: u.name })]);
   }
   await wireAdmins(db);
+  await wireRoles(db);
+}
+
+/** SRT roles and scoped SRM roles (Local Finance by region) from the demo config; never overrides a role set in the app. */
+async function wireRoles(db: PGlite) {
+  for (const u of DEMO_USERS) {
+    if (u.srtRole) await db.query("update public.profiles set srt_role = $2 where id = $1 and srt_role is null", [u.id, u.srtRole]);
+    for (const s of u.scopes ?? []) {
+      await db.query("insert into public.srm_role_scopes (user_id, role, region, market) values ($1, $2, $3, $4) on conflict do nothing", [u.id, s.role, s.region ?? null, s.market ?? null]);
+    }
+  }
 }
 
 /** Every demo user whose role starts with "Admin" is a platform admin (two, so maker-checker approvals can complete). */

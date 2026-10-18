@@ -25,7 +25,7 @@ export default async function PreAssessments({ searchParams }: { searchParams: P
       <section className="grid gap-3 sm:grid-cols-4">
         <Stat label="Waiting for vendor manager" value={n("submitted", "under_review")} tone={n("submitted") ? "warn" : undefined} />
         <Stat label="With procurement" value={n("vm_approved", "procurement_review", "negotiation")} />
-        <Stat label="Onboarded" value={n("onboarded")} tone="ok" />
+        <Stat label="Terms agreed" value={n("onboarded")} tone="ok" />
         <Stat label="Declined or rejected" value={n("vm_rejected", "rejected")} />
       </section>
       <Chips param="status" options={PA_STATUS.filter((o) => o.value !== "draft").map((o) => ({ value: o.value, label: o.label, count: n(o.value) }))} active={sp.status} keep={{ status: sp.status }} />

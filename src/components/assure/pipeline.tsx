@@ -1,9 +1,9 @@
 import { clsx } from "clsx";
 import { PA_PIPELINE } from "@/lib/assure";
 
-/** Pre-assessment progress: Submitted → VM review → Approved → Procurement → Negotiation → Onboarded. Rejections show red at the stage. */
+/** Pre-assessment progress: Submitted → VM review → Approved → Procurement → Negotiation → Terms agreed (onboarding itself runs through the nine stages). Rejections show red at the stage. */
 export function Pipeline({ status }: { status: string }) {
-  const steps = ["Submitted", "Vendor-manager review", "Approved", "Procurement", "Negotiation", "Onboarded"];
+  const steps = ["Submitted", "Vendor-manager review", "Approved", "Procurement", "Negotiation", "Terms agreed"];
   const idx = PA_PIPELINE.indexOf(status);
   const failedAt = status === "vm_rejected" ? 1 : status === "rejected" ? 4 : -1;
   return (

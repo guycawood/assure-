@@ -14,7 +14,7 @@ export default async function NewSupplierPage() {
   const people = await getInternalPeople(supabase);
   return (
     <>
-      <PageHead title="Add a supplier" sub="The supplier starts with all 14 onboarding gates missing. Purchasing stays blocked until every critical gate is verified." />
+      <PageHead title="Add a supplier" sub="New suppliers normally start as an onboarding request, so the duplicate check and Procurement triage happen first. A supplier added here starts at stage 1 of 9 with purchasing blocked; to onboard it, raise an onboarding request and link this supplier." />
       <Card className="max-w-4xl p-5">
         <SupplierForm action={createSupplier} people={people.map((p) => ({ id: p.id, name: p.full_name || p.email }))} submitLabel="Add supplier" />
       </Card>

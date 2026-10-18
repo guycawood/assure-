@@ -35,6 +35,8 @@ export default async function AssureWatchtower() {
     supabase.from("scorecard_methodologies").select("id, version, status").order("version", { ascending: false }),
     supabase.from("scorecard_audit").select("*").order("at", { ascending: false }).limit(25),
   ]);
+  const { data: stageRows } = await supabase.from("onboarding_stages").select("stage_no, label, owner_label, exit_criterion").order("stage_no");
+  const stages = (stageRows ?? []) as { stage_no: number; label: string; owner_label: string; exit_criterion: string }[];
   const pMap = byId(people);
   const vMap = new Map(((versions ?? []) as { id: string; version: number }[]).map((v) => [v.id, v.version]));
 
@@ -44,12 +46,14 @@ export default async function AssureWatchtower() {
   const pct = suppliers.length ? Math.round((compliant / suppliers.length) * 100) : 0;
   const overdue = tickets.filter((t) => t.status !== "resolved" && t.due_date && t.due_date < today).length;
   const blocked = suppliers.filter((s) => s.active && s.purchasing_blocked).length;
-  const scores = active ? suppliers.map((s) => scoreSupplier(active, inputs.get(s.id) ?? [], s.active)) : [];
+  const released = suppliers.filter((s) => s.onboarding_released).length;
+  const scores = active ? suppliers.map((s) => scoreSupplier(active, inputs.get(s.id) ?? [], s)) : [];
   const psl = scores.filter((r) => r.preferred).length;
   const completeness = scores.length ? Math.round((scores.reduce((a, r) => a + r.completeness, 0) / scores.length) * 100) : 0;
   const health: { label: string; value: string; target: string; status: "ok" | "warn" | "bad" }[] = [
     { label: "Suppliers fully compliant", value: `${pct}%`, target: "90%", status: pct >= 90 ? "ok" : pct >= 60 ? "warn" : "bad" },
     { label: "Overdue SRT tickets", value: String(overdue), target: "0", status: overdue === 0 ? "ok" : overdue <= 3 ? "warn" : "bad" },
+    { label: "Suppliers released for use", value: `${released} of ${suppliers.length}`, target: "—", status: "ok" },
     { label: "Active suppliers blocked for purchasing", value: String(blocked), target: "0", status: blocked === 0 ? "ok" : "warn" },
     { label: "Preferred suppliers (PSL)", value: `${psl} of ${suppliers.length}`, target: "—", status: "ok" },
     { label: "Scorecard data completeness", value: `${completeness}%`, target: "95%", status: completeness >= 95 ? "ok" : completeness >= 75 ? "warn" : "bad" },
@@ -68,6 +72,24 @@ export default async function AssureWatchtower() {
             <p className="text-xs text-muted">Target {h.target} · <span className={h.status === "ok" ? "text-ok" : h.status === "warn" ? "text-warn" : "text-bad"}>{h.status === "ok" ? "on track" : h.status === "warn" ? "watch" : "action needed"}</span></p>
           </Card>
         ))}
+      </section>
+
+      <section className="flex flex-col gap-3">
+        <div>
+          <h2 className="font-display text-xl font-semibold">Onboarding standard</h2>
+          <p className="text-sm text-muted">Nine controlled stages, one evidence trail, explicit exit criteria. The global baseline for APAC, EMEA and NAM; local legal and tax requirements, the minimum evidence sets, the risk rules, fast-track approvers, scope limits and escalation, and the review cadence are governed libraries.</p>
+        </div>
+        <Card className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead><tr>{["Stage", "Owner", "Exit criterion"].map((h) => <th key={h} className="th">{h}</th>)}</tr></thead>
+            <tbody>{stages.map((s) => <tr key={s.stage_no}><td className="td font-semibold">{s.stage_no}. {s.label}</td><td className="td">{s.owner_label}</td><td className="td">{s.exit_criterion}</td></tr>)}</tbody>
+          </table>
+        </Card>
+        <div className="flex flex-wrap gap-2">
+          {[["onboarding_settings", "Standard, system of record and exceptions"], ["onboarding_evidence_sets", "Minimum evidence sets"], ["onboarding_risk_rules", "Risk gate rules"], ["onboarding_review_cadence", "Review cadence"], ["approval_policies", "Approval policies (fast-track approvers)"]].map(([k, l]) => (
+            <Link key={k} href={k === "approval_policies" ? "/watchtower/libraries/approval_policies" : `/assure/watchtower/libraries/${k}`} className={btn.secondary}>{l}</Link>
+          ))}
+        </div>
       </section>
 
       <section className="flex flex-col gap-3">

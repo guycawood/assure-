@@ -19,6 +19,8 @@ const U = {
   fiona: "d0000000-0000-4000-8000-000000000004",
   pedro: "d0000000-0000-4000-8000-000000000005",
   hana: "d0000000-0000-4000-8000-000000000007",
+  dara: "d0000000-0000-4000-8000-0000000000d1",
+  felix: "d0000000-0000-4000-8000-0000000000f2",
   wei: "d0000000-0000-4000-8000-000000000006",
   tom: "d0000000-0000-4000-8000-000000000030",
   claire: "d0000000-0000-4000-8000-0000000000c1",
@@ -32,11 +34,15 @@ export const LANES: Record<Lane, { label: string; colour: string }> = {
 };
 
 export const JOURNEY: JourneyStage[] = [
-  { key: "onboard", title: "Before any job: the vendor is onboarded", summary: "No ticket, no job. Only onboarded, unblocked vendors can be invited to quote.", steps: [
-    { step: "Request a new vendor", detail: "In-market procurement raises a ticket on the SRT desk.", lane: "internal", module: "assure", href: "/assure/srt", as: U.pedro },
-    { step: "Vendor completes the information request", detail: "Registers in the vendor portal and supplies company, bank and compliance details.", lane: "vendor", module: "assure", href: "/vendor/information-request", as: U.wei },
-    { step: "Gates verified", detail: "14 onboarding gates checked; Finance verifies bank details.", lane: "internal", module: "assure", href: "/assure/srt", as: U.arjun, gate: "Agent verifies; bank details only by Finance" },
-    { step: "Procurement head approves", detail: "Final onboarding approval; purchasing unblocked and the vendor joins the eligible pool.", lane: "internal", module: "assure", href: "/assure/srt", as: U.hana, gate: "Procurement head only" },
+  { key: "onboard", title: "Before any job: the vendor is onboarded", summary: "Nine controlled stages, one evidence trail. No PO or engagement until the required approvals and signed documents are complete; urgency uses the exception route, never a bypass.", steps: [
+    { step: "Request a new vendor", detail: "Business need and a complete request (type, category, client, market, urgency, spend); existing suppliers are checked first.", lane: "internal", module: "assure", href: "/assure/srt/requests/new", as: U.pedro },
+    { step: "Procurement triages", detail: "Approves the need and the route (standard or exception), incumbent or strategic. No information request goes out before this.", lane: "internal", module: "assure", href: "/assure/srt/requests", as: U.hana, gate: "Procurement, never the requester" },
+    { step: "Vendor completes due diligence", detail: "Information request, company and VAT, bank, financial, capability, quality, environment, CSR, sanctions and client requirements.", lane: "vendor", module: "assure", href: "/vendor/onboarding", as: U.wei },
+    { step: "Evidence verified or gap documented", detail: "SRT verifies evidence; a gap needs a reason, owner and due date, approved by a second person.", lane: "internal", module: "assure", href: "/assure/srt", as: U.arjun, gate: "Second person approves a documented gap" },
+    { step: "Risk gates", detail: "Category fit, competitiveness and NTI, quality, sustainability, audit need and client requirements.", lane: "internal", module: "assure", href: "/assure/srt", as: U.hana, gate: "Category Manager and Quality where the rules require it" },
+    { step: "Contracts signed and stored", detail: "NDA, Code of Conduct, MSA or terms, PSA / SSA and schedules as required.", lane: "vendor", module: "assure", href: "/vendor/contracts", as: U.wei },
+    { step: "Finance approval and system IDs", detail: "Local Finance validates bank, tax and set-up; StockTool, NAV / ERP and Sourcing Hub IDs reconciled.", lane: "internal", module: "assure", href: "/assure/srt", as: U.felix, gate: "Local Finance for the supplier's market" },
+    { step: "Released for use", detail: "Welcome pack, training, owner, evidence location, expiry dates and review cadence; purchasing unblocked and the vendor joins the eligible pool.", lane: "internal", module: "assure", href: "/assure/srt", as: U.dara, gate: "Procurement, never the triage approver" },
   ] },
   { key: "win", title: "Win the work and set up the client", summary: "CRM: the opportunity is won, the client is set up and the commercial terms are agreed before any brief.", steps: [
     { step: "Work the opportunity", detail: "Lead to won through the pipeline, with activity logged against the account.", lane: "internal", module: "crm", href: "/crm/pipeline", as: U.ada },

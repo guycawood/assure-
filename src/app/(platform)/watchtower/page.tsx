@@ -29,7 +29,7 @@ export default async function MasterWatchtower() {
   const today = new Date().toISOString().slice(0, 10);
   const overdue = tickets.filter((t) => t.status !== "resolved" && t.due_date && t.due_date < today).length;
   const pct = suppliers.length ? Math.round((suppliers.filter((s) => s.rag === "green").length / suppliers.length) * 100) : 0;
-  const psl = m ? suppliers.filter((s) => scoreSupplier(m, inputs.get(s.id) ?? [], s.active).preferred).length : 0;
+  const psl = m ? suppliers.filter((s) => scoreSupplier(m, inputs.get(s.id) ?? [], s).preferred).length : 0;
   // SRM health comes from its own data until it has a health view.
   health.set("assure", [
     { module: "assure", metric: "compliant", label: "Suppliers fully compliant (%)", value: pct, target: 90, status: pct >= 90 ? "ok" : pct >= 60 ? "warn" : "bad" },

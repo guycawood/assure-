@@ -184,10 +184,12 @@ const SECTIONS: Record<Exclude<ModuleKey, "rfq">, ModuleAbout> = {
   assure: {
     headline: "One vendor community. One global partnership.",
     summary:
-      "SRM (supplier relationship management) manages the supply base: onboarding through the SRT desk, compliance, scoring and the Preferred Supplier List. It decides which vendors can be invited, awarded and paid. Vendors themselves engage at set points in the journey (onboarding, quoting, PO acceptance and production, shipping, installation, invoicing) through the vendor portal.",
+      "SRM (supplier relationship management) manages the supply base: onboarding to the nine-stage standard (run by the SRT desk), compliance, scoring and the Preferred Supplier List. It decides which vendors can be invited, awarded and paid. Vendors themselves engage at set points in the journey (onboarding, quoting, PO acceptance and production, shipping, installation, invoicing) through the vendor portal.",
     who: ["SRT desk and procurement", "Category management", "Finance and the Procurement head", "Vendors (vendor portal)"],
     functions: [
-      { title: "SRT desk", body: "Onboarding tickets, 14 gates, vendor information requests and Procurement head approval.", status: "live" },
+      { title: "Onboarding standard", body: "Nine stages with owners and exit criteria: request and duplicate check, Procurement triage, due diligence with documented gaps, risk gates, contract set, Local Finance, system IDs and release. Fast-track is an exception with two named approvals, restricted scope and a remediation clock.", status: "live" },
+      { title: "Onboarding control", body: "Pipeline by stage, gate ageing and bottlenecks, missing evidence, overdue remediation, certificate expiry, duplicate and inactive flags, segregation exceptions and the review cadence.", status: "live" },
+      { title: "SRT desk", body: "Onboarding tickets, vendor information requests and the email outbox.", status: "live" },
       { title: "Supplier register", body: "Every supplier against the gates, with automatic purchasing blocks.", status: "live" },
       { title: "Scorecard & PSL", body: "Financial, Compliance and Performance scores and the Preferred Supplier List.", status: "live" },
       { title: "SRM Watchtower", body: "Scoring methodology explained and governed by admins.", status: "live" },
@@ -199,7 +201,7 @@ const SECTIONS: Record<Exclude<ModuleKey, "rfq">, ModuleAbout> = {
     outputs: ["Who can quote, be awarded and be paid", "Supplier scores and the PSL", "Vendor-side actions on every job"],
     sustainability: "CSR, EMS, FSC, SEDEX and renewable energy are scored; certificates are tracked with expiry; Scope 3 by supplier.",
     data: "One supplier record with real links to every job, quote and PO; region and market held separately.",
-    governance: "Gates, SLAs and the scoring methodology are versioned in the SRM Watchtower with a full change log.",
+    governance: "The onboarding standard (regional requirements, minimum evidence sets, risk rules, fast-track approvers and limits, review cadence), gates, SLAs and the scoring methodology are versioned in the SRM Watchtower with a full change log.",
     pillars: [
       { title: "Performance", body: "Delivery, quality and responsiveness measured on every job." },
       { title: "Sustainability", body: "Audits, certifications and footprint built into the score." },

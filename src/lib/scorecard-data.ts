@@ -22,9 +22,9 @@ export async function getMethodology(supabase: Client, which: { status: "active"
   };
 }
 
-/** All scorecard inputs, grouped by supplier. */
+/** All scorecard inputs, grouped by supplier. The Code of Conduct comes from the onboarding CoC gate (scorecard_inputs_effective). */
 export async function getInputsBySupplier(supabase: Client): Promise<Map<string, Input[]>> {
-  const { data } = await supabase.from("scorecard_inputs").select("supplier_id, key, value_num, value_text");
+  const { data } = await supabase.from("scorecard_inputs_effective").select("supplier_id, key, value_num, value_text");
   const out = new Map<string, Input[]>();
   for (const r of (data ?? []) as (Input & { supplier_id: string })[]) {
     const list = out.get(r.supplier_id) ?? [];

@@ -76,7 +76,7 @@ export async function setRiskLevel(_: FormResult, fd: FormData): Promise<FormRes
 const profileSchema = z.object({
   legal_entity: z.string().nullable(), trading_name: z.string().nullable(),
   entity_type: z.enum(["manufacturer", "distributor", "service_provider", "raw_material", "logistics"]).nullable(),
-  sub_category: z.string().nullable(), vendor_code: z.string().nullable(), uen_number: z.string().nullable(),
+  sub_category: z.string().nullable(), vendor_code: z.string().nullable(), uen_number: z.string().nullable(), vat_number: z.string().nullable(),
   website: z.string().regex(/^https?:\/\//i, "Website must start with http:// or https://").nullable(),
   address: z.string().nullable(), primary_contact_name: z.string().nullable(), contact_phone: z.string().nullable(),
   factory_count: z.number().int().min(0).nullable(),
@@ -92,7 +92,7 @@ export async function saveProfile(_: FormResult, fd: FormData): Promise<FormResu
   if (!isUuid(id)) return { error: "Supplier missing." };
   const p = profileSchema.safeParse({
     legal_entity: s(fd, "legal_entity"), trading_name: s(fd, "trading_name"), entity_type: s(fd, "entity_type"), sub_category: s(fd, "sub_category"),
-    vendor_code: s(fd, "vendor_code"), uen_number: s(fd, "uen_number"), website: s(fd, "website"), address: s(fd, "address"),
+    vendor_code: s(fd, "vendor_code"), uen_number: s(fd, "uen_number"), vat_number: s(fd, "vat_number"), website: s(fd, "website"), address: s(fd, "address"),
     primary_contact_name: s(fd, "primary_contact_name"), contact_phone: s(fd, "contact_phone"), factory_count: num(fd, "factory_count"),
     payment_terms: s(fd, "payment_terms") ?? "net_30", payment_terms_days: num(fd, "payment_terms_days"), nti_rate: num(fd, "nti_rate"),
     annual_spend_forecast: num(fd, "annual_spend_forecast"),

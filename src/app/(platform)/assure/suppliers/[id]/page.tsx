@@ -8,6 +8,8 @@ import { RISK, SUPPLIER_STATUS, SUPPLIER_TIER } from "@/lib/assure";
 import { ButtonLink, Card, PageHead, Pill, RagDot } from "@/components/ui";
 import { OptPill, Tabs } from "@/components/assure/bits";
 import { ApprovalRequests } from "@/components/approvals/requests";
+import { onboardingLine, TAXONOMY, type Taxonomy } from "@/lib/onboarding";
+import { OnboardingRecord } from "./onboarding-record";
 import {
   ActivityTab, CommercialTab, ComplianceTab, ContractsTab, DocumentsTab, OnboardingTab, OverviewTab, PerformanceTab, QualityTab, ReviewsTab, TasksTab,
 } from "./tabs";
@@ -16,6 +18,7 @@ export const metadata: Metadata = { title: "Supplier" };
 
 const TABS = [
   { key: "overview", label: "Overview" },
+  { key: "record", label: "Onboarding record" },
   { key: "onboarding", label: "Onboarding gates" },
   { key: "compliance", label: "Compliance & certificates" },
   { key: "performance", label: "Performance" },
@@ -51,6 +54,7 @@ export default async function SupplierPage({ params, searchParams }: { params: P
       </PageHead>
 
       <Card className="flex flex-wrap items-center gap-x-5 gap-y-2 px-4 py-3 text-sm">
+        <Pill tone={TAXONOMY[(s.onboarding_state ?? "in_review") as Taxonomy].tone}>{onboardingLine(s)}</Pill>
         <OptPill list={SUPPLIER_STATUS} value={s.status} />
         {s.tier && <OptPill list={SUPPLIER_TIER} value={s.tier} />}
         {profile && <span className="inline-flex items-center gap-1.5">Risk <OptPill list={RISK} value={profile.risk_level} title={profile.risk_reason ?? undefined} /></span>}
@@ -59,11 +63,12 @@ export default async function SupplierPage({ params, searchParams }: { params: P
         <span className="ml-auto text-muted">YTD spend <b className="text-fg">{formatEur(s.ytd_spend)}</b></span>
       </Card>
 
-      <ApprovalRequests entityIds={s.id} types={["FAST_TRACK", "SUPPLIER_REACTIVATE"]} meId={me.id} />
+      <ApprovalRequests entityIds={s.id} types={["FAST_TRACK", "FAST_TRACK_FINANCE", "SUPPLIER_REACTIVATE"]} meId={me.id} />
 
       <Tabs tabs={TABS} active={active} base={`/assure/suppliers/${s.id}`} />
 
       {active === "overview" && <OverviewTab {...props} />}
+      {active === "record" && <OnboardingRecord supplierId={s.id} me={me} />}
       {active === "onboarding" && <OnboardingTab {...props} />}
       {active === "compliance" && <ComplianceTab {...props} />}
       {active === "performance" && <PerformanceTab {...props} />}

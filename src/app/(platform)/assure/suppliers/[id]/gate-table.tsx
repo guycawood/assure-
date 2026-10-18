@@ -1,8 +1,8 @@
 "use client";
 
-import { Fragment, useActionState, useState, useTransition } from "react";
+import { Fragment, useState, useTransition } from "react";
 import { clsx } from "clsx";
-import { approveFastTrack, raiseGapTickets, updateGate, type ActionResult } from "@/app/(platform)/assure/actions";
+import { raiseGapTickets, updateGate, type ActionResult } from "@/app/(platform)/assure/actions";
 import { effectiveGateState, formatDate, GATE_STATUS, timeAgo, type GateDefinition, type GateStatus, type SupplierGate } from "@/lib/srt";
 import { btn } from "@/components/ui";
 
@@ -136,20 +136,5 @@ export function GapTicketsButton({ supplierId }: { supplierId: string }) {
         {pending ? "Raising…" : "Raise one ticket per critical gap"}
       </button>
     </div>
-  );
-}
-
-export function FastTrackForm({ supplierId, lead }: { supplierId: string; lead?: boolean }) {
-  const [state, action, pending] = useActionState<ActionResult, FormData>(approveFastTrack.bind(null, supplierId), {});
-  const def = new Date(Date.now() + 14 * 86400000).toISOString().slice(0, 10);
-  return (
-    <form action={action} className="space-y-3 text-sm">
-      <p className="text-muted">Lets purchasing continue while critical gates are closed, until the close-by date. Anyone can ask; an SRT lead approves it (never for a supplier they created, and never their own request where the approval policy says so).</p>
-      <div><label className="label" htmlFor="justification">Justification</label><textarea id="justification" name="justification" rows={2} required className="input" placeholder="e.g. BRL incumbent; production authorised by Brightlane Procurement and SLT" /></div>
-      <div><label className="label" htmlFor="close_by">All critical gates closed by</label><input id="close_by" name="close_by" type="date" required defaultValue={def} className="input w-auto" /></div>
-      {state.error && <p className="text-bad" role="alert">{state.error}</p>}
-      {state.ok && <p className="text-ok" role="status">{state.message}</p>}
-      <button type="submit" disabled={pending} className={btn.primary}>{pending ? "Saving…" : lead ? "Approve or request fast-track" : "Ask for a fast-track"}</button>
-    </form>
   );
 }

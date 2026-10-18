@@ -25,7 +25,8 @@ import {
 } from "@/components/assure/forms";
 import { TicketTable } from "@/app/(platform)/assure/srt/ticket-table";
 import { SupplierForm } from "../supplier-form";
-import { FastTrackForm, GapTicketsButton, GateTable } from "./gate-table";
+import { GapTicketsButton, GateTable } from "./gate-table";
+import { registrationLabel } from "@/lib/onboarding";
 
 type Props = { supplier: Supplier; profile: SupplierProfile | undefined; me: Profile };
 
@@ -62,7 +63,7 @@ export async function OverviewTab({ supplier: s, profile: p }: Props) {
             <Facts items={[
               ["Legal entity", p?.legal_entity], ["Trading name", p?.trading_name], ["Entity type", optLabel(ENTITY_TYPES, p?.entity_type)],
               ["Category", [s.category, p?.sub_category].filter(Boolean).join(" · ")], ["Region", s.region], ["Market", s.market], ["Client", s.client],
-              ["Factories", p?.factory_count], ["Vendor code", p?.vendor_code], ["UEN", p?.uen_number],
+              ["Factories", p?.factory_count], ["Vendor code", p?.vendor_code], [registrationLabel(s.market), p?.uen_number], ["VAT / tax number", p?.vat_number],
               ["Website", p?.website ? <a href={p.website} target="_blank" rel="noopener noreferrer" className="text-accent underline">{p.website}</a> : null],
               ["Status", <OptPill key="s" list={SUPPLIER_STATUS} value={s.status} />],
             ]} />
@@ -113,7 +114,6 @@ export async function OnboardingTab({ supplier: s, me }: Props) {
   const peopleOpts = people.map((p) => ({ id: p.id, name: p.full_name || p.email }));
   const labelOf = new Map(defs.map((d) => [d.key, d.label]));
   const role = me.is_admin ? "admin" : me.srt_role;
-  const isLead = me.is_admin || me.srt_role === "lead";
   const openTickets = tickets.filter((t) => t.status !== "resolved");
   return (
     <>
@@ -141,11 +141,14 @@ export async function OnboardingTab({ supplier: s, me }: Props) {
           <h2 className="mb-2 font-display text-lg font-semibold">Fast-track exception</h2>
           {s.fast_track_approved_by ? (
             <div className="space-y-1 text-sm">
-              <p>Approved by <b>{personName(pMap.get(s.fast_track_approved_by))}</b> {s.fast_track_approved_at ? timeAgo(s.fast_track_approved_at) : ""}.</p>
-              <p>All critical gates must close by <b>{formatDate(s.fast_track_close_by)}</b>. After that date purchasing is blocked automatically.</p>
+              <p>Approved (Procurement Director: <b>{personName(pMap.get(s.fast_track_approved_by))}</b>) {s.fast_track_approved_at ? timeAgo(s.fast_track_approved_at) : ""}.</p>
+              <p>Remediation must close by <b>{formatDate(s.fast_track_close_by)}</b>; any overdue item blocks further orders.</p>
               {s.fast_track_justification && <p className="text-muted">Reason: {s.fast_track_justification}</p>}
             </div>
-          ) : <FastTrackForm supplierId={s.id} lead={isLead} />}
+          ) : (
+            <p className="text-sm text-muted">Fast-track is an exception route with two named approvals, a restricted scope and a remediation clock. Request it on the{" "}
+              <Link href={`/assure/suppliers/${s.id}?tab=record`} className="text-accent underline">onboarding record</Link>.</p>
+          )}
         </Card>
       </div>
       <Card className="p-4">
@@ -233,7 +236,7 @@ export async function PerformanceTab({ supplier: s }: Props) {
     getMethodology(supabase, { status: "active" }),
     getInputsBySupplier(supabase),
   ]);
-  const score = m ? scoreSupplier(m, inputs.get(s.id) ?? [], s.active) : null;
+  const score = m ? scoreSupplier(m, inputs.get(s.id) ?? [], s) : null;
   return (
     <>
       {m && score && (

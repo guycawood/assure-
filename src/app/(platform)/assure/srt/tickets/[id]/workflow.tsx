@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { CERTIFICATIONS, formatDate, personName, timeAgo, type Profile, type VendorRfi } from "@/lib/srt";
 import { Card, Pill } from "@/components/ui";
 import { ReviewForm, SendRfiForm } from "./workflow-forms";
@@ -16,9 +17,10 @@ function currentStep(rfi: VendorRfi | null) {
 const mask = (v: string | null) => (v ? `•••• ${v.slice(-4)}` : "—");
 
 export function OnboardingWorkflow({
-  ticketId, rfi, email, bank, me, people, prospectEmail,
+  ticketId, rfi, email, bank, me, people, prospectEmail, hasSupplier,
 }: {
   ticketId: string;
+  hasSupplier: boolean;
   rfi: VendorRfi | null;
   email: Email | null;
   bank: Bank | null;
@@ -27,7 +29,7 @@ export function OnboardingWorkflow({
   prospectEmail: string | null;
 }) {
   const step = rfi?.status === "rejected" ? -1 : currentStep(rfi);
-  const canSend = me.is_admin || ["agent", "lead", "procurement", "head"].includes(me.srt_role ?? "");
+  const canSend = me.is_admin || ["agent", "lead", "procurement", "head", "director"].includes(me.srt_role ?? "");
   const canReview = me.is_admin || me.srt_role === "head";
   const d = rfi?.data ?? {};
 
@@ -44,7 +46,10 @@ export function OnboardingWorkflow({
 
       {/* Step 2: collect vendor information */}
       {(!rfi || rfi.status === "cancelled") && (
-        canSend ? (
+        !hasSupplier ? (
+          <p className="text-sm text-muted">No information request goes out before Procurement triage.{" "}
+            <Link href="/assure/srt/requests/new" className="font-semibold text-accent underline">Raise an onboarding request</Link> for this vendor first.</p>
+        ) : canSend ? (
           <SendRfiForm ticketId={ticketId} defaultEmail={prospectEmail ?? ""} />
         ) : (
           <p className="text-sm text-muted">SRT or procurement sends the vendor an information request from here.</p>

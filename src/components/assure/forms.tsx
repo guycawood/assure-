@@ -258,7 +258,8 @@ export function ProfileForm({ supplierId, p }: { supplierId: string; p?: Supplie
         <Field label="Entity type"><Select name="entity_type" options={ENTITY_TYPES} defaultValue={p?.entity_type} blank="—" /></Field>
         <Field label="Sub-category"><input name="sub_category" defaultValue={p?.sub_category ?? ""} className="input" /></Field>
         <Field label="Vendor code (ERP)"><input name="vendor_code" defaultValue={p?.vendor_code ?? ""} className="input" /></Field>
-        <Field label="UEN / registration"><input name="uen_number" defaultValue={p?.uen_number ?? ""} className="input" /></Field>
+        <Field label="Company registration number" hint="The local number, e.g. UEN (Singapore), Companies House number (UK), NIT (Colombia)"><input name="uen_number" defaultValue={p?.uen_number ?? ""} className="input" /></Field>
+        <Field label="VAT / tax number"><input name="vat_number" defaultValue={p?.vat_number ?? ""} className="input" /></Field>
         <Field label="Factories"><input name="factory_count" type="number" min={0} defaultValue={p?.factory_count ?? ""} className="input" /></Field>
         <Field label="Website"><input name="website" defaultValue={p?.website ?? ""} className="input" placeholder="https://" /></Field>
         <Field label="Primary contact"><input name="primary_contact_name" defaultValue={p?.primary_contact_name ?? ""} className="input" /></Field>

@@ -4,7 +4,8 @@ import { requireInternal } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { byId, getInternalPeople } from "@/lib/data";
 import { optLabel, PA_ACTION_LABEL, PA_STATUS, paActions, PAYMENT_TERMS, SUPPLIER_TIER, type PreAssessment, type PreAssessmentReview } from "@/lib/assure";
-import { formatDate, formatEur, personName } from "@/lib/srt";
+import { formatDate, formatEur, personName, type Supplier } from "@/lib/srt";
+import { onboardingLine, TAXONOMY, type Taxonomy } from "@/lib/onboarding";
 import { PageHead, Panel, Pill } from "@/components/ui";
 import { ApprovalRequests } from "@/components/approvals/requests";
 import { Facts, OptPill, SupplierLink } from "@/components/assure/bits";
@@ -24,10 +25,12 @@ export default async function PreAssessmentDetail({ params }: { params: Promise<
   const { data } = await supabase.from("vendor_pre_assessments").select("*").eq("id", id).maybeSingle();
   if (!data) notFound();
   const a = data as PreAssessment;
-  const [{ data: rv }, people] = await Promise.all([
+  const [{ data: rv }, people, { data: sup }] = await Promise.all([
     supabase.from("vendor_pre_assessment_reviews").select("*").eq("assessment_id", id).maybeSingle(),
     getInternalPeople(supabase),
+    a.supplier_id ? supabase.from("suppliers").select("*").eq("id", a.supplier_id).maybeSingle() : Promise.resolve({ data: null }),
   ]);
+  const supplier = (sup ?? null) as Supplier | null;
   const r = (rv ?? null) as PreAssessmentReview | null;
   const pMap = byId(people);
   const d = a.data ?? {};
@@ -43,6 +46,7 @@ export default async function PreAssessmentDetail({ params }: { params: Promise<
       <PageHead title={a.company_name} sub={[a.major_category, a.head_office_country, a.region].filter(Boolean).join(" · ")}
         crumbs={[{ label: "SRM", href: "/assure" }, { label: "Pre-assessments", href: "/assure/pre-assessments" }, { label: a.company_name }]}>
         <OptPill list={PA_STATUS} value={a.status} />
+        {supplier && <Pill tone={TAXONOMY[supplier.onboarding_state as Taxonomy].tone}>Onboarding: {onboardingLine(supplier)}</Pill>}
       </PageHead>
       <ApprovalRequests entityIds={a.id} types={["PAYMENT_TERMS"]} meId={me.id} title="Payment terms waiting for Finance" />
       <Pipeline status={a.status} />
@@ -91,7 +95,7 @@ export default async function PreAssessmentDetail({ params }: { params: Promise<
                 ]} />
               ) : null}
               {a.status === "onboarded" && r && (
-                <p><Pill tone="ok">Onboarded</Pill> NTI {r.nti_agreed ?? "—"}% · {optLabel(PAYMENT_TERMS, r.payment_terms_agreed)} · {optLabel(SUPPLIER_TIER, r.tier_agreed)}
+                <p><Pill tone="ok">Terms agreed</Pill> NTI {r.nti_agreed ?? "—"}% · {optLabel(PAYMENT_TERMS, r.payment_terms_agreed)} · {optLabel(SUPPLIER_TIER, r.tier_agreed)}
                   {r.onboarded_by && <span className="text-muted"> · confirmed by {personName(pMap.get(r.onboarded_by))}</span>}</p>
               )}
               {r?.procurement_notes && <p><b>Notes:</b> {r.procurement_notes}</p>}

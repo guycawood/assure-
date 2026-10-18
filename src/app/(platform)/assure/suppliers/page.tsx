@@ -5,6 +5,7 @@ import { createClient } from "@/lib/supabase/server";
 import { distinct, filterDirectory, FILTER_KEYS, loadDirectory, type DirectoryFilters } from "@/lib/assure-directory";
 import { RISK, SUPPLIER_STATUS, SUPPLIER_TIER } from "@/lib/assure";
 import { CLIENTS, formatEur, REGIONS } from "@/lib/srt";
+import { onboardingLine, TAXONOMY, type Taxonomy } from "@/lib/onboarding";
 import { ButtonLink, Card, Empty, PageHead, Pill, Stat } from "@/components/ui";
 import { MSymbol } from "@/components/symbol";
 import { OptPill, Score } from "@/components/assure/bits";
@@ -38,7 +39,7 @@ export default async function SupplierDirectory({ searchParams }: { searchParams
 
       <section className="grid gap-3 sm:grid-cols-4">
         <Stat label="Showing" value={list.length} hint={`of ${all.length} suppliers`} />
-        <Stat label="Active" value={list.filter((r) => r.s.status === "active").length} />
+        <Stat label="Released for use" value={list.filter((r) => r.s.onboarding_released).length} hint={`${list.filter((r) => !r.s.onboarding_released).length} still in onboarding`} />
         <Stat label="With compliance issues" value={list.filter((r) => r.issues > 0).length} tone={list.some((r) => r.issues > 0) ? "warn" : "ok"} hint="Certificates or critical gates" />
         <Stat label="High or critical risk" value={list.filter((r) => r.p && ["high", "critical"].includes(r.p.risk_level)).length} tone="bad" />
       </section>
@@ -47,7 +48,7 @@ export default async function SupplierDirectory({ searchParams }: { searchParams
         <form className="flex flex-wrap items-end gap-3" method="get">
           <label className="min-w-[220px] flex-[2]">
             <span className="label">Search</span>
-            <input name="q" defaultValue={f.q ?? ""} placeholder="Name, supplier ID, vendor code or UEN" className="input" />
+            <input name="q" defaultValue={f.q ?? ""} placeholder="Name, supplier ID, vendor code or registration number" className="input" />
           </label>
           {sel("region", "Region", plain([...REGIONS]))}
           {sel("market", "Market", plain(distinct(all.map((r) => r.s.market))))}
@@ -77,7 +78,7 @@ export default async function SupplierDirectory({ searchParams }: { searchParams
             <thead>
               <tr>
                 {canBulk && <th className="th w-8"><span className="sr-only">Select</span></th>}
-                {["Supplier", "Vendor code", "Region · market", "Category", "Client", "Status", "Tier", "Risk", "Compliance", "Score", "YTD spend"].map((h) => <th key={h} className="th">{h}</th>)}
+                {["Supplier", "Vendor code", "Region · market", "Category", "Client", "Onboarding", "Status", "Tier", "Risk", "Compliance", "Score", "YTD spend"].map((h) => <th key={h} className="th">{h}</th>)}
               </tr>
             </thead>
             <tbody>
@@ -85,10 +86,11 @@ export default async function SupplierDirectory({ searchParams }: { searchParams
                 <tr key={s.id} className="hover:bg-surface-2/60">
                   {canBulk && <td className="td"><input type="checkbox" name="ids" value={s.id} form="bulk" aria-label={`Select ${s.name}`} /></td>}
                   <td className="td"><Link href={`/assure/suppliers/${s.id}`} className="font-semibold hover:text-accent">{s.name}</Link><div className="text-xs text-muted">{s.supplier_code}</div></td>
-                  <td className="td text-xs">{p?.vendor_code ?? "—"}{p?.uen_number && <div className="text-muted">UEN {p.uen_number}</div>}</td>
+                  <td className="td text-xs">{p?.vendor_code ?? "—"}{p?.uen_number && <div className="text-muted">Reg. {p.uen_number}</div>}</td>
                   <td className="td whitespace-nowrap">{[s.region, s.market].filter(Boolean).join(" · ")}</td>
                   <td className="td">{s.category}</td>
                   <td className="td">{s.client}</td>
+                  <td className="td"><Pill tone={TAXONOMY[(s.onboarding_state ?? "in_review") as Taxonomy].tone} title={s.onboarding_block_reason ?? undefined}>{onboardingLine(s)}</Pill></td>
                   <td className="td"><OptPill list={SUPPLIER_STATUS} value={s.status} /></td>
                   <td className="td"><OptPill list={SUPPLIER_TIER} value={s.tier} /></td>
                   <td className="td"><OptPill list={RISK} value={p?.risk_level} /></td>

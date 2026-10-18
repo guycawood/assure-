@@ -13,7 +13,7 @@ export async function GET(req: NextRequest) {
   const supabase = await createClient();
   const list = filterDirectory(await loadDirectory(supabase), f).sort((a, b) => a.s.name.localeCompare(b.s.name));
   const csv = toCsv([
-    ["Name", "Supplier ID", "Vendor code", "UEN", "Region", "Market", "Category", "Client", "Status", "Tier", "Risk", "Compliance issues", "Latest score", "Score period", "YTD spend (EUR)"],
+    ["Name", "Supplier ID", "Vendor code", "Company registration number", "Region", "Market", "Category", "Client", "Status", "Tier", "Risk", "Compliance issues", "Latest score", "Score period", "YTD spend (EUR)"],
     ...list.map(({ s, p, issues, score, period }) => [
       s.name, s.supplier_code, p?.vendor_code, p?.uen_number, s.region, s.market, s.category, s.client,
       optLabel(SUPPLIER_STATUS, s.status), optLabel(SUPPLIER_TIER, s.tier), optLabel(RISK, p?.risk_level), issues, score, period, s.ytd_spend,

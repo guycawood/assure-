@@ -1,8 +1,10 @@
+import Link from "next/link";
 import { requireVendorCompany, rows } from "@/lib/vendor-data";
 import { createClient } from "@/lib/supabase/server";
 import { formatDate } from "@/lib/srt";
 import { human, PERMISSION_LABEL, statusTone, tierName } from "@/lib/vendor";
 import { ButtonLink, Card, PageHead, Panel, Pill } from "@/components/ui";
+import type { VendorTracker } from "@/lib/onboarding";
 
 export const metadata = { title: "Company profile" };
 
@@ -10,7 +12,7 @@ type Pa = { id: string; status: string; feedback_to_vendor: string | null; submi
 
 const PA_LABEL: Record<string, string> = {
   draft: "Draft", submitted: "Submitted", under_review: "Being reviewed", vm_approved: "Approved by vendor management", vm_rejected: "Not approved",
-  procurement_review: "With procurement", negotiation: "Terms being agreed", onboarded: "Onboarded", rejected: "Not approved",
+  procurement_review: "With procurement", negotiation: "Terms being agreed", onboarded: "Terms agreed", rejected: "Not approved",
 };
 
 export default async function ProfilePage() {
@@ -19,6 +21,8 @@ export default async function ProfilePage() {
   const supabase = await createClient();
   const pas = await rows<Pa>(supabase.from("vendor_pre_assessments").select("id, status, feedback_to_vendor, submitted_at, updated_at").order("created_at", { ascending: false }).limit(1));
   const pa = pas[0];
+  const { data: tr } = await supabase.rpc("vendor_onboarding_tracker", {});
+  const tracker = tr as VendorTracker | null;
   const field = (label: string, value: React.ReactNode) => (
     <div><p className="eyebrow">{label}</p><p className="mt-0.5 font-semibold">{value || <span className="font-normal text-muted">Not recorded</span>}</p></div>
   );
@@ -30,7 +34,7 @@ export default async function ProfilePage() {
         <div className="grid gap-5 p-5 text-sm sm:grid-cols-2 lg:grid-cols-3">
           {field("Legal entity", c.legal_entity)}
           {field("Trading name", c.trading_name)}
-          {field("Status", <Pill tone={statusTone(c.status)}>{human(c.status)}</Pill>)}
+          {field("Onboarding", tracker ? <Link href="/vendor/onboarding" className="hover:underline"><Pill tone={tracker.released ? "ok" : tracker.blocked_by_overdue ? "bad" : "warn"}>{tracker.released ? "Fully onboarded" : `Step ${tracker.stage} of 9`}</Pill></Link> : <Pill tone={statusTone(c.status)}>{human(c.status)}</Pill>)}
           {field("Market", c.market)}
           {field("Region", c.region)}
           {field("Plan", tierName(c.subscription_tier))}

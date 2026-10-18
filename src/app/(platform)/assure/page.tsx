@@ -17,13 +17,17 @@ export default async function AssureHome() {
   const today = new Date().toISOString().slice(0, 10);
   const open = tickets.filter((t) => t.status !== "resolved");
   const overdue = open.filter((t) => t.due_date && t.due_date < today).length;
-  const compliant = suppliers.filter((s) => s.rag === "green").length;
-  const blocked = suppliers.filter((s) => s.active && s.purchasing_blocked).length;
-  const psl = m ? suppliers.filter((s) => scoreSupplier(m, inputs.get(s.id) ?? [], s.active).preferred).length : 0;
+  // One status vocabulary: "approved" means released for use; nothing is called active until onboarding is complete.
+  const released = suppliers.filter((s) => s.onboarding_released).length;
+  const inOnboarding = suppliers.filter((s) => s.onboarding_state === "in_review" || s.onboarding_state === "exception").length;
+  const exceptions = suppliers.filter((s) => s.onboarding_state === "exception").length;
+  const blocked = suppliers.filter((s) => s.purchasing_blocked).length;
+  const psl = m ? suppliers.filter((s) => scoreSupplier(m, inputs.get(s.id) ?? [], s).preferred).length : 0;
 
   const live = [
-    { href: "/assure/srt", title: "SRT desk", body: "Onboarding tickets, gates, vendor information requests and Procurement head approval.", stat: `${open.length} open tickets`, alert: overdue ? `${overdue} overdue` : null },
-    { href: "/assure/srt/register", title: "Supplier register", body: "Every supplier against the onboarding gates, with purchasing blocks.", stat: `${compliant} of ${suppliers.length} compliant`, alert: blocked ? `${blocked} active but blocked` : null },
+    { href: "/assure/srt", title: "Onboarding control", body: "The nine-stage onboarding standard: requests, triage, due diligence, risk gates, contracts, Finance, system IDs and release.", stat: `${inOnboarding} in onboarding · ${released} released`, alert: exceptions ? `${exceptions} fast-track exception${exceptions === 1 ? "" : "s"}` : null },
+    { href: "/assure/srt/register", title: "Supplier register", body: "Every supplier against the onboarding gates, with purchasing blocks.", stat: `${released} of ${suppliers.length} released for use`, alert: blocked ? `${blocked} blocked for purchasing` : null },
+    { href: "/assure/srt/tickets", title: "SRT desk", body: "Onboarding tickets, vendor information requests and the email outbox.", stat: `${open.length} open tickets`, alert: overdue ? `${overdue} overdue` : null },
     { href: "/assure/scorecard", title: "Scorecard & PSL", body: "Supplier scores across Financial, Compliance and Performance, and the Preferred Supplier List.", stat: `${psl} preferred suppliers`, alert: null },
     { href: "/assure/watchtower", title: "SRM Watchtower", body: "Scoring methodology explained and governed, module health and change log.", stat: m ? `Methodology v${m.version}` : "No methodology", alert: null },
     { href: "/assure/suppliers", title: "Supplier directory", body: "Search and filter every supplier, export to CSV, and open the Supplier 360 view.", stat: `${suppliers.length} suppliers`, alert: null },

@@ -25,7 +25,7 @@ export default async function InternalReporting() {
     count(supabase, "briefs"), count(supabase, "campaigns"), count(supabase, "change_requests"),
   ]);
   const today = new Date().toISOString().slice(0, 10);
-  const scored = m ? suppliers.map((s) => ({ s, r: scoreSupplier(m, inputs.get(s.id) ?? [], s.active) })) : [];
+  const scored = m ? suppliers.map((s) => ({ s, r: scoreSupplier(m, inputs.get(s.id) ?? [], s) })) : [];
   const byRegion = REGIONS.map((reg) => {
     const ss = suppliers.filter((s) => s.region === reg);
     const sc = scored.filter((x) => x.s.region === reg);

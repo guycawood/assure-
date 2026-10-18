@@ -124,18 +124,6 @@ export async function raiseGapTickets(supplierId: string): Promise<ActionResult>
   return { ok: true, message: n ? `${n} remediation ticket${n === 1 ? "" : "s"} raised` : "Every critical gap already has an open ticket" };
 }
 
-export async function approveFastTrack(supplierId: string, _: ActionResult, fd: FormData): Promise<ActionResult> {
-  await requireInternal();
-  const justification = blank(fd.get("justification"));
-  const closeBy = blank(fd.get("close_by"));
-  if (!justification || !closeBy) return { error: "Enter a justification and a close-by date." };
-  const supabase = await createClient();
-  const { error } = await supabase.rpc("approve_fast_track", { p_supplier: supplierId, p_justification: justification, p_close_by: closeBy });
-  if (error) return { error: friendly(error) };
-  revalidatePath(`/assure/suppliers/${supplierId}`);
-  return { ok: true, message: (await sentForApproval(supabase, "FAST_TRACK", supplierId)) ?? "Fast-track exception approved" };
-}
-
 /* ---------------- Tickets ---------------- */
 
 const ticketSchema = z.object({

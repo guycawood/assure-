@@ -79,7 +79,8 @@ test("setup", async () => {
 let supplierId;
 let otherSupplierId;
 
-test("new supplier gets 14 gates, starts red and blocked", async () => {
+// The nine-stage onboarding standard (20261039000001) adds 15 gates to the original 14, so a new supplier gets 29.
+test("new supplier gets every gate (29 across the nine stages), starts red and blocked", async () => {
   const { rows } = await as("plain",
     "insert into public.suppliers (name, market, client, ytd_spend, primary_contact_email) values ('Shanghai Print Co', 'China', 'Brightlane', 184000, 'ops@shanghaiprint.example') returning id, rag, purchasing_blocked, created_by");
   supplierId = rows[0].id;
@@ -87,7 +88,7 @@ test("new supplier gets 14 gates, starts red and blocked", async () => {
   const s = (await as("plain", "select rag, priority_tier, purchasing_blocked, gates_clear from public.suppliers where id = $1", [supplierId])).rows[0];
   assert.deepEqual(s, { rag: "red", priority_tier: 1, purchasing_blocked: true, gates_clear: 0 });
   const g = await as("plain", "select count(*)::int n from public.supplier_gates where supplier_id = $1", [supplierId]);
-  assert.equal(g.rows[0].n, 14);
+  assert.equal(g.rows[0].n, 29);
   otherSupplierId = (await as("plain", "insert into public.suppliers (name, primary_contact_email) values ('Other Vendor Ltd', 'x@other.example') returning id")).rows[0].id;
 });
 
@@ -132,17 +133,21 @@ test("verifier roles are enforced per gate", async () => {
   await rejects(as("agent", "select public.update_supplier_gate($1, 'msa', null, '2030-01-01')", [supplierId]), /does not take an expiry/);
 });
 
-test("closing critical gates turns amber and lifts the purchasing block; audit is written", async () => {
+// Changed by the nine-stage standard: the four critical controls it adds (triage, sanctions, risk review, Finance approval) stay
+// open here, and on the standard path purchasing stays blocked until every stage is complete (next tests).
+test("closing the original critical gates turns amber but keeps purchasing blocked under the standard; audit is written", async () => {
   for (const g of ["registration", "financial", "msa", "coc", "capability", "sustainability"]) {
     await as("agent", "select public.update_supplier_gate($1, $2, 'verified')", [supplierId, g]);
   }
   await rejects(as("agent", "select public.update_supplier_gate($1, 'approval', 'verified')", [supplierId]), /Only the Procurement head/);
   await as("admin", "select public.update_supplier_gate($1, 'approval', 'verified')", [supplierId]);
   let s = (await as("agent", "select rag, purchasing_blocked, critical_open from public.suppliers where id = $1", [supplierId])).rows[0];
-  assert.deepEqual(s, { rag: "red", purchasing_blocked: true, critical_open: 1 }, "bank still missing");
+  assert.deepEqual(s, { rag: "red", purchasing_blocked: true, critical_open: 5 }, "bank and the standard's four critical controls still open");
   await as("finance", "select public.update_supplier_gate($1, 'bank', 'verified')", [supplierId]);
+  // The standard's own controls are recorded by its workflow functions (covered in srm_onboarding.test.mjs); set them directly here.
+  await asSuper("update public.supplier_gates set status = 'verified' where supplier_id = $1 and gate_key in ('triage','sanctions','risk_review','finance_approval')", [supplierId]);
   s = (await as("agent", "select rag, purchasing_blocked, priority_tier, critical_open from public.suppliers where id = $1", [supplierId])).rows[0];
-  assert.deepEqual(s, { rag: "amber", purchasing_blocked: false, priority_tier: 3, critical_open: 0 });
+  assert.deepEqual(s, { rag: "amber", purchasing_blocked: true, priority_tier: 3, critical_open: 0 });
   const a = await as("agent", "select count(*)::int n from public.gate_audit_log where supplier_id = $1", [supplierId]);
   assert.equal(a.rows[0].n, 9); // msa requested + 8 verifications
 });
@@ -154,12 +159,14 @@ test("an expired certificate reopens the gate and turns red", async () => {
   await as("agent", "select public.update_supplier_gate($1, 'sustainability', null, null, true)", [supplierId]);
 });
 
-test("all gates clear -> green and compliant", async () => {
+test("all gates clear -> green, compliant, released and purchasing allowed", async () => {
   for (const g of ["request", "rfi", "nda", "quality", "environment", "setup"]) {
     await as("agent", "select public.update_supplier_gate($1, $2, 'verified')", [supplierId, g]);
   }
-  const s = (await as("agent", "select rag, priority_tier, onboarding_status, gates_clear from public.suppliers where id = $1", [supplierId])).rows[0];
-  assert.deepEqual(s, { rag: "green", priority_tier: null, onboarding_status: "compliant", gates_clear: 14 });
+  await asSuper(`update public.supplier_gates g set status = 'verified' from public.gate_definitions d
+    where d.key = g.gate_key and d.standard_gate and g.supplier_id = $1 and g.status <> 'verified'`, [supplierId]);
+  const s = (await as("agent", "select rag, priority_tier, onboarding_status, gates_clear, purchasing_blocked, onboarding_released from public.suppliers where id = $1", [supplierId])).rows[0];
+  assert.deepEqual(s, { rag: "green", priority_tier: null, onboarding_status: "compliant", gates_clear: 29, purchasing_blocked: false, onboarding_released: true });
 });
 
 test("tickets: SLA due date, triage on assignment, activity log, lead-only due changes", async () => {
@@ -183,21 +190,18 @@ test("tickets: SLA due date, triage on assignment, activity log, lead-only due c
 
 test("raise_gap_tickets creates one per open critical gate and never duplicates", async () => {
   const n1 = (await as("agent", "select public.raise_gap_tickets($1) n", [otherSupplierId])).rows[0].n;
-  assert.equal(n1, 8);
+  assert.equal(n1, 12, "8 original critical gates + the standard's 4 critical controls");
   const n2 = (await as("agent", "select public.raise_gap_tickets($1) n", [otherSupplierId])).rows[0].n;
   assert.equal(n2, 0);
 });
 
-test("fast-track: lead approval required, not self-approval, lifts block until close-by", async () => {
-  await rejects(as("agent", "select public.approve_fast_track($1, 'BRL incumbent', current_date + 14)", [otherSupplierId]), /Only an SRT lead/);
-  const mine = (await as("lead", "insert into public.suppliers (name) values ('Lead Created Ltd') returning id")).rows[0].id;
-  await rejects(as("lead", "select public.approve_fast_track($1, 'x', current_date + 14)", [mine]), /supplier you created/);
-  await as("lead", "select public.approve_fast_track($1, 'BRL incumbent, approved by Brightlane Procurement', current_date + 14)", [otherSupplierId]);
-  const s = (await as("lead", "select onboarding_route, fast_track_approved_by, purchasing_blocked from public.suppliers where id = $1", [otherSupplierId])).rows[0];
-  assert.deepEqual(s, { onboarding_route: "fast_track", fast_track_approved_by: ids.lead, purchasing_blocked: false });
-  await as("lead", "update public.suppliers set fast_track_approved_by = null, fast_track_close_by = current_date - 1 where id = $1", [otherSupplierId]);
-  const s2 = (await as("lead", "select fast_track_approved_by, purchasing_blocked from public.suppliers where id = $1", [otherSupplierId])).rows[0];
-  assert.deepEqual(s2, { fast_track_approved_by: ids.lead, purchasing_blocked: true }, "approval can't be cleared directly; past close-by re-blocks");
+// Changed by the nine-stage standard: one SRT lead can no longer approve a fast-track. It is an exception route with the
+// Procurement Director and Local Finance both approving (srm_onboarding.test.mjs covers the full flow).
+test("fast-track: the single-approver route is superseded; approval fields can't be written directly", async () => {
+  await rejects(as("lead", "select public.approve_fast_track($1, 'BRL incumbent', current_date + 14)", [otherSupplierId]), /exception route/);
+  await as("lead", "update public.suppliers set fast_track_approved_by = $1, fast_track_close_by = current_date + 5 where id = $2", [ids.lead, otherSupplierId]);
+  const s = (await as("lead", "select fast_track_approved_by, purchasing_blocked from public.suppliers where id = $1", [otherSupplierId])).rows[0];
+  assert.deepEqual(s, { fast_track_approved_by: null, purchasing_blocked: true }, "approval can't be written directly");
 });
 
 test("import: lead only, creates suppliers with gates, audits, skips duplicates", async () => {
@@ -265,9 +269,16 @@ test("vendor RFI: send, register, submit, review by Procurement head", async () 
   await asSuper("insert into auth.users (id, email) values ($1, 'head@adm-indicia.com')", [ids.head]);
   await as("admin", "select public.admin_set_user_access($1, 'internal', 'head', false, null)", [ids.head]);
 
-  // A new-vendor request ticket with no supplier yet.
-  const ticket = (await as("agent",
+  // Changed by the nine-stage standard: no information request outside the route. A bare prospect ticket is refused; the
+  // request goes through intake and Procurement triage first, which creates the supplier and the ticket's link to it.
+  const prospect = (await as("agent",
     "insert into public.srt_tickets (type, title, prospect_name, client, market) values ('new_onboarding', 'New vendor: Coastal Foam', 'Coastal Foam Inserts', 'Brightlane', 'Vietnam') returning id")).rows[0].id;
+  await rejects(as("agent", "select public.send_vendor_rfi($1, 'sales@coastalfoam.example', null, 'http://x')", [prospect]), /outside the onboarding route/);
+  const caseId = (await as("agent", "select public.onboarding_request_submit($1::jsonb) id", [JSON.stringify({
+    business_case: "Foam inserts for Brightlane gift packs", supplier_type: "manufacturer", category: "Packaging", client: "Brightlane", market: "Vietnam",
+    urgency: "standard", estimated_spend: 20000, proposed_name: "Coastal Foam Inserts", proposed_email: "sales@coastalfoam.example" })])).rows[0].id;
+  await as("head", "select public.onboarding_triage($1, 'approve', 'standard', 'tactical', null)", [caseId]);
+  const ticket = (await asSuper("select ticket_id from public.onboarding_cases where id = $1", [caseId])).rows[0].ticket_id;
 
   await rejects(as("vendor", "select public.send_vendor_rfi($1, 'a@b.co', null, 'http://x')", [ticket]), /Only SRT, procurement or admin/);
   await rejects(as("agent", "select public.send_vendor_rfi($1, 'not-an-email', null, 'http://x')", [ticket]), /valid vendor email/);

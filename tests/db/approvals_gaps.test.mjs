@@ -169,18 +169,26 @@ test("Execution: a production-ready recce needs a second person", async () => {
   assert.equal((await one("select status from public.recces where id = $1", [recce])).status, "production_ready");
 });
 
-test("SRM: fast-track is requested and approved by an SRT lead; critical gates are never verified by who requested the evidence", async () => {
+// Changed by the nine-stage onboarding standard (20261039000002): fast-track is an exception route with two named approvals
+// (FAST_TRACK and FAST_TRACK_FINANCE), each policy-driven. The policies here name an SRT lead and Finance.
+test("SRM: fast-track is requested and approved by both policy roles; critical gates are never verified by who requested the evidence", async () => {
   await policy("AP-G-FAST", { module: "assure", approval_type: "FAST_TRACK", approver_role: "srt_lead", maker_checker: true });
+  await policy("AP-G-FAST-FIN", { module: "assure", approval_type: "FAST_TRACK_FINANCE", approver_role: "finance", maker_checker: true });
   await policy("AP-G-GATE", { module: "assure", approval_type: "SRT_GATE", approver_role: "srt_agent", maker_checker: true });
   const s = (await one("insert into public.suppliers (supplier_code, name, market, region) values ('G-FT','Fast Ltd','Germany','EMEA') returning id")).id;
+  await asSuper("update public.supplier_profiles set uen_number = 'HRB 1' where supplier_id = $1", [s]);
+  await asSuper(`update public.supplier_gates set status = case gate_key when 'triage' then 'verified' when 'rfi' then 'received' when 'bank' then 'received' else 'requested' end
+    where supplier_id = $1 and gate_key in ('triage','rfi','bank','nda','coc')`, [s]);
   const close = new Date(Date.now() + 20 * 864e5).toISOString().slice(0, 10);
-  await as("agent", "select public.approve_fast_track($1, 'Launch next week', $2)", [s, close]);
+  await as("agent", "select public.fast_track_request($1, 'Launch next week', 'Launch display', $2, '{\"value_cap\":5000}'::jsonb)", [s, close]);
   const req = await requestFor("FAST_TRACK", s);
   await rejects(as("agent", "select public.approval_request_decide($1, true, null)", [req.id]), /someone else/);
   await rejects(as("finance", "select public.approval_request_decide($1, true, null)", [req.id]), /srt lead/);
   assert.ok((await inbox("lead")).some((r) => r.item_id === req.id && r.approval_type === "FAST_TRACK"));
   assert.ok(!(await inbox("agent")).some((r) => r.item_id === req.id));
   await as("lead", "select public.approval_request_decide($1, true, null)", [req.id]);
+  assert.equal((await one("select fast_track_approved_by from public.suppliers where id = $1", [s])).fast_track_approved_by, null, "one approval is not enough");
+  await as("finance", "select public.approval_request_decide($1, true, null)", [(await requestFor("FAST_TRACK_FINANCE", s)).id]);
   const sup = await one("select onboarding_route, fast_track_approved_by from public.suppliers where id = $1", [s]);
   assert.deepEqual([sup.onboarding_route, sup.fast_track_approved_by], ["fast_track", ids.lead]);
 

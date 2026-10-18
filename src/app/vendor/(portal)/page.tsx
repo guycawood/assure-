@@ -1,3 +1,4 @@
+import type { VendorTracker } from "@/lib/onboarding";
 import Link from "next/link";
 import { BadgeCheck, FileText, Search, UserPlus } from "lucide-react";
 import { requireVendor, rows, rpcList, type PushRow, type VendorPoRow, type VendorRfqRow } from "@/lib/vendor-data";
@@ -50,6 +51,8 @@ export default async function VendorDashboard() {
     rows<InsightData["reviews"][number]>(supabase.from("vendor_business_reviews").select("title, meeting_date, next_review_date")),
   ]);
 
+  const { data: trData } = await supabase.rpc("vendor_onboarding_tracker", {});
+  const tracker = trData as VendorTracker | null;
   const openRfqs = rfqs.filter((r) => r.open && r.invitation_status !== "declined" && r.quote_status !== "submitted");
   const pendingPush = pushes.filter((p) => p.status === "pending");
   const poWaiting = pos.filter((p) => p.status === "issued");
@@ -91,8 +94,8 @@ export default async function VendorDashboard() {
               <span className="font-bold">{tierName(c.subscription_tier)}</span>
             </Link>
             <div className="rounded-xl bg-white/10 px-4 py-2.5 text-sm">
-              <span className="block text-[0.65rem] font-bold uppercase tracking-wider text-white/60">Status</span>
-              <span className="font-bold">{human(c.status)}</span>
+              <span className="block text-[0.65rem] font-bold uppercase tracking-wider text-white/60">Onboarding</span>
+              <span className="font-bold">{tracker ? (tracker.released ? "Fully onboarded" : `Step ${tracker.stage} of 9`) : human(c.status)}</span>
             </div>
           </div>
         </div>
@@ -108,6 +111,20 @@ export default async function VendorDashboard() {
           </Link>
         )}
       </section>
+
+      {tracker && !tracker.released && (
+        <Card className={`px-5 py-4 ${tracker.blocked_by_overdue ? "border-bad" : ""}`}>
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <div>
+              <p className="font-display font-bold">Your onboarding: step {tracker.stage} of 9, {tracker.stages.find((s) => s.status === "current")?.label}</p>
+              <p className="text-sm text-muted">{tracker.stages.find((s) => s.status === "current")?.text}</p>
+              {tracker.blocked_by_overdue && <p className="mt-1 text-sm font-semibold text-bad">Some items are overdue: new orders are on hold until they are complete.</p>}
+              {!tracker.blocked_by_overdue && tracker.remediation.length > 0 && <p className="mt-1 text-sm">{tracker.remediation.length} item{tracker.remediation.length === 1 ? "" : "s"} to complete by {formatDate(tracker.remediation[0].due_date)}.</p>}
+            </div>
+            <ButtonLink href="/vendor/onboarding" variant="primary">See what is needed</ButtonLink>
+          </div>
+        </Card>
+      )}
 
       {rfi && rfi.status !== "cancelled" && (
         <Card className="px-5 py-4">

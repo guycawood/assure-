@@ -20,7 +20,8 @@ export const TYPE_LABEL: Record<string, string> = {
   RFQ_AWARD: "RFQ award", RFQ_BYPASS: "Bypass award", RATE_CARD_EXCEPTION: "Rate-card exception", TRIAGE_OVERRIDE: "Triage override",
   SOURCING_SETTINGS: "Sourcing settings", ESTIMATE_CONFIRM: "Client approval confirmation", PO_ETENDER: "PO e-tender approval",
   PAYMENT_RELEASE: "Payment release", BILL_CANCEL: "Cancel sent bill", DELIVERY_CONFIRM: "Delivery without POD", JOB_CLOSE: "Job close with overrides",
-  RECCE_READY: "Production-ready recce", FAST_TRACK: "Fast-track onboarding", SUPPLIER_REACTIVATE: "Supplier reactivation",
+  RECCE_READY: "Production-ready recce", FAST_TRACK: "Fast-track exception (Procurement Director)", FAST_TRACK_FINANCE: "Fast-track exception (Local Finance)",
+  ONBOARDING_GAP: "Documented gap (due diligence)", ONBOARDING_RISK_CM: "Risk gate (Category Manager)", ONBOARDING_RISK_QUALITY: "Risk gate (Quality)", ONBOARDING_FINANCE: "Onboarding Finance approval", SUPPLIER_REACTIVATE: "Supplier reactivation",
   CONTRACT_APPROVE: "Contract approval", INSPECTION_CHANGE: "Inspection result change", NCR_CLOSE: "NCR close", ISSUE_RESOLVE: "Issue resolution",
   PAYMENT_TERMS: "Non-standard payment terms", SIQ_EFFECTIVENESS: "Result verification", SIQ_ASSET: "Asset rights sign-off",
   CRM_CLIENT_SETUP: "New client set-up", CRM_TERMS: "Client commercial terms", CRM_CONTRACT: "Client contract", CRM_OPP_WON: "Opportunity won", CRM_SEND: "CRM email or survey send",
@@ -35,6 +36,7 @@ export const ROLE_LABEL: Record<string, string> = {
   finance: "Finance", procurement: "Procurement", procurement_head: "Procurement head", sourcing_lead: "Sourcing lead",
   doa: "Delegated authority (DOA)", module_owner: "Module owner", briefing_lead: "Briefing lead", client_approver: "Client approver", vendor: "Vendor",
   quality: "Quality role", logistics_lead: "Logistics lead", line_manager: "Line manager",
+  procurement_director: "Procurement Director", local_finance: "Local Finance", category_manager: "Category Manager",
 };
 
 export function money(v: number | null | undefined, currency: string | null | undefined): string {

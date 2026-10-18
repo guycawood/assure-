@@ -19,7 +19,7 @@ export default async function ScorecardPage({ searchParams }: { searchParams: SP
   if (!m) return <Card><Empty title="No active scorecard methodology">An admin needs to activate one in the SRM Watchtower.</Empty></Card>;
 
   const rows = suppliers
-    .map((s) => ({ s, r: scoreSupplier(m, inputs.get(s.id) ?? [], s.active) }))
+    .map((s) => ({ s, r: scoreSupplier(m, inputs.get(s.id) ?? [], s) }))
     .filter(({ s, r }) => (!sp.region || s.region === sp.region) && (sp.psl !== "1" || r.preferred))
     .sort((a, b) => (b.r.overall ?? -1) - (a.r.overall ?? -1));
   const preferred = rows.filter((x) => x.r.preferred).length;

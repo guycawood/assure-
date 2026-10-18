@@ -56,7 +56,9 @@ export interface SupplierProfile {
   entity_type: string | null;
   sub_category: string | null;
   vendor_code: string | null;
+  /** Company registration number (UEN in Singapore, Companies House number in the UK, NIT in Colombia, ...). */
   uen_number: string | null;
+  vat_number: string | null;
   website: string | null;
   address: string | null;
   primary_contact_name: string | null;
@@ -171,7 +173,8 @@ export const PA_STATUS: Opt[] = [
   { value: "vm_rejected", label: "Declined", tone: "bad" },
   { value: "procurement_review", label: "Procurement review", tone: "accent" },
   { value: "negotiation", label: "Negotiation", tone: "warn" },
-  { value: "onboarded", label: "Onboarded", tone: "ok" },
+  // "onboarded" is kept as the stored value; it means the commercial terms are agreed. Onboarding itself is the nine-stage case.
+  { value: "onboarded", label: "Terms agreed", tone: "ok" },
   { value: "rejected", label: "Rejected", tone: "bad" },
 ];
 export const PA_PIPELINE = ["submitted", "under_review", "vm_approved", "procurement_review", "negotiation", "onboarded"];

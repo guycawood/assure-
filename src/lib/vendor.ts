@@ -6,7 +6,10 @@ export type ActionResult = { ok?: boolean; message?: string; id?: string };
 
 export type NavLink = { label: string; href: string; icon: string; exact?: boolean };
 export const VENDOR_NAV: { label: string; items: NavLink[] }[] = [
-  { label: "Overview", items: [{ label: "Dashboard", href: "/vendor", icon: "space_dashboard", exact: true }] },
+  { label: "Overview", items: [
+    { label: "Dashboard", href: "/vendor", icon: "space_dashboard", exact: true },
+    { label: "Your onboarding", href: "/vendor/onboarding", icon: "checklist" },
+  ] },
   { label: "Work", items: [
     { label: "Quote requests", href: "/vendor/quotes", icon: "request_quote" },
     { label: "Pushed prices", href: "/vendor/pushed-prices", icon: "price_check" },

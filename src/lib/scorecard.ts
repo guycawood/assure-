@@ -103,7 +103,11 @@ function scoreCriterion(c: Criterion, inputs: Map<string, Input>, resolved: Map<
   return { key: c.key, score: got / wsum, display: shown.join(" · ") };
 }
 
-export function scoreSupplier(m: FullMethodology, inputList: Input[], supplierActive: boolean): SupplierScore {
+/** What the PSL needs to know about the supplier's onboarding (a plain boolean means "active", for previews). */
+export type Readiness = { active: boolean; onboarding_released?: boolean; onboarding_state?: string; purchasing_blocked?: boolean };
+
+export function scoreSupplier(m: FullMethodology, inputList: Input[], supplier: boolean | Readiness): SupplierScore {
+  const ready: Readiness = typeof supplier === "boolean" ? { active: supplier } : supplier;
   const inputs = new Map(inputList.map((i) => [i.key, i]));
   const ordered = [...m.criteria].sort((a, b) => (a.fallback_criterion ? 1 : 0) - (b.fallback_criterion ? 1 : 0));
   const resolved = new Map<string, number | null>();
@@ -140,9 +144,13 @@ export function scoreSupplier(m: FullMethodology, inputList: Input[], supplierAc
   }
   const overall = wsum ? got / wsum : null;
 
+  // The CoC input comes from the onboarding Code of Conduct gate (scorecard_inputs_effective): one source of truth.
   const coc = inputs.get("coc")?.value_text;
   let blockedReason: string | null = null;
-  if (!supplierActive) blockedReason = "Supplier not active";
+  if (!ready.active) blockedReason = "Supplier not active";
+  else if (ready.onboarding_state === "exception") blockedReason = "Not preferred: fast-track exception, onboarding incomplete";
+  else if (ready.onboarding_released === false) blockedReason = "Not preferred: onboarding incomplete";
+  else if (ready.purchasing_blocked) blockedReason = "Not preferred: purchasing blocked";
   else if (m.require_coc && coc !== "yes") blockedReason = "No signed Code of Conduct";
   const preferred = blockedReason === null && overall !== null && overall > Number(m.preferred_threshold);
 

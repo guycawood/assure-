@@ -66,6 +66,7 @@ export default async function TicketDetail({ params }: { params: Promise<{ id: s
           {showWorkflow && (
             <OnboardingWorkflow
               ticketId={ticket.id}
+              hasSupplier={!!ticket.supplier_id}
               rfi={rfi}
               email={((emailRes.data ?? []) as { to_email: string; subject: string; link: string | null; created_at: string; status: string }[])[0] ?? null}
               bank={((bankRows ?? []) as never[])[0] ?? null}

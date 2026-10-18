@@ -25,8 +25,8 @@ export default async function EditMethodology() {
   if (!draft || !active) redirect("/assure/watchtower");
 
   const diff = suppliers.map((s) => {
-    const a = scoreSupplier(active, inputs.get(s.id) ?? [], s.active);
-    const d = scoreSupplier(draft, inputs.get(s.id) ?? [], s.active);
+    const a = scoreSupplier(active, inputs.get(s.id) ?? [], s);
+    const d = scoreSupplier(draft, inputs.get(s.id) ?? [], s);
     return { s, a, d, delta: (d.overall ?? 0) - (a.overall ?? 0) };
   });
   const pslA = diff.filter((x) => x.a.preferred).length;

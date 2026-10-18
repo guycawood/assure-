@@ -202,14 +202,18 @@ const SECTION_NAV: Record<Exclude<ModuleKey, "rfq" | "logistics" | "execution">,
     groups: [
       { label: "About", items: [{ label: "About SRM", href: "/assure/about", icon: "auto_awesome" }] },
       { label: "Overview", items: [{ label: "Dashboard", href: "/assure", icon: "space_dashboard", exact: true }] },
-      { label: "SRT desk", items: [
-        { label: "Onboarding dashboard", href: "/assure/srt", icon: "speed", exact: true },
+      // Onboarding follows the nine-stage global standard (docs/SRM_ONBOARDING.md); the SRT desk runs it.
+      { label: "Onboarding", items: [
+        { label: "Onboarding control", href: "/assure/srt", icon: "speed", exact: true },
+        { label: "Onboarding requests", href: "/assure/srt/requests", icon: "assignment_add" },
+        { label: "Applications & plans", href: "/assure/applications", icon: "how_to_reg" },
+        { label: "Pre-assessments", href: "/assure/pre-assessments", icon: "assignment" },
         { label: "Tickets", href: "/assure/srt/tickets", icon: "inbox", badge: "myTickets" },
         { label: "Gate register", href: "/assure/srt/register", icon: "checklist" },
         { label: "Outbox", href: "/assure/srt/outbox", icon: "outgoing_mail" },
       ] },
-      { label: "Suppliers & performance", items: [
-        { label: "Supplier directory", href: "/assure/suppliers", icon: "storefront" },
+      { label: "Suppliers", items: [{ label: "Supplier directory", href: "/assure/suppliers", icon: "storefront" }] },
+      { label: "Performance", items: [
         { label: "Scorecard & PSL", href: "/assure/scorecard", icon: "leaderboard" },
         { label: "Performance", href: "/assure/performance", icon: "monitoring" },
         { label: "Business reviews", href: "/assure/reviews", icon: "groups" },
@@ -217,13 +221,11 @@ const SECTION_NAV: Record<Exclude<ModuleKey, "rfq" | "logistics" | "execution">,
       { label: "Compliance & quality", items: [
         { label: "Compliance", href: "/assure/compliance", icon: "verified", exact: true },
         { label: "Document review", href: "/assure/compliance/review", icon: "fact_check" },
-        { label: "Pre-assessments", href: "/assure/pre-assessments", icon: "assignment" },
-        { label: "Applications & plans", href: "/assure/applications", icon: "how_to_reg" },
         { label: "Quality", href: "/assure/quality", icon: "rule" },
         { label: "Audit calendar", href: "/assure/audit-calendar", icon: "event" },
       ] },
       { label: "Commercial", items: [{ label: "Contracts", href: "/assure/contracts", icon: "contract" }] },
-      { label: "Operations", items: [
+      { label: "Engagement", items: [
         { label: "Action plans", href: "/assure/tasks", icon: "task_alt" },
         { label: "Workflows", href: "/assure/workflows", icon: "account_tree" },
         { label: "Surveys", href: "/assure/surveys", icon: "quiz" },
