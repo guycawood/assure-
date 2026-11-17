@@ -24,7 +24,7 @@ select d.id, x.email, x.lvl, 'pending'
 on conflict (supplier_id, email) do nothing;
 
 -- ---------------------------------------------------------------------------
--- Subscriptions (set by adm Indicia only)
+-- Subscriptions (set by us only)
 -- ---------------------------------------------------------------------------
 insert into public.supplier_subscriptions (supplier_id, tier, status, renewal_date)
 select d.id, x.tier, 'active', current_date + x.days
@@ -58,7 +58,7 @@ select 'f5000000-0000-4000-8000-000000000003', 'a5000000-0000-4000-8000-00000000
 on conflict do nothing;
 
 -- ---------------------------------------------------------------------------
--- A supply agreement out for signature with Vistula Woodcraft (DEMO-019): the vendor signs first, then adm Indicia.
+-- A supply agreement out for signature with Vistula Woodcraft (DEMO-019): the vendor signs first, then the team.
 -- ---------------------------------------------------------------------------
 insert into public.contracts (id, contract_ref, supplier_id, title, document_type, status, content_summary, value, currency, start_date, end_date,
                               due_date, sent_at, internal_notes)

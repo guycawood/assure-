@@ -50,6 +50,37 @@ export async function createDelivery(_: FormResult, fd: FormData): Promise<FormR
   redirect(`/logistics/deliveries/${newId}`);
 }
 
+/**
+ * Add several destinations to a PO in one go, from the job's Deliveries tab. Each row is one destination for one spec.
+ * Rows without a quantity are ignored; each valid row becomes its own delivery. Rows that fail are reported by number, the rest are kept.
+ */
+export async function addJobDeliveries(_: FormResult, fd: FormData): Promise<FormResult> {
+  await requireInternal();
+  const poId = id(fd, "po_id"), jobId = id(fd, "job_id");
+  if (!poId) return { error: "Choose the purchase order." };
+  const count = Math.min(50, Math.max(0, Number(str(fd, "count") ?? 0) || 0));
+  const supabase = await createClient();
+  const made: string[] = [], failed: string[] = [];
+  for (let i = 0; i < count; i++) {
+    const get = (k: string) => str(fd, `r${i}_${k}`);
+    const qtyRaw = get("quantity");
+    if (!qtyRaw && !get("recipient_name") && !get("city")) continue; // an untouched row
+    const qty = Number(qtyRaw);
+    if (!Number.isInteger(qty) || qty <= 0) { failed.push(`Row ${i + 1}: enter a whole quantity above zero`); continue; }
+    const spec = get("spec_id");
+    if (!spec) { failed.push(`Row ${i + 1}: choose the spec`); continue; }
+    const data: Record<string, string | null> = {};
+    for (const k of ["recipient_name", "recipient_contact", "address_line", "city", "postcode", "market", "planned_delivery_date", "delivery_method", "special_instructions"]) data[k] = get(k);
+    const { error } = await supabase.rpc("logistics_create_delivery", { p_po: poId, p_spec: spec, p_spec_version: null, p_quantity: qty, p_data: data });
+    if (error) failed.push(`Row ${i + 1}: ${friendly(error)}`); else made.push(`row ${i + 1}`);
+  }
+  revalidatePath("/logistics", "layout");
+  if (jobId) revalidatePath(`/sourcing/jobs/${jobId}`);
+  if (made.length === 0 && failed.length === 0) return { error: "Fill in at least one destination with a quantity." };
+  if (failed.length) return { error: `${made.length ? `${made.length} added. ` : ""}${failed.join(" · ")}` };
+  return { ok: true, message: `${made.length} deliver${made.length === 1 ? "y" : "ies"} added.` };
+}
+
 export async function updateDelivery(_: FormResult, fd: FormData) {
   const { data, error } = deliveryData(fd);
   if (error) return { error };

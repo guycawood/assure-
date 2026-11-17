@@ -100,7 +100,7 @@ test("deactivation warns with children and consuming records; delete is refused 
   const u = (await one("lead", "select public.tax_usage('subcategory',$1) u", [shelf.sub])).u;
   assert.equal(u.children, 6);
   assert.ok(u.specs >= 2);
-  await rejects(as("00000000-0000-0000-0000-0000000000ff", "select public.tax_usage('subcategory',$1)", [shelf.sub]), /Only adm Indicia staff/);
+  await rejects(as("00000000-0000-0000-0000-0000000000ff", "select public.tax_usage('subcategory',$1)", [shelf.sub]), /Only staff/);
   await rejects(as("admin", "select public.tax_delete('product_type',$1)", [shelf.pt]), /specs use "Shelf talker": deactivate it instead/);
   await rejects(as("admin", "select public.tax_delete('subcategory',$1)", [shelf.sub]), /still has 6 product types/);
   await as("admin", "select public.tax_toggle('product_type',$1,false)", [shelf.pt]);

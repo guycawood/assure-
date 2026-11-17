@@ -80,7 +80,7 @@ let supplierId;
 let otherSupplierId;
 
 // The nine-stage onboarding standard (20261039000001) adds 15 gates to the original 14, so a new supplier gets 29.
-test("new supplier gets every gate (29 across the nine stages), starts red and blocked", async () => {
+test("new supplier gets every gate (30 across the nine stages), starts red and blocked", async () => {
   const { rows } = await as("plain",
     "insert into public.suppliers (name, market, client, ytd_spend, primary_contact_email) values ('Shanghai Print Co', 'China', 'Brightlane', 184000, 'ops@shanghaiprint.example') returning id, rag, purchasing_blocked, created_by");
   supplierId = rows[0].id;
@@ -88,7 +88,7 @@ test("new supplier gets every gate (29 across the nine stages), starts red and b
   const s = (await as("plain", "select rag, priority_tier, purchasing_blocked, gates_clear from public.suppliers where id = $1", [supplierId])).rows[0];
   assert.deepEqual(s, { rag: "red", priority_tier: 1, purchasing_blocked: true, gates_clear: 0 });
   const g = await as("plain", "select count(*)::int n from public.supplier_gates where supplier_id = $1", [supplierId]);
-  assert.equal(g.rows[0].n, 29);
+  assert.equal(g.rows[0].n, 30);
   otherSupplierId = (await as("plain", "insert into public.suppliers (name, primary_contact_email) values ('Other Vendor Ltd', 'x@other.example') returning id")).rows[0].id;
 });
 
@@ -166,7 +166,7 @@ test("all gates clear -> green, compliant, released and purchasing allowed", asy
   await asSuper(`update public.supplier_gates g set status = 'verified' from public.gate_definitions d
     where d.key = g.gate_key and d.standard_gate and g.supplier_id = $1 and g.status <> 'verified'`, [supplierId]);
   const s = (await as("agent", "select rag, priority_tier, onboarding_status, gates_clear, purchasing_blocked, onboarding_released from public.suppliers where id = $1", [supplierId])).rows[0];
-  assert.deepEqual(s, { rag: "green", priority_tier: null, onboarding_status: "compliant", gates_clear: 29, purchasing_blocked: false, onboarding_released: true });
+  assert.deepEqual(s, { rag: "green", priority_tier: null, onboarding_status: "compliant", gates_clear: 30, purchasing_blocked: false, onboarding_released: true });
 });
 
 test("tickets: SLA due date, triage on assignment, activity log, lead-only due changes", async () => {
@@ -277,7 +277,8 @@ test("vendor RFI: send, register, submit, review by Procurement head", async () 
   const caseId = (await as("agent", "select public.onboarding_request_submit($1::jsonb) id", [JSON.stringify({
     business_case: "Foam inserts for Brightlane gift packs", supplier_type: "manufacturer", category: "Packaging", client: "Brightlane", market: "Vietnam",
     urgency: "standard", estimated_spend: 20000, proposed_name: "Coastal Foam Inserts", proposed_email: "sales@coastalfoam.example" })])).rows[0].id;
-  await as("head", "select public.onboarding_triage($1, 'approve', 'standard', 'tactical', null)", [caseId]);
+  const triaged = (await as("head", "select public.onboarding_triage($1, 'approve', 'standard', 'tactical', null) s", [caseId])).rows[0].s;
+  await as("head", "select public.onboarding_category_interest($1, true, null)", [triaged]);
   const ticket = (await asSuper("select ticket_id from public.onboarding_cases where id = $1", [caseId])).rows[0].ticket_id;
 
   await rejects(as("vendor", "select public.send_vendor_rfi($1, 'a@b.co', null, 'http://x')", [ticket]), /Only SRT, procurement or admin/);

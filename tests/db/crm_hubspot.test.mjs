@@ -134,7 +134,7 @@ test("RLS: vendors, clients and anonymous visitors can't read CRM internals", as
       "crm_form_submissions", "crm_import_logs", "crm_survey_results_v", "crm_job_surveys"]) {
       assert.equal((await as(user, `select count(*)::int n from public.${tbl}`)).rows[0].n, 0, `${tbl} visible to ${user}`);
     }
-    await rejects(as(user, "select public.crm_contact_set_field($1, 'department', '\"other\"')", [anna]), /Only adm Indicia staff/);
+    await rejects(as(user, "select public.crm_contact_set_field($1, 'department', '\"other\"')", [anna]), /Only staff/);
   }
   await rejects(anon("select count(*) from public.crm_survey_responses"), /permission denied/);
   await rejects(anon("select public.crm_survey_wave_send($1)", [wave]), /permission denied/);

@@ -32,7 +32,7 @@ export const typeLabel = (t: string) => TYPE_LABEL[t] ?? t.replace(/_/g, " ").to
 export const moduleLabel = (m: string) => MODULE_LABEL[m] ?? m;
 
 export const ROLE_LABEL: Record<string, string> = {
-  admin: "Admin", internal: "Anyone at adm Indicia", named_person: "The named person", srt_agent: "SRT agent or lead", srt_lead: "SRT lead",
+  admin: "Admin", internal: "Anyone on the team", named_person: "The named person", srt_agent: "SRT agent or lead", srt_lead: "SRT lead",
   finance: "Finance", procurement: "Procurement", procurement_head: "Procurement head", sourcing_lead: "Sourcing lead",
   doa: "Delegated authority (DOA)", module_owner: "Module owner", briefing_lead: "Briefing lead", client_approver: "Client approver", vendor: "Vendor",
   quality: "Quality role", logistics_lead: "Logistics lead", line_manager: "Line manager",

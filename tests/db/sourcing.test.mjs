@@ -58,7 +58,7 @@ await asSuper("insert into public.sourcing_user_access (user_id, is_lead, doa_le
 const { rows: [client] } = await asSuper(
   "insert into public.sourcing_clients (code, name, min_quotes_required, quote_tolerance_percent, default_markup_percent, savings_target_percent, e_tender_threshold) values ('TCL','Test Client',3,10,15,5,8000) returning id",
 );
-const { rows: [be] } = await asSuper("insert into public.sourcing_billing_entities (code, name, region, market) values ('BE-DE','adm Indicia GmbH','EMEA','Germany') returning id");
+const { rows: [be] } = await asSuper("insert into public.sourcing_billing_entities (code, name, region, market) values ('BE-DE','Northgate Brand Services GmbH','EMEA','Germany') returning id");
 
 async function newJob(title = "Summer POS") {
   const { rows } = await as("agent", "insert into public.jobs (title, client_id, billing_entity_id, region, market, budget) values ($1,$2,$3,'EMEA','Germany',50000) returning id, job_number", [title, client.id, be.id]);
@@ -140,6 +140,7 @@ test("supplier selection only from the eligible pool; minimum quotes enforced at
   assert.ok(!pool.rows.some((x) => x.id === sD));
   await rejects(as("agent", "select public.rfq_set_suppliers($1,$2)", [rfq, JSON.stringify([sA, sD])]), /not eligible/);
   await as("agent", "select public.rfq_set_suppliers($1,$2)", [rfq, JSON.stringify([sA, sB])]);
+  await asSuper("insert into public.impact_grade_records (subject_kind, subject_id, score, letter) values ('spec', $1, 60, 'C')", [spec]); // Impact Grade is a required step before the RFQ goes out
   await rejects(as("agent", "select public.rfq_send($1)", [rfq]), /2 invited, at least 3 needed/);
   await rejects(as("agent", "insert into public.rfq_invitations (rfq_id, supplier_id) values ($1,$2)", [rfq, sC]), /permission denied/);
   await as("agent", "select public.rfq_set_suppliers($1,$2)", [rfq, JSON.stringify([sA, sB, sC])]);
@@ -159,11 +160,51 @@ test("high-value RFQs are flagged at creation and need a different sourcing lead
   const f = await as("lead", "select high_value_alert, high_value_threshold from public.rfqs where id = $1", [r.id]);
   assert.equal(f.rows[0].high_value_alert, true);
   await as("lead", "select public.rfq_set_suppliers($1,$2)", [r.id, JSON.stringify([sA, sB, sC, sE])]);
+  await asSuper("insert into public.impact_grade_records (subject_kind, subject_id, score, letter) values ('spec', $1, 60, 'C')", [s]);
   await rejects(as("lead", "select public.rfq_send($1)", [r.id]), /High-value RFQ/);
   await rejects(as("lead", "select public.rfq_approve_high_value($1,'ok')", [r.id]), /different person/);
   await rejects(as("agent", "select public.rfq_approve_high_value($1,'ok')", [r.id]), /Only a sourcing lead/);
   await as("admin", "select public.rfq_approve_high_value($1,'Seasonal flagship')", [r.id]);
   await as("lead", "select public.rfq_send($1)", [r.id]); // 4 suppliers meets the 25k+ band
+});
+
+test("Impact Grade is required before an RFQ goes out; a sourcing lead can waive it with a reason", async () => {
+  const j = await newJob("Grade gate job");
+  const s = await newSpec(j.id, { title: "Totem", len: 2000, wid: 1000, qty: 5000 });
+  await as("lead", "select public.spec_triage_run($1)", [s]);
+  const { rows: [r] } = await as("lead", "select public.rfq_create($1,'Totems',$2,12500,$3) as id", [j.id, future(), JSON.stringify([{ spec_id: s, quantity_breaks: [5000] }])]);
+  await as("lead", "select public.rfq_set_suppliers($1,$2)", [r.id, JSON.stringify([sA, sB, sC])]);
+  const st = (await as("agent", "select public.rfq_impact_grade_status($1) as s", [r.id])).rows[0].s;
+  assert.equal(st.blocked, true);
+  assert.equal(st.specs[0].blocked_by, "not_graded");
+  await rejects(as("lead", "select public.rfq_send($1)", [r.id]), /Calculate the Impact Grade.*Totem.*no Impact Grade yet/);
+
+  // A disputed grade blocks too.
+  await asSuper("insert into public.impact_grade_records (subject_kind, subject_id, score, letter, review_status) values ('spec', $1, 55, 'C', 'disputed')", [s]);
+  await rejects(as("lead", "select public.rfq_send($1)", [r.id]), /grade is disputed/);
+
+  // The waiver is for a sourcing lead and needs a reason.
+  await rejects(as("agent", "select public.rfq_waive_impact_grade($1,'Supplier already priced this exact item')", [r.id]), /Only a sourcing lead/);
+  await rejects(as("lead", "select public.rfq_waive_impact_grade($1,'short')", [r.id]), /at least 10/);
+  await as("lead", "select public.rfq_waive_impact_grade($1,'Repeat of a graded item, no data change')", [r.id]);
+  const w = (await as("agent", "select impact_grade_waived_reason r, impact_grade_waived_by b from public.rfqs where id = $1", [r.id])).rows[0];
+  assert.match(w.r, /Repeat of a graded item/);
+  assert.equal(w.b, ids.lead);
+  await as("lead", "select public.rfq_send($1)", [r.id]);
+  assert.equal((await as("agent", "select status from public.rfqs where id = $1", [r.id])).rows[0].status, "sent");
+  await rejects(as("lead", "select public.rfq_waive_impact_grade($1,'Trying to waive after sending')", [r.id]), /already been sent/);
+});
+
+test("the Watchtower parameter can switch the Impact Grade requirement off", async () => {
+  const j = await newJob("Grade off job");
+  const s = await newSpec(j.id, { title: "Wobbler", len: 2000, wid: 1000, qty: 5000 });
+  await as("lead", "select public.spec_triage_run($1)", [s]);
+  const { rows: [r] } = await as("lead", "select public.rfq_create($1,'Wobblers',$2,12500,$3) as id", [j.id, future(), JSON.stringify([{ spec_id: s, quantity_breaks: [5000] }])]);
+  await as("lead", "select public.rfq_set_suppliers($1,$2)", [r.id, JSON.stringify([sA, sB, sC])]);
+  await rejects(as("lead", "select public.rfq_send($1)", [r.id]), /Calculate the Impact Grade/);
+  await asSuper("update public.library_records set data = jsonb_set(data, '{value}', '0') where library_key = 'ig_parameters' and code = 'rfq_requires_grade'");
+  await as("lead", "select public.rfq_send($1)", [r.id]);
+  await asSuper("update public.library_records set data = jsonb_set(data, '{value}', '1') where library_key = 'ig_parameters' and code = 'rfq_requires_grade'");
 });
 
 let quoteA, quoteB;
@@ -182,7 +223,8 @@ test("sealed bidding: vendors only see their own invitation and quote", async ()
   assert.equal(view.rows[0].v.quote.id, quoteB);
   assert.equal(view.rows[0].v.lines[0].target_prices, null); // targets not shared
   assert.ok(!JSON.stringify(view.rows[0].v).includes(quoteA));
-  assert.ok(!JSON.stringify(view.rows[0].v).includes("2.6"));
+  // A's 2.6 price must not appear as a price. (A plain substring match flaked on timestamps such as "...12.6...".)
+  assert.ok(!/"unit_price":\s*"?2\.6/.test(JSON.stringify(view.rows[0].v)));
   await rejects(as("vE", "select public.rfq_vendor_view($1)", [rfq]), /Not invited/);
   await rejects(as("vE", "select public.rfq_submit_quote($1,$2,1,null,true)", [rfq, price(1, 1)]), /Not invited/);
   const list = await as("vA", "select public.rfq_vendor_list() as l");

@@ -3,13 +3,13 @@ import Link from "next/link";
 import { MSymbol } from "@/components/symbol";
 import { SUBSCRIPTION_TIERS } from "@/lib/vendor";
 
-export const metadata: Metadata = { title: "Become an adm Indicia vendor", description: "The SRM vendor portal: quote, take orders, keep your compliance current and grow your partnership with adm Indicia." };
+export const metadata: Metadata = { title: "Become a vendor", description: "The SRM vendor portal: quote, take orders, keep your compliance current and grow your partnership with us." };
 
 const FEATURES = [
   { icon: "request_quote", title: "Quotes and orders", desc: "Price quote requests per quantity break, confirm agreed prices and accept purchase orders in one place." },
   { icon: "verified", title: "Compliance tracking", desc: "Keep certificates and documents current. We flag anything expired or expiring within 90 days." },
   { icon: "monitoring", title: "Performance scorecard", desc: "See your cost, on-time-in-full, quality, compliance and sustainability scores every quarter." },
-  { icon: "forum", title: "One conversation", desc: "Messages, contracts, business reviews and action plans with adm Indicia's team, all in the portal." },
+  { icon: "forum", title: "One conversation", desc: "Messages, contracts, business reviews and action plans with our team, all in the portal." },
 ];
 const STEPS = [
   { icon: "assignment", title: "Apply", desc: "Complete our online pre-assessment with your company details, certifications, capabilities and factory." },
@@ -23,7 +23,7 @@ export default function VendorPortalLanding() {
     <div className="min-h-screen bg-bg">
       <header className="border-b border-line bg-surface">
         <div className="mx-auto flex max-w-6xl items-center gap-3 px-5 py-3">
-          <span className="text-[1rem] font-extrabold uppercase tracking-[0.1em] text-brand-navy">adm Indicia · <span className="text-[#2E9E8F]">SRM</span></span>
+          <span className="text-[1rem] font-extrabold uppercase tracking-[0.1em] text-brand-navy">System Guy · <span className="text-[#2E9E8F]">SRM</span></span>
           <span className="hidden text-xs font-semibold uppercase tracking-[0.14em] text-muted sm:inline">Vendor portal</span>
           <nav className="ml-auto flex items-center gap-2">
             <Link href="/login?next=/vendor" className="rounded-lg px-3 py-2 text-sm font-semibold text-brand-navy hover:bg-surface-2">Sign in</Link>
@@ -36,15 +36,15 @@ export default function VendorPortalLanding() {
         <div className="mx-auto grid max-w-6xl gap-10 px-5 py-16 lg:grid-cols-[1.2fr_1fr] lg:py-24">
           <div>
             <p className="mb-3 text-xs font-bold uppercase tracking-[0.18em] text-white/60">For print, packaging, POS and merchandise suppliers</p>
-            <h1 className="mb-5 font-display text-4xl font-extrabold leading-tight lg:text-5xl">Grow your business with adm Indicia</h1>
-            <p className="mb-8 max-w-xl text-white/75">The SRM vendor portal is where adm Indicia&apos;s suppliers quote, take orders, keep compliance current and see how they&apos;re performing. One place, plain and simple.</p>
+            <h1 className="mb-5 font-display text-4xl font-extrabold leading-tight lg:text-5xl">Grow your business with us</h1>
+            <p className="mb-8 max-w-xl text-white/75">The SRM vendor portal is where our suppliers quote, take orders, keep compliance current and see how they&apos;re performing. One place, plain and simple.</p>
             <div className="flex flex-wrap gap-3">
               <Link href="/apply" className="rounded-xl bg-white px-5 py-3 text-sm font-bold text-brand-navy hover:bg-white/90">Start your application</Link>
               <Link href="/login?next=/vendor" className="rounded-xl border border-white/30 px-5 py-3 text-sm font-bold text-white hover:bg-white/10">I already have an account</Link>
             </div>
           </div>
           <div className="grid grid-cols-2 gap-3 self-center">
-            {[["5", "sections in one online application"],["90 days", "early warning on expiring certificates"], ["Sealed", "quotes: only adm Indicia sees yours"], ["1", "place for orders, documents and invoices"]].map(([v, l]) => (
+            {[["5", "sections in one online application"],["90 days", "early warning on expiring certificates"], ["Sealed", "quotes: only we see yours"], ["1", "place for orders, documents and invoices"]].map(([v, l]) => (
               <div key={l} className="rounded-2xl bg-white/10 p-5"><p className="font-display text-2xl font-extrabold">{v}</p><p className="mt-1 text-xs text-white/60">{l}</p></div>
             ))}
           </div>
@@ -84,7 +84,7 @@ export default function VendorPortalLanding() {
 
       <section className="mx-auto max-w-6xl px-5 py-16">
         <h2 className="text-center font-display text-3xl font-bold">Plans for onboarded vendors</h2>
-        <p className="mx-auto mt-2 max-w-lg text-center text-sm text-muted">Every approved vendor can use the portal. Plans add reporting, reviews and priority access; adm Indicia&apos;s account team agrees your plan with you.</p>
+        <p className="mx-auto mt-2 max-w-lg text-center text-sm text-muted">Every approved vendor can use the portal. Plans add reporting, reviews and priority access; our account team agrees your plan with you.</p>
         <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {SUBSCRIPTION_TIERS.map((t) => (
             <div key={t.key} className="rounded-2xl border border-line bg-surface p-5">
@@ -103,7 +103,7 @@ export default function VendorPortalLanding() {
           <Link href="/apply" className="rounded-xl bg-white px-6 py-3 text-sm font-bold text-brand-navy hover:bg-white/90">Apply now</Link>
         </div>
       </section>
-      <footer className="py-6 text-center text-xs text-muted">© {new Date().getFullYear()} adm Indicia. SRM is part of System Guy.</footer>
+      <footer className="py-6 text-center text-xs text-muted">SRM is part of System Guy.</footer>
     </div>
   );
 }

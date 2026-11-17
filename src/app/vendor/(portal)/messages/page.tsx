@@ -30,8 +30,8 @@ export default async function MessagesPage({ searchParams }: { searchParams: Pro
 
   return (
     <>
-      <PageHead title="Messages" sub="Conversations with adm Indicia's team about your account, orders and compliance.">
-        <ActionDialog label="New message" variant="primary" title="New message to adm Indicia" action={startConversation} submit="Send">
+      <PageHead title="Messages" sub="Conversations with our team about your account, orders and compliance.">
+        <ActionDialog label="New message" variant="primary" title="New message to us" action={startConversation} submit="Send">
           <label className="label" htmlFor="subject">Subject</label>
           <input id="subject" name="subject" required maxLength={200} className="input" />
           <label className="label" htmlFor="nbody">Message</label>
@@ -65,7 +65,7 @@ export default async function MessagesPage({ searchParams }: { searchParams: Pro
                     <div key={m.id} className={clsx("flex", mine || m.sender_side === "supplier" ? "justify-end" : "justify-start")}>
                       <div className={clsx("max-w-[75%] rounded-2xl px-4 py-2.5 text-sm", m.sender_side === "supplier" ? "bg-brand-navy text-white" : "bg-surface-2")}>
                         <p className="whitespace-pre-wrap">{m.body}</p>
-                        <p className={clsx("mt-1 text-[0.68rem]", m.sender_side === "supplier" ? "text-white/60" : "text-muted")}>{m.sender_side === "supplier" ? (mine ? "You" : "Your team") : "adm Indicia"} · {timeAgo(m.created_at)}</p>
+                        <p className={clsx("mt-1 text-[0.68rem]", m.sender_side === "supplier" ? "text-white/60" : "text-muted")}>{m.sender_side === "supplier" ? (mine ? "You" : "Your team") : "Our team"} · {timeAgo(m.created_at)}</p>
                       </div>
                     </div>
                   );

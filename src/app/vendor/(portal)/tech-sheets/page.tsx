@@ -19,7 +19,7 @@ export default async function TechSheetsPage() {
   const blocking = rows.filter((r) => r.blocking).length;
   return (
     <>
-      <PageHead title="Technical & packaging data" sub={`One data sheet per item you quote or make for adm Indicia: the product as built and how it is packed. ${blocking ? `${blocking} order line(s) can't go to the pre-shipment check until the sheet is complete.` : "Nothing is holding up a pre-shipment check."}`} />
+      <PageHead title="Technical & packaging data" sub={`One data sheet per item you quote or make for us: the product as built and how it is packed. ${blocking ? `${blocking} order line(s) can't go to the pre-shipment check until the sheet is complete.` : "Nothing is holding up a pre-shipment check."}`} />
       <Card className="overflow-x-auto">
         {rows.length === 0 ? <Empty title="No data sheets due">When you quote with packaging or accept a purchase order, the item appears here.</Empty> : (
           <table className="w-full text-sm">

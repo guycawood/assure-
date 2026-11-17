@@ -38,7 +38,8 @@ export default async function Sustainability() {
       </section>
 
       <section className="grid gap-4 lg:grid-cols-2">
-        <Panel title="Impact Grade methodology" actions={<Link href="/watchtower/libraries/impact_grade_dimensions" className="text-sm font-semibold text-accent hover:underline">Manage</Link>}>
+        <Panel title="Impact Grade wheel" sub="Presentation themes. The grade itself comes from the PEF model in the Impact Grade Watchtower."
+          actions={<Link href="/impact-grade/watchtower" className="text-sm font-semibold text-accent hover:underline">Impact Grade Watchtower</Link>}>
           <ul className="space-y-2 px-5 py-4">
             {dims.sort((a, b) => Number(b.data.weight_percent) - Number(a.data.weight_percent)).map((d) => (
               <li key={d.code} className="text-sm">

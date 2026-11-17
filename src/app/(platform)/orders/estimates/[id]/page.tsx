@@ -10,6 +10,9 @@ import {
   COST_CATEGORIES, costLabel, estimateSell, ORDER_FLAG, sellBreakdown, type ClientPo, type CostLine, type HandoffRow, type OrderFlag,
 } from "@/lib/sourcing-hub";
 import { PageHead, Panel, Pill } from "@/components/ui";
+import { ImpactGradeBadge } from "@/components/impact-grade/grade-badge";
+import { getCarbonIntensity, getSpecGrades } from "@/lib/impact-grade-data";
+import { IntensityChip } from "@/components/impact-grade/intensity-chip";
 import { ActionForm, Field } from "@/components/sourcing/action-form";
 import { ActivityList, Facts, StatusPill, Td, Th, fmtDate, fmtDateTime } from "@/components/sourcing/bits";
 import {
@@ -38,6 +41,8 @@ export default async function EstimatePage({ params }: { params: Promise<{ id: s
     getLibrary(supabase, "incoterms"), one<HandoffRow>(supabase, "v_sourcing_handoff", id),
   ]);
   const specById = new Map(specs.map((s) => [s.id, s]));
+  const [grades, intensityRows] = await Promise.all([getSpecGrades(supabase, lines.map((l) => l.spec_id)), getCarbonIntensity(supabase, { specIds: lines.map((l) => l.spec_id) })]);
+  const intensity = new Map(intensityRows.map((r) => [r.spec_id, r]));
   const cost = Number(e.base_cost);
   const extra = Number(e.additional_cost ?? 0);
   const totalCost = cost + extra;
@@ -82,7 +87,7 @@ export default async function EstimatePage({ params }: { params: Promise<{ id: s
                 <thead><tr><Th>Spec</Th><Th>Quantity</Th><Th>Unit cost</Th><Th>Benchmark</Th><Th>Target</Th><Th>Line cost</Th><Th>Unit sell</Th></tr></thead>
                 <tbody>{lines.map((l) => (
                   <tr key={l.id}>
-                    <Td><Link className="font-semibold hover:underline" href={`/sourcing/specs/${l.spec_id}`}>{specById.get(l.spec_id)?.title ?? "Spec"}</Link></Td>
+                    <Td><Link className="font-semibold hover:underline" href={`/sourcing/specs/${l.spec_id}`}>{specById.get(l.spec_id)?.title ?? "Spec"}</Link> <ImpactGradeBadge score={grades.get(l.spec_id)} compact /> <IntensityChip economic={intensity.get(l.spec_id)?.economic_intensity} physical={intensity.get(l.spec_id)?.physical_intensity} /></Td>
                     <Td className="tabular-nums">{Number(l.quantity).toLocaleString("en-GB")}</Td><Td className="tabular-nums">{unitMoney(Number(l.unit_cost), e.currency)}</Td>
                     <Td className="tabular-nums">{l.benchmark_unit != null ? unitMoney(Number(l.benchmark_unit), e.currency) : "—"}</Td>
                     <Td className="tabular-nums">{l.target_unit != null ? unitMoney(Number(l.target_unit), e.currency) : "—"}</Td>

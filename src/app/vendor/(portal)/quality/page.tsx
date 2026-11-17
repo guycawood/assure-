@@ -35,7 +35,7 @@ export default async function QualityPage() {
 
   return (
     <>
-      <PageHead title="Quality & NCRs" sub="Inspection results for your orders and any non-conformance reports (NCRs). Acknowledge an NCR, then send your root cause and response, or dispute it. Mark your corrective actions done; adm Indicia verifies and closes them." />
+      <PageHead title="Quality & NCRs" sub="Inspection results for your orders and any non-conformance reports (NCRs). Acknowledge an NCR, then send your root cause and response, or dispute it. Mark your corrective actions done; we verify and close them." />
 
       <Panel title="Non-conformance reports" sub={`${ncrs.filter((n) => n.status === "open").length} open`}>
         {ncrs.length === 0 ? <Empty title="No NCRs">Nothing has been raised against your orders.</Empty> : (
@@ -66,7 +66,7 @@ export default async function QualityPage() {
                       <ul className="divide-y divide-line">
                         {actions.map((a) => (
                           <li key={a.id} className="flex flex-wrap items-center gap-2 px-3 py-2 text-sm">
-                            <span className="min-w-0 flex-1">{a.description}<span className="block text-xs text-muted">{a.owner_side === "supplier" ? "Your action" : "adm Indicia's action"}{a.due_date ? ` · due ${formatDate(a.due_date)}` : ""}{a.done_note ? ` · ${a.done_note}` : ""}</span></span>
+                            <span className="min-w-0 flex-1">{a.description}<span className="block text-xs text-muted">{a.owner_side === "supplier" ? "Your action" : "Our action"}{a.due_date ? ` · due ${formatDate(a.due_date)}` : ""}{a.done_note ? ` · ${a.done_note}` : ""}</span></span>
                             <Pill tone={statusTone(a.status)}>{human(a.status)}</Pill>
                             {act && a.status === "open" && a.owner_side === "supplier" && n.status === "open" && (
                               <ActionDialog label="Mark done" title="Mark corrective action done" sub={a.description} action={markCorrectiveDone} hidden={{ id: a.id }} submit="Mark done">

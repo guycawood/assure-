@@ -11,6 +11,8 @@ const ITEMS = [
   { href: "/client-portal/campaigns", label: "Campaigns", icon: "campaign" },
   { href: "/client-portal/briefs", label: "Briefs", icon: "description" },
   { href: "/client-portal/estimates", label: "Estimates", icon: "request_quote" },
+  { href: "/client-portal/samples", label: "Samples", icon: "science" },
+  { href: "/client-portal/proofs", label: "Proofs", icon: "draw" },
   { href: "/client-portal/orders", label: "Orders", icon: "local_shipping" },
   { href: "/client-portal/bills", label: "Bills", icon: "receipt_long" },
   { href: "/client-portal/reports", label: "Reports", icon: "monitoring" },
@@ -18,7 +20,7 @@ const ITEMS = [
   { href: "/client-portal/feedback", label: "Feedback & team", icon: "reviews" },
 ];
 
-/** Client Portal sidebar links; keeps ?preview=<client> on every link while adm Indicia staff preview a client. */
+/** Client Portal sidebar links; keeps ?preview=<client> on every link while staff preview a client. */
 export function ClientNav() {
   const path = usePathname();
   const sp = useSearchParams();

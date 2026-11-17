@@ -405,9 +405,9 @@ begin
   if d.key is null or not d.allows_gap then raise exception 'Only due-diligence evidence can be covered by a documented gap'; end if;
   if public._onb_gate_clear(p_supplier, p_gate) then raise exception '"%" is already complete', d.label; end if;
   if nullif(trim(p_reason), '') is null then raise exception 'Give the reason for the gap'; end if;
-  if coalesce(p_owner_type, '') not in ('internal','vendor') then raise exception 'Say who owns closing the gap: adm Indicia or the vendor'; end if;
+  if coalesce(p_owner_type, '') not in ('internal','vendor') then raise exception 'Say who owns closing the gap: the team or the vendor'; end if;
   if p_owner_type = 'internal' and not exists (select 1 from public.profiles where id = p_owner and (user_type = 'internal' or is_admin)) then
-    raise exception 'Choose the person at adm Indicia who owns closing the gap';
+    raise exception 'Choose the person on the team who owns closing the gap';
   end if;
   if p_due is null or p_due <= current_date then raise exception 'Choose a due date in the future'; end if;
   if p_due > current_date + 180 then raise exception 'A documented gap can stay open for at most 180 days'; end if;
@@ -783,11 +783,11 @@ begin
   end if;
   if s.primary_contact_email is not null then
     insert into public.email_outbox (to_email, subject, body, supplier_id, created_by)
-    values (s.primary_contact_email, 'Welcome to adm Indicia: you are ready to receive work',
-      format(E'Hello,\n\n%s is now fully onboarded with adm Indicia. Your welcome pack explains how quotes, orders, shipping and invoices work, and who to contact.\n\nPlease complete your onboarding training in the vendor portal.\n\nadm Indicia Supplier Team', s.name),
+    values (s.primary_contact_email, 'Welcome to us: you are ready to receive work',
+      format(E'Hello,\n\n%s is now fully onboarded with us. Your welcome pack explains how quotes, orders, shipping and invoices work, and who to contact.\n\nPlease complete your onboarding training in the vendor portal.\n\nSupplier Team', s.name),
       p_supplier, auth.uid());
   end if;
-  perform public.notify_supplier(p_supplier, 'assure', 'You are fully onboarded', 'adm Indicia has released your company for work.', '/vendor/onboarding');
+  perform public.notify_supplier(p_supplier, 'assure', 'You are fully onboarded', 'We have released your company for work.', '/vendor/onboarding');
   perform public.recompute_supplier_compliance(p_supplier);
   perform public._onb_event(p_supplier, c.id, 'released', 'Supplier released for use', jsonb_build_object('owner', v_owner, 'review_cadence', v_cadence,
     'next_review_due', v_next, 'training', v_training), true, true);

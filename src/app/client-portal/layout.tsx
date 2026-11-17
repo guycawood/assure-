@@ -16,8 +16,8 @@ export const dynamic = "force-dynamic";
 
 const initials = (s: string) => s.split(/[\s@.]+/).filter(Boolean).slice(0, 2).map((w) => w[0]!.toUpperCase()).join("");
 
-// External portal for clients of adm Indicia. Clients see only their own accounts (enforced in the database);
-// adm Indicia staff can preview a client's view read-only with ?preview=<client id>.
+// External portal for clients. Clients see only their own accounts (enforced in the database);
+// Staff can preview a client's view read-only with ?preview=<client id>.
 export default async function ClientPortalLayout({ children }: { children: React.ReactNode }) {
   const profile = await requireClient();
   const isInternal = profile.is_admin || profile.user_type === "internal";
@@ -28,20 +28,20 @@ export default async function ClientPortalLayout({ children }: { children: React
   ]);
   const demo = isDemoMode();
   const name = personName(profile);
-  const roleLabel = isInternal ? "adm Indicia preview" : accounts.some((a) => a.role === "approver") ? "Client approver" : "Client";
+  const roleLabel = isInternal ? "Staff preview" : accounts.some((a) => a.role === "approver") ? "Client approver" : "Client";
 
   return (
     <div className="min-h-screen bg-bg">
       <aside className="fixed left-0 top-0 z-40 hidden h-screen w-60 flex-col border-r border-line bg-surface md:flex">
         <Link href="/client-portal" className="flex h-[76px] shrink-0 flex-col justify-center border-b border-line px-5">
-          <span className="text-[0.6rem] font-bold uppercase tracking-[0.16em] text-muted/80">System Guy · adm Indicia</span>
+          <span className="text-[0.6rem] font-bold uppercase tracking-[0.16em] text-muted/80">System Guy</span>
           <span className="text-[1.05rem] font-extrabold uppercase leading-none tracking-[0.12em] text-brand-navy">Client <span style={{ color: "#4896F7" }}>Portal</span></span>
           {accounts.length > 0 && <span className="mt-1 truncate text-[0.66rem] font-semibold text-muted">{accounts.map((a) => a.name).join(", ")}</span>}
         </Link>
         <Suspense fallback={<div className="flex-1" />}>
           <ClientNav />
         </Suspense>
-        <p className="border-t border-line px-5 py-3 text-[0.68rem] text-muted">Questions? Your adm Indicia account team is here to help.</p>
+        <p className="border-t border-line px-5 py-3 text-[0.68rem] text-muted">Questions? Your account team is here to help.</p>
       </aside>
 
       <div className="flex min-h-screen min-w-0 flex-col md:ml-60">
@@ -76,7 +76,7 @@ export default async function ClientPortalLayout({ children }: { children: React
           {!isInternal && accounts.length === 0 ? (
             <section className="max-w-xl rounded-xl border border-line bg-surface p-6 text-sm shadow-card">
               <h1 className="mb-1 font-display text-xl font-bold">Your account isn&apos;t linked to a client yet</h1>
-              <p className="text-muted">We couldn&apos;t find a client account for {profile.email}. Ask your adm Indicia contact to give you access.</p>
+              <p className="text-muted">We couldn&apos;t find a client account for {profile.email}. Ask your contact to give you access.</p>
             </section>
           ) : children}
         </main>

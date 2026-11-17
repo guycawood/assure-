@@ -27,6 +27,10 @@ export async function setPricing(_: FormResult, fd: FormData) {
 export async function sendEstimate(_: FormResult, fd: FormData) {
   return call("estimate_send", { p_estimate: id(fd) }, [`/orders/estimates/${id(fd)}`], "Marked as sent to the client");
 }
+/** Chase the client for a missing PO (GBT q4). Logged; reaches the client's approvers in the portal and by email. */
+export async function chaseClientPo(_: FormResult, fd: FormData) {
+  return call("estimate_chase_client_po", { p_estimate: id(fd), p_note: str(fd, "note") }, [`/orders/estimates/${id(fd)}`, "/orders/estimates"], "The client has been chased");
+}
 export async function approveEstimate(_: FormResult, fd: FormData) {
   return call("estimate_approve", { p_estimate: id(fd), p_client_order_ref: str(fd, "client_order_ref") }, [`/orders/estimates/${id(fd)}`], "Client approval recorded; Stocktool hand-off queued");
 }

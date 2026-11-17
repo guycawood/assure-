@@ -22,7 +22,7 @@ export default async function SubscriptionPage() {
 
   return (
     <>
-      <PageHead title="Subscription" sub="Your SRM plan with adm Indicia. Ask for a different plan here; our account team confirms every change with you, and only adm Indicia can change your plan." />
+      <PageHead title="Subscription" sub="Your SRM plan with us. Ask for a different plan here; our account team confirms every change with you, and only we can change your plan." />
       <Card className="flex flex-wrap items-center gap-4 border-accent/30 bg-accent-soft/40 p-5">
         <span className="grid h-11 w-11 place-items-center rounded-xl bg-surface text-accent"><MSymbol name="workspace_premium" size={24} /></span>
         <div className="min-w-0 flex-1">
@@ -48,7 +48,7 @@ export default async function SubscriptionPage() {
                 {current ? <p className="rounded-lg bg-accent-soft py-2 text-center text-sm font-semibold text-accent">Your plan</p>
                   : open ? <p className="rounded-lg bg-surface-2 py-2 text-center text-sm text-muted">{open.requested_tier === t.key ? "Requested" : "Request open"}</p>
                   : admin ? (
-                    <ActionDialog label={active ? `Move to ${t.name}` : `Choose ${t.name}`} variant="primary" title={`Ask for the ${t.name} plan`} sub={`${t.price} a year. adm Indicia's account team will contact you to confirm.`}
+                    <ActionDialog label={active ? `Move to ${t.name}` : `Choose ${t.name}`} variant="primary" title={`Ask for the ${t.name} plan`} sub={`${t.price} a year. Our account team will contact you to confirm.`}
                       action={requestPlan} hidden={{ tier: t.key }} submit="Send request">
                       <label className="label" htmlFor={`n-${t.key}`}>Anything we should know? (optional)</label>
                       <textarea id={`n-${t.key}`} name="note" rows={3} maxLength={1000} className="input" />

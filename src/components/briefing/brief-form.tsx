@@ -4,14 +4,24 @@ import Link from "next/link";
 import { useActionState, useState } from "react";
 import { btn, Card } from "@/components/ui";
 import { CLIENT_OPTIONS, CURRENCIES, MARKETS, REGIONS, type Brief, type Campaign } from "@/lib/briefing";
+import { targetLines, type ClientTargets } from "@/lib/client-targets";
 
 type Result = { ok: boolean; message: string };
 
 /** New brief and edit brief share this form. Edits after submission become numbered revisions (server side). */
-export function BriefForm({ action, brief, campaigns, categories, defaults, cancelHref }: {
+/** The client's CRM targets for the client name or code typed on the brief. */
+const targetsFor = (all: ClientTargets[], client: string) => {
+  const k = client.trim().toLowerCase();
+  if (!k) return null;
+  return all.find((t) => [t.client_code, t.client_name, t.client_name?.replace(/\s*\([^)]*\)\s*$/, "")].some((x) => x?.trim().toLowerCase() === k)) ?? null;
+};
+
+export function BriefForm({ action, brief, campaigns, categories, defaults, cancelHref, clientTargets = [] }: {
   action: (prev: Result, fd: FormData) => Promise<Result>;
   brief?: Brief; campaigns: Pick<Campaign, "id" | "name" | "client" | "division" | "brands">[];
   categories: string[]; defaults?: Partial<Brief>; cancelHref: string;
+  /** Every client's sustainability targets from CRM (pre-fill and show the client's commitments). */
+  clientTargets?: ClientTargets[];
 }) {
   const [state, formAction, pending] = useActionState(action, { ok: true, message: "" });
   const b = { ...defaults, ...brief } as Partial<Brief>;
@@ -21,14 +31,31 @@ export function BriefForm({ action, brief, campaigns, categories, defaults, canc
   const [client, setClient] = useState(b.client ?? "");
   const [brand, setBrand] = useState(b.brand ?? "");
   const [division, setDivision] = useState(b.division ?? "");
+  const [sust, setSust] = useState(b.sustainability_targets ?? "");
+  const [minPct, setMinPct] = useState(b.min_recycled_pct != null ? String(b.min_recycled_pct) : "");
+  const [fsc, setFsc] = useState(!!b.require_fsc);
   const camp = campaigns.find((c) => c.id === campaignId);
   const editingSubmitted = brief && brief.status !== "draft";
+  const ct = targetsFor(clientTargets, client);
+
+  /** Fill the brief's targets from the client's (CRM). Without force, only empty fields are filled. */
+  function applyClient(t: ClientTargets | null, force = false) {
+    if (!t) return;
+    const statement = targetLines({ ...t, min_recycled_pct: null, require_fsc: false }).join("; ");
+    if (force || !sust.trim()) setSust(statement);
+    if (t.min_recycled_pct !== null && (force || !minPct.trim())) setMinPct(String(t.min_recycled_pct));
+    if (t.require_fsc && (force || !fsc)) setFsc(true);
+  }
+  function changeClient(value: string) {
+    setClient(value);
+    if (!brief) applyClient(targetsFor(clientTargets, value)); // new briefs start from the client's targets
+  }
 
   function pickCampaign(id: string) {
     setCampaignId(id);
     const c = campaigns.find((x) => x.id === id);
     if (c) {
-      if (!client && c.client) setClient(c.client);
+      if (!client && c.client) changeClient(c.client);
       if (!division && c.division) setDivision(c.division);
       if (!brand && c.brands?.[0]) setBrand(c.brands[0]);
     }
@@ -68,7 +95,7 @@ export function BriefForm({ action, brief, campaigns, categories, defaults, canc
         <div className="grid gap-4 md:grid-cols-3">
           <div>
             <label className="label" htmlFor="client">Client</label>
-            <input id="client" name="client" className="input" list="client-options" value={client} onChange={(e) => setClient(e.target.value)} />
+            <input id="client" name="client" className="input" list="client-options" value={client} onChange={(e) => changeClient(e.target.value)} />
             <datalist id="client-options">{CLIENT_OPTIONS.map((c) => <option key={c} value={c} />)}</datalist>
           </div>
           <div>
@@ -115,13 +142,23 @@ export function BriefForm({ action, brief, campaigns, categories, defaults, canc
 
       <Card className="grid gap-4 p-5">
         <h2 className="font-bold">Sustainability targets</h2>
+        {ct && (
+          <div className="rounded-lg border border-ok/30 bg-ok-soft/40 px-4 py-3 text-sm">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <p className="font-semibold">{ct.client_name ?? client}&apos;s targets (CRM)</p>
+              <button type="button" className="text-xs font-semibold text-accent hover:underline" onClick={() => applyClient(ct, true)}>Apply client targets</button>
+            </div>
+            <ul className="mt-1 list-disc pl-5 text-muted">{targetLines(ct).map((l) => <li key={l}>{l}</li>)}</ul>
+            <p className="mt-1 text-xs text-muted">Ideation always applies these, whatever the brief says: the stricter of client and brief wins.</p>
+          </div>
+        )}
         <div>
           <label className="label" htmlFor="sustainability_targets">What the client wants</label>
-          <textarea id="sustainability_targets" name="sustainability_targets" rows={2} className="input" defaultValue={b.sustainability_targets ?? ""} placeholder="e.g. no PVC, recyclable at end of life, reuse the structure next season" />
+          <textarea id="sustainability_targets" name="sustainability_targets" rows={2} className="input" value={sust} onChange={(e) => setSust(e.target.value)} placeholder="e.g. no PVC, recyclable at end of life, reuse the structure next season" />
         </div>
         <div className="grid gap-4 sm:grid-cols-2">
-          <div><label className="label" htmlFor="min_recycled_pct">Minimum recycled content (%)</label><input id="min_recycled_pct" name="min_recycled_pct" type="number" min="0" max="100" className="input" defaultValue={b.min_recycled_pct ?? ""} /></div>
-          <label className="flex items-center gap-2 self-end pb-2 text-sm"><input type="checkbox" name="require_fsc" defaultChecked={!!b.require_fsc} /> FSC certified material required</label>
+          <div><label className="label" htmlFor="min_recycled_pct">Minimum recycled content (%)</label><input id="min_recycled_pct" name="min_recycled_pct" type="number" min="0" max="100" className="input" value={minPct} onChange={(e) => setMinPct(e.target.value)} /></div>
+          <label className="flex items-center gap-2 self-end pb-2 text-sm"><input type="checkbox" name="require_fsc" checked={fsc} onChange={(e) => setFsc(e.target.checked)} /> FSC certified material required</label>
         </div>
         <p className="text-xs text-muted">Ideation only suggests approved substrates and flags any concept that misses these targets.</p>
       </Card>

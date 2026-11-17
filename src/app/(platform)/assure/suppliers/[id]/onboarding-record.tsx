@@ -11,10 +11,11 @@ import { Card, Empty, Panel, Pill } from "@/components/ui";
 import { Facts } from "@/components/assure/bits";
 import { ActionForm, Field, Select } from "@/components/assure/action-form";
 import {
-  activateSupplier, allocatePanels, decideFinance, decideGap, decideRisk, linkContract, raiseGap, raiseRevalidation, reconcileIds, recordSystemId,
+  activateSupplier, allocatePanels, decideCategoryInterest, recordExternalCheck, decideFinance, decideGap, decideRisk, linkContract, raiseGap, raiseRevalidation, reconcileIds, recordSystemId,
   requestFastTrack, submitRiskReview, updateRemediation,
 } from "@/app/(platform)/assure/onboarding-actions";
 
+const EXT_RESULT: Record<string, string> = { active: "Active", expired: "Expired", none: "Not a member", not_applicable: "Not applicable" };
 const statusTone = (st: string | null | undefined, clear?: boolean) =>
   clear || st === "verified" || st === "not_required" ? "ok" : st === "rejected" ? "bad" : st === "received" || st === "requested" ? "warn" : "neutral";
 
@@ -25,6 +26,8 @@ export async function OnboardingRecord({ supplierId, me }: { supplierId: string;
     getInternalPeople(supabase),
     supabase.from("jobs").select("id, job_number, title, status").order("created_at", { ascending: false }).limit(200),
   ]);
+  const { data: ext } = await supabase.from("supplier_external_checks").select("source, result, reference, note, checked_at").eq("supplier_id", supplierId).order("source");
+  const externalChecks = (ext ?? []) as { source: "sedex" | "fsc"; result: string; reference: string | null; note: string | null; checked_at: string }[];
   const r = data as SupplierRecord | null;
   if (error || !r) return <Card><Empty title="The onboarding record could not load">{error?.message}</Empty></Card>;
   const s = r.supplier;
@@ -121,6 +124,47 @@ export async function OnboardingRecord({ supplierId, me }: { supplierId: string;
         </div>
       </div>
 
+      {/* Stage 3: category management (process step i3) */}
+      {(() => {
+        const gate = stage(3).items.find((i) => i.gate_key === "category_interest");
+        if (!gate || gate.status === "not_required" || (gate.clear && gate.status !== "rejected")) return null;
+        return (
+          <Panel title="Category management: is the supplier of interest?" sub="From the supplier onboarding process: category management confirms interest before the information request is sent.">
+            <div className="space-y-3 p-5 text-sm">
+              {gate.status === "rejected" ? <p className="text-bad">Not of interest: {gate.rejection_reason ?? gate.note}</p> : (
+                <ActionForm action={decideCategoryInterest.bind(null, s.id)} submit="Record the decision" className="grid gap-3 md:grid-cols-3">
+                  <Field label="Decision"><Select name="decision" options={[{ value: "interested", label: "Of interest" }, { value: "not_interested", label: "Not of interest" }]} /></Field>
+                  <Field label="Note (needed if not of interest)" className="md:col-span-2"><input name="note" className="input" /></Field>
+                </ActionForm>
+              )}
+              <p className="text-xs text-muted">Only a Category Manager who did not raise the request can decide. Until then the information request cannot be sent.</p>
+            </div>
+          </Panel>
+        );
+      })()}
+
+      {/* Step i8: external database checks */}
+      <Panel title="Sedex and FSC database checks" sub="Search the external databases while the information request is out, and record what was found. The result is also the Sedex and FSC input of the SRM scorecard, so it feeds the Supplier Score in the Impact Grade.">
+        <div className="space-y-3 p-5 text-sm">
+          {externalChecks.length > 0 && (
+            <table className="w-full">
+              <thead><tr>{["Database", "Result", "Reference", "Checked", "Note"].map((h) => <th key={h} className="th">{h}</th>)}</tr></thead>
+              <tbody>{externalChecks.map((c) => (
+                <tr key={c.source}><td className="td font-semibold">{c.source === "sedex" ? "Sedex" : "FSC"}</td>
+                  <td className="td"><Pill tone={c.result === "active" ? "ok" : c.result === "not_applicable" ? "neutral" : "bad"}>{EXT_RESULT[c.result] ?? c.result}</Pill></td>
+                  <td className="td font-mono text-xs">{c.reference ?? "—"}</td><td className="td">{formatDate(c.checked_at)}</td><td className="td text-muted">{c.note ?? ""}</td></tr>
+              ))}</tbody>
+            </table>
+          )}
+          <ActionForm action={recordExternalCheck.bind(null, s.id)} submit="Record the check" className="grid gap-3 md:grid-cols-4" variant="secondary">
+            <Field label="Database"><Select name="source" options={[{ value: "sedex", label: "Sedex" }, { value: "fsc", label: "FSC" }]} /></Field>
+            <Field label="Found"><Select name="result" options={[{ value: "active", label: "Active" }, { value: "expired", label: "Expired" }, { value: "none", label: "Sedex: not a member" }, { value: "not_applicable", label: "FSC: not applicable" }]} /></Field>
+            <Field label="Membership or certificate number"><input name="reference" className="input" /></Field>
+            <Field label="Note"><input name="note" className="input" /></Field>
+          </ActionForm>
+        </div>
+      </Panel>
+
       {/* Stage 4 */}
       <Panel title="Due diligence: documented gaps" sub="A gap (reason, owner, due date) is a valid exit only when a second person approves it, and only until its due date.">
         <div className="space-y-4 p-5 text-sm">
@@ -148,8 +192,8 @@ export async function OnboardingRecord({ supplierId, me }: { supplierId: string;
               <summary className="cursor-pointer font-semibold text-accent">Propose a documented gap</summary>
               <ActionForm action={raiseGap.bind(null, s.id)} submit="Propose gap" className="mt-2 grid gap-3 md:grid-cols-3">
                 <Field label="Evidence"><Select name="gate" options={gapGates.map((g) => ({ value: g.gate_key, label: g.label }))} /></Field>
-                <Field label="Who closes it"><Select name="owner_type" options={[{ value: "vendor", label: "The vendor" }, { value: "internal", label: "Someone at adm Indicia" }]} /></Field>
-                <Field label="Owner at adm Indicia"><Select name="owner" blank="(for an internal owner)" options={peopleOpts} /></Field>
+                <Field label="Who closes it"><Select name="owner_type" options={[{ value: "vendor", label: "The vendor" }, { value: "internal", label: "Someone on the team" }]} /></Field>
+                <Field label="Owner"><Select name="owner" blank="(for an internal owner)" options={peopleOpts} /></Field>
                 <Field label="Reason" className="md:col-span-2"><input name="reason" required className="input" /></Field>
                 <Field label="Due date"><input name="due" type="date" required className="input" /></Field>
               </ActionForm>
@@ -299,7 +343,7 @@ export async function OnboardingRecord({ supplierId, me }: { supplierId: string;
             <table className="w-full">
               <thead><tr>{["Remediation item", "Owner", "Due", "Status", ""].map((h) => <th key={h} className="th">{h}</th>)}</tr></thead>
               <tbody>{r.remediation.map((i) => (
-                <tr key={i.id}><td className="td">{i.item}</td><td className="td">{i.owner_type === "vendor" ? "Vendor" : i.owner_name ?? "adm Indicia"}</td>
+                <tr key={i.id}><td className="td">{i.item}</td><td className="td">{i.owner_type === "vendor" ? "Vendor" : i.owner_name ?? "Team"}</td>
                   <td className="td">{formatDate(i.due_date)}{i.overdue && <div><Pill tone="bad">Overdue</Pill></div>}</td>
                   <td className="td">{i.status}{i.note && <div className="text-xs text-muted">{i.note}</div>}</td>
                   <td className="td">{i.status === "open" && r.can.director && (

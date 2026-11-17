@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { requireInternal } from "@/lib/auth";
+import { renderConceptSvg } from "@/lib/ai/concept-render";
 import { createClient } from "@/lib/supabase/server";
 import {
   canIdeate, DEFAULT_PARAMS, ECO_TAG, PARAM_OPTIONS, SPEC_TYPE_LABEL,
@@ -13,6 +14,8 @@ import { getEffectiveness } from "@/lib/shopper-iq-data";
 import { whatWorked } from "@/lib/shopper-iq";
 import { ideateBrief, ideateCampaign } from "@/lib/ai/briefing-ideation";
 import { AiError } from "@/lib/ai/claude";
+import { getClientTargets } from "@/lib/client-targets-data";
+import { allowedSubstrates, withClientTargets } from "@/lib/client-targets";
 
 export type ActionResult = { ok: boolean; message: string };
 
@@ -52,6 +55,150 @@ export async function updateBrief(id: string, _prev: ActionResult, fd: FormData)
   if (error) return { ok: false, message: error.message };
   done();
   redirect(`/briefing/${id}?saved=${Number(data) || 0}`);
+}
+
+/** Brief types (b2) and the creative decision (b4), as in the Global Business Transformation brief intake process. */
+export async function setBriefProcess(id: string, p: { brief_types?: string[]; creative_needed?: boolean | null; creative_route?: string | null }): Promise<ActionResult> {
+  await requireInternal();
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("brief_set_process", { p_id: id, p });
+  if (error) return { ok: false, message: error.message };
+  done();
+  return { ok: true, message: "Saved." };
+}
+
+/** The project manager has reviewed the brief with operational creative (b5). */
+export async function creativeReviewBrief(id: string, note: string): Promise<ActionResult> {
+  await requireInternal();
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("brief_creative_review", { p_id: id, p_note: note.trim() || null });
+  if (error) return { ok: false, message: error.message };
+  done();
+  return { ok: true, message: "Creative review recorded." };
+}
+
+// Creative commercials (GBT creative work, cr4 to cr7).
+export async function kickoffCreative(id: string, note: string): Promise<ActionResult> {
+  await requireInternal();
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("creative_kickoff", { p_brief: id, p_note: note.trim() || null });
+  if (error) return { ok: false, message: error.message };
+  done();
+  return { ok: true, message: "Kick-off recorded. Creative work can start." };
+}
+export async function saveCreativeQuote(id: string, q: { basis: string; rate: string; units: string; amount: string; currency: string; scope_note: string }): Promise<ActionResult> {
+  await requireInternal();
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("creative_quote_save", { p_brief: id, p: q });
+  if (error) return { ok: false, message: error.message };
+  done();
+  return { ok: true, message: "Quote saved. Send it to the client when it is ready." };
+}
+export async function sendCreativeQuote(id: string): Promise<ActionResult> {
+  await requireInternal();
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("creative_quote_send", { p_brief: id });
+  if (error) return { ok: false, message: error.message };
+  done();
+  return { ok: true, message: "Quote sent. The client's approvers can decide it in their portal." };
+}
+export async function confirmCreativePo(id: string, po: string): Promise<ActionResult> {
+  await requireInternal();
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("creative_quote_confirm_po", { p_brief: id, p_po: po.trim() || null });
+  if (error) return { ok: false, message: error.message };
+  done();
+  return { ok: true, message: "Quote approval and client PO confirmed. Creative work can start." };
+}
+
+// Creative RFI to panel suppliers (GBT creative work, cr11 to cr12b).
+export async function createCreativeRfi(id: string, f: { title: string; supplier_brief: string; ip_rule: string; due_date: string }, suppliers: string[]): Promise<ActionResult> {
+  await requireInternal();
+  const supabase = await createClient();
+  // The due date is the end of the chosen day.
+  const due_at = f.due_date ? new Date(`${f.due_date}T17:00:00`).toISOString() : "";
+  const { error } = await supabase.rpc("creative_rfi_create", { p_brief: id, p: { title: f.title, supplier_brief: f.supplier_brief, ip_rule: f.ip_rule, due_at }, p_suppliers: suppliers });
+  if (error) return { ok: false, message: error.message };
+  done();
+  return { ok: true, message: `RFI sent to ${suppliers.length} supplier${suppliers.length === 1 ? "" : "s"}.` };
+}
+export async function addCreativeRfiSupplier(id: string, rfi: string, supplier: string): Promise<ActionResult> {
+  await requireInternal();
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("creative_rfi_add_supplier", { p_rfi: rfi, p_supplier: supplier });
+  if (error) return { ok: false, message: error.message };
+  done();
+  return { ok: true, message: "Supplier added and invited." };
+}
+export async function selectCreativeProposal(id: string, invite: string, note: string): Promise<ActionResult> {
+  await requireInternal();
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("creative_rfi_select", { p_invite: invite, p_note: note.trim() || null });
+  if (error) return { ok: false, message: error.message };
+  done();
+  return { ok: true, message: "Proposal selected. Present it to the client as a concept for approval." };
+}
+
+// Samples (GBT creative work, cr16 and cr18).
+export async function setSamplesNeeded(id: string, needed: boolean, note: string): Promise<ActionResult> {
+  await requireInternal();
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("brief_set_samples", { p_brief: id, p_needed: needed, p_note: note.trim() || null });
+  if (error) return { ok: false, message: error.message };
+  done();
+  return { ok: true, message: needed ? "Samples needed. Ask a supplier for one below." : "Recorded: no samples needed." };
+}
+export async function requestSample(id: string, f: { supplier: string; description: string; quantity: string; needed_by: string }): Promise<ActionResult> {
+  await requireInternal();
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("sample_request", { p_brief: id, p_supplier: f.supplier, p_description: f.description, p_quantity: Number(f.quantity) || 1, p_needed_by: f.needed_by || null });
+  if (error) return { ok: false, message: error.message };
+  done();
+  return { ok: true, message: "Sample requested. The supplier sees it in the vendor portal." };
+}
+export async function receiveSample(id: string, sample: string, note: string): Promise<ActionResult> {
+  await requireInternal();
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("sample_receive", { p_sample: sample, p_note: note.trim() || null });
+  if (error) return { ok: false, message: error.message };
+  done();
+  return { ok: true, message: "Arrival recorded." };
+}
+export async function reviewSample(id: string, sample: string, approve: boolean, note: string): Promise<ActionResult> {
+  await requireInternal();
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("sample_review", { p_sample: sample, p_approve: approve, p_note: note.trim() || null });
+  if (error) return { ok: false, message: error.message };
+  done();
+  return { ok: true, message: approve ? "Sample approved." : "Changes sent to the supplier." };
+}
+
+// Final creative files (GBT creative work, cr19).
+export async function startFinalFiles(id: string): Promise<ActionResult> {
+  await requireInternal();
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("creative_delivery_start", { p_brief: id });
+  if (error) return { ok: false, message: error.message };
+  done();
+  return { ok: true, message: "Upload the final files, then send them to the client." };
+}
+export async function sendFinalFiles(id: string, delivery: string, note: string): Promise<ActionResult> {
+  await requireInternal();
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("creative_delivery_send", { p_delivery: delivery, p_note: note.trim() || null });
+  if (error) return { ok: false, message: error.message };
+  done();
+  return { ok: true, message: "Sent. The client can download the files in their portal." };
+}
+
+/** Send an incomplete brief back to the client with the reason, and optionally ask for a meeting (b6). */
+export async function sendBriefBack(id: string, reason: string, meeting: boolean): Promise<ActionResult> {
+  await requireInternal();
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("brief_send_back", { p_id: id, p_reason: reason, p_meeting: meeting });
+  if (error) return { ok: false, message: error.message };
+  done();
+  return { ok: true, message: "Sent back to the client. They will see the reason in their portal and can resubmit." };
 }
 
 export async function submitBrief(id: string): Promise<ActionResult> {
@@ -150,11 +297,16 @@ async function runOneBrief(briefId: string, opts: { direction?: string; params?:
     if (error) return { ok: false, message: error.message };
     sessionId = data as string;
   }
-  const [{ messages, allConcepts }, substrates, eff] = await Promise.all([getSessionTranscript(supabase, sessionId), getSubstrates(supabase), getEffectiveness(supabase)]);
+  const [{ messages, allConcepts }, allSubstrates, eff, clientTargets] = await Promise.all([
+    getSessionTranscript(supabase, sessionId), getSubstrates(supabase), getEffectiveness(supabase),
+    getClientTargets(supabase, (brief as { client_id?: string | null }).client_id, brief.client),
+  ]);
+  // The client's standing targets (CRM) fold into the brief, stricter wins; excluded materials are never offered.
+  const substrates = allowedSubstrates(allSubstrates, clientTargets);
   try {
     const r = await ideateBrief({
-      brief, substrates, whatWorked: whatWorked(eff, { client: brief.client, brand: brief.brand, market: brief.market }),
-      params, history: messages, allConcepts, direction,
+      brief: withClientTargets(brief, clientTargets), substrates, whatWorked: whatWorked(eff, { client: brief.client, brand: brief.brand, market: brief.market }),
+      params, history: messages, allConcepts, direction, clientTargets,
     });
     const concepts = r.concepts.map((c, idx) => ({ kind: "spec_concept", idx, is_top: idx === r.topIndex, name: c.name, data: c, substrate_record_id: c.suggested_substrate_id }));
     const { error } = await supabase.rpc("ideation_add_turn", {
@@ -201,10 +353,10 @@ export async function runCampaignIdeation(input: { objective: string; client?: s
   const context = { client: input.client?.trim() || undefined, brand: input.brand?.trim() || undefined, division: input.division?.trim() || undefined, market: input.market?.trim() || undefined };
   const { data: sid, error } = await supabase.rpc("ideation_start", { p_kind: "campaign", p_brief: null, p_objective: objective, p_context: context, p_params: {} });
   if (error) return { ok: false, message: error.message };
-  const [touchpoints, eff] = await Promise.all([getLibrary(supabase, "touchpoint_types"), getEffectiveness(supabase)]);
+  const [touchpoints, eff, clientTargets] = await Promise.all([getLibrary(supabase, "touchpoint_types"), getEffectiveness(supabase), getClientTargets(supabase, null, context.client)]);
   const used = new Set(eff.filter((r) => context.client && r.client === context.client).map((r) => r.touchpoint_id));
   try {
-    const r = await ideateCampaign({ objective, context, touchpoints, usedTouchpointIds: used });
+    const r = await ideateCampaign({ objective, context, touchpoints, usedTouchpointIds: used, clientTargets });
     const { data, error: e2 } = await supabase.rpc("ideation_add_turn", {
       p_session: sid, p_user_message: objective, p_reply: r.reply,
       p_concepts: r.suggestions.map((s, idx) => ({ kind: "product_type", idx, name: s.product_type_name, data: s, touchpoint_record_id: s.product_type_id || null })),
@@ -262,6 +414,24 @@ export async function submitConcept(conceptId: string, note: string): Promise<Ac
   done();
   revalidatePath("/watchtower/approvals");
   return { ok: true, message: "Submitted for approval. A colleague with the approval role will decide it." };
+}
+
+/** Draw the concept's illustration (Claude as an SVG, or an offline mock-up without a key) and store it on the concept. */
+export async function renderConcept(conceptId: string): Promise<ActionResult> {
+  await requireInternal();
+  const supabase = await createClient();
+  const { data } = await supabase.from("ideation_concepts").select("data, name").eq("id", conceptId).maybeSingle();
+  if (!data) return { ok: false, message: "Concept not found." };
+  const d = (data as { data: Record<string, unknown>; name: string }).data;
+  try {
+    const r = await renderConceptSvg({ ...(d as object), name: (data as { name: string }).name } as Parameters<typeof renderConceptSvg>[0]);
+    const { error } = await supabase.rpc("ideation_concept_set_render", { p_concept: conceptId, p_svg: r.svg, p_model: r.model });
+    if (error) return { ok: false, message: error.message };
+    done();
+    return { ok: true, message: r.demo ? "Visual drawn (offline mock-up: set ANTHROPIC_API_KEY for a Claude illustration)." : "Visual rendered." };
+  } catch (e) {
+    return { ok: false, message: e instanceof Error ? e.message : "The render failed. Try again." };
+  }
 }
 
 export async function decideConcept(conceptId: string, decision: "approved" | "changes_requested", comments: string): Promise<ActionResult> {

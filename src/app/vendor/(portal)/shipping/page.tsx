@@ -19,7 +19,7 @@ type Delivery = { id: string; delivery_number: string; po_id: string; po_number:
   planned_dispatch_date: string | null; planned_delivery_date: string | null; actual_delivery_date: string | null; status: string; special_instructions: string | null; shipments: Shipment[] };
 type Check = { code: string; name: string; guidance: string | null; mandatory: boolean };
 
-const POD_LABEL: Record<string, string> = { not_received: "POD needed", received: "POD with adm Indicia", verified: "POD verified", rejected: "POD rejected" };
+const POD_LABEL: Record<string, string> = { not_received: "POD needed", received: "POD with us", verified: "POD verified", rejected: "POD rejected" };
 
 export default async function ShippingPage() {
   const ctx = await requireVendorCompany();
@@ -45,7 +45,7 @@ export default async function ShippingPage() {
     <>
       <PageHead title="Shipping & POD" sub={`Deliveries planned against your accepted purchase orders. Record each shipment as it leaves, then upload the signed proof of delivery (POD).${podsNeeded ? ` ${podsNeeded} POD${podsNeeded > 1 ? "s" : ""} needed.` : ""}`} />
 
-      <Panel title="What a proof of delivery must show" sub="adm Indicia checks every POD against this list before it's accepted">
+      <Panel title="What a proof of delivery must show" sub="We check every POD against this list before it's accepted">
         <ul className="grid gap-3 p-5 sm:grid-cols-2 lg:grid-cols-4">
           {checklist.map((c, i) => (
             <li key={c.code} className="flex gap-2.5 text-sm">
@@ -57,7 +57,7 @@ export default async function ShippingPage() {
         </ul>
       </Panel>
 
-      {deliveries.length === 0 ? <Card><Empty title="No deliveries yet">When adm Indicia plans deliveries against your accepted purchase orders, they appear here.</Empty></Card> : deliveries.map((d) => {
+      {deliveries.length === 0 ? <Card><Empty title="No deliveries yet">When we plan deliveries against your accepted purchase orders, they appear here.</Empty></Card> : deliveries.map((d) => {
         const canShip = act && d.remaining > 0 && ["planned", "booked", "dispatched", "in_transit"].includes(d.status);
         return (
           <Card key={d.id} className="overflow-hidden">

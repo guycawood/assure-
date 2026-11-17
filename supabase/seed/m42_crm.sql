@@ -20,7 +20,7 @@ insert into public.sourcing_clients (id, code, name, default_currency, default_m
 on conflict (code) do nothing;
 
 -- ---------------------------------------------------------------------------
--- Approval policies for CRM (demo settings, not adm Indicia policy)
+-- Approval policies for CRM (demo settings, not real policy)
 -- ---------------------------------------------------------------------------
 insert into public.library_records (library_key, code, name, data, status, effective_from, notes)
 select 'approval_policies', x.code, x.name, x.data::jsonb, 'active', '2026-01-01'::date, 'Demo policy (CRM)'

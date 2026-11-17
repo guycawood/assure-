@@ -49,7 +49,7 @@ test("admin sees every pending approval across modules with approvals_inbox('all
   assert.ok(all.some((r) => r.module === "briefing" && r.approval_type === "BRIEF" && r.item_id === brief));
   assert.ok(all.some((r) => r.module === "watchtower" && r.approval_type === "LIBRARY" && r.item_id === lib));
   await rejects(as("lead", "select * from public.approvals_inbox('all')"), /Only admins/);
-  await rejects(as(U.cA1, "select * from public.approvals_inbox('mine')"), /adm Indicia staff/);
+  await rejects(as(U.cA1, "select * from public.approvals_inbox('mine')"), /staff/);
   // Views are only read through the inbox.
   await rejects(as("admin", "select * from public.approvals_briefing"), /permission denied/);
 });
@@ -76,7 +76,7 @@ test("overdue comes from the policy SLA; approval_policy_for returns the most sp
   assert.equal(all.find((r) => r.item_id === newB).status, "pending");
   assert.equal((await as("lead", "select code from public.approval_policy_for('BRIEF', null, 'GB', 200)")).rows[0].code, "AP-T-BRIEF");
   assert.equal((await as("lead", "select code from public.approval_policy_for('BRIEF', null, 'GB', 250000)")).rows[0].code, "AP-T-BRIEF-HIGH");
-  await rejects(as(U.cA1, "select * from public.approval_policy_for('BRIEF', null, null, null)"), /adm Indicia staff/);
+  await rejects(as(U.cA1, "select * from public.approval_policy_for('BRIEF', null, null, null)"), /staff/);
   // brief_decide enforces the policy role (and still never the author).
   const big = (await as("agent", "select public.brief_create($1, true) as id", [JSON.stringify({ ...BRIEF, budget_high: "250000" })])).rows[0].id;
   await rejects(as("lead", "select public.brief_decide($1, 'approved', null)", [big]), /procurement head/);

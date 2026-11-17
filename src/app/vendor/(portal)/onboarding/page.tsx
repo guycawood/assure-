@@ -10,18 +10,18 @@ export const metadata = { title: "Your onboarding" };
 
 // What a finished step says (the stage's own text describes the work still to do).
 const DONE_TEXT: Record<number, string> = {
-  1: "adm Indicia confirmed why a new supplier is needed.",
+  1: "We confirmed why a new supplier is needed.",
   2: "Your onboarding request was prepared.",
-  3: "adm Indicia Procurement approved the request.",
+  3: "Our Procurement team approved the request.",
   4: "Your information, documents and certificates were received and checked.",
-  5: "adm Indicia reviewed and accepted the evidence.",
+  5: "We reviewed and accepted the evidence.",
   6: "The agreements are signed.",
-  7: "adm Indicia Finance confirmed your bank and tax details.",
-  8: "You are set up in adm Indicia's systems.",
+  7: "Our Finance team confirmed your bank and tax details.",
+  8: "You are set up in our systems.",
   9: "Training complete. You are ready to receive work.",
 };
 
-// The vendor's own onboarding, in plain words: the nine steps, what adm Indicia needs from them now, and any items they
+// The vendor's own onboarding, in plain words: the nine steps, what we need from them now, and any items they
 // must close by a date (fast-track). Only vendor-facing items; internal notes and approvals are never shown here.
 export default async function VendorOnboardingPage() {
   await requireVendorCompany();
@@ -33,11 +33,11 @@ export default async function VendorOnboardingPage() {
 
   return (
     <>
-      <PageHead title="Your onboarding" sub={t.released ? `${t.name} is fully onboarded with adm Indicia.` : `Where ${t.name} is in onboarding with adm Indicia, and what we need from you.`} />
+      <PageHead title="Your onboarding" sub={t.released ? `${t.name} is fully onboarded with us.` : `Where ${t.name} is in onboarding with us, and what we need from you.`} />
 
       {t.blocked_by_overdue && (
         <Card className="border-bad bg-bad-soft p-4 text-sm">
-          <b>Some items are past their due date.</b> adm Indicia can&apos;t place new orders with you until they are complete. Please send them as soon as possible.
+          <b>Some items are past their due date.</b> We can&apos;t place new orders with you until they are complete. Please send them as soon as possible.
         </Card>
       )}
       {t.exception && !t.blocked_by_overdue && (

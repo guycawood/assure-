@@ -43,7 +43,7 @@ export async function saveTechSheet(_: ActionResult, fd: FormData): Promise<Acti
   revalidatePath("/vendor", "layout");
   const pre = (data as { pre_shipment?: { complete: boolean; missing: string[] } } | null)?.pre_shipment;
   if (!declare) return { ok: true, message: "Draft saved." };
-  return { ok: true, message: pre?.complete ? "Declared. Everything adm Indicia needs is there; the packed carton is checked at pre-shipment."
+  return { ok: true, message: pre?.complete ? "Declared. Everything we need is there; the packed carton is checked at pre-shipment."
     : `Declared. Still needed before the pre-shipment check: ${pre?.missing.join("; ")}.` };
 }
 
@@ -100,6 +100,6 @@ export async function submitQaqcMeasured(_: ActionResult, fd: FormData): Promise
   if (error) return fail(error.message);
   revalidatePath("/vendor", "layout");
   const r = data as { status?: string; tech_sheet?: { ok: boolean } } | null;
-  if (r?.tech_sheet && !r.tech_sheet.ok) return { ok: true, message: "Uploaded. The packed carton does not match your data sheet, so adm Indicia's quality team will review it." };
-  return { ok: true, message: r?.status === "auto_verified" ? "Checked and verified, and your data sheet is confirmed. Thank you." : "Uploaded. Some checks need a look by adm Indicia's quality team; see the results below." };
+  if (r?.tech_sheet && !r.tech_sheet.ok) return { ok: true, message: "Uploaded. The packed carton does not match your data sheet, so our quality team will review it." };
+  return { ok: true, message: r?.status === "auto_verified" ? "Checked and verified, and your data sheet is confirmed. Thank you." : "Uploaded. Some checks need a look by our quality team; see the results below." };
 }

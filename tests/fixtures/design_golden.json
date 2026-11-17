@@ -1,0 +1,108 @@
+{
+  "label": "Worked example: Example: summer promotion gondola end",
+  "input": {
+    "assetType": "posm",
+    "impactGrade": 45,
+    "answers": {
+      "D01": {
+        "answer": "No"
+      },
+      "D02": {
+        "answer": "Yes"
+      },
+      "D03": {
+        "answer": "Yes"
+      },
+      "D04": {
+        "answer": "Yes"
+      },
+      "D05": {
+        "answer": "Yes"
+      },
+      "D06": {
+        "answer": "Yes"
+      },
+      "D07": {
+        "answer": "No"
+      },
+      "D08": {
+        "answer": "Yes"
+      },
+      "D09": {
+        "answer": "Yes"
+      },
+      "D10": {
+        "answer": "Yes"
+      },
+      "D11": {
+        "answer": "No"
+      },
+      "D12": {
+        "answer": "Yes"
+      },
+      "D13": {
+        "answer": "Yes"
+      },
+      "D14": {
+        "answer": "Yes"
+      },
+      "D15": {
+        "answer": "Yes"
+      },
+      "D16": {
+        "answer": "Yes"
+      },
+      "D17": {
+        "answer": "Partial"
+      },
+      "D18": {
+        "answer": "Yes"
+      },
+      "D19": {
+        "answer": "Partial"
+      },
+      "D20": {
+        "answer": "No"
+      },
+      "D21": {
+        "answer": "Yes"
+      },
+      "D22": {
+        "answer": "Partial"
+      },
+      "D23": {
+        "answer": "No"
+      },
+      "D25": {
+        "answer": "Yes"
+      },
+      "D26": {
+        "answer": "Partial"
+      },
+      "D27": {
+        "answer": "Yes"
+      },
+      "S06": {
+        "answer": "Partial"
+      },
+      "S07": {
+        "answer": "Yes"
+      },
+      "S08": {
+        "answer": "Partial"
+      }
+    }
+  },
+  "expected": {
+    "attract": 0.259193357058126,
+    "engage": 0.292408066429419,
+    "sell": 0.180308422301305,
+    "design": 0.731909845788849,
+    "sustainability": 0.6125,
+    "overall": 0.702057384341637,
+    "band": "Good",
+    "coverageDesign": 1,
+    "coverageSustainability": 1,
+    "valid": true
+  }
+}

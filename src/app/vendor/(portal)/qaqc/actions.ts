@@ -50,5 +50,5 @@ export async function submitQaqc(_: ActionResult, fd: FormData): Promise<ActionR
   if (error) return { ok: false, message: friendlyError(error.message) };
   revalidatePath("/vendor", "layout");
   const st = (data as { status?: string } | null)?.status;
-  return { ok: true, message: st === "auto_verified" ? "Checked and verified. Thank you." : "Uploaded. Some checks need a look by adm Indicia's quality team; see the results below." };
+  return { ok: true, message: st === "auto_verified" ? "Checked and verified. Thank you." : "Uploaded. Some checks need a look by our quality team; see the results below." };
 }

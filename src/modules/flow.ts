@@ -64,6 +64,13 @@ export const PROCESS: Record<ModuleKey, ProcessStep[]> = {
     { step: "Make eligible", detail: "Vendor joins the eligible pool used by Sourcing.", handoff: "sourcing" },
     { step: "Score and review", detail: "Scorecard, PSL, reviews and re-qualification from delivery and quality data.", handoff: "watchtower" },
   ],
+  "impact-grade": [
+    { step: "Govern the methodology", detail: "Mapping tables, ecoinvent factors, normalisation and weighting, parameters and grade bands, changed by approved new versions only." },
+    { step: "Resolve the open issues", detail: "Anthesis review findings and porting findings tracked to a decision before grades are published.", handoff: "watchtower" },
+    { step: "Calculate the PEF score", detail: "Material, manufacturing, distribution, use and end of life across 16 categories, weighted into the PEF score." },
+    { step: "Create the Impact Grade", detail: "Circular design and resource use from the spec, plus the PEF score (half the grade): 0-100, shown as A-E." },
+    { step: "Prove it", detail: "Every result shows the activities, geographies and factors behind it, and matches the workbook's worked examples." },
+  ],
   watchtower: [
     { step: "Collect health", detail: "Each module's Watchtower reports standard health metrics." },
     { step: "Govern rules", detail: "Libraries and methodology changed through versioned, audited changes." },
@@ -119,4 +126,15 @@ export const CONNECTIONS: Connection[] = [
   { from: "orders", to: "shopper-iq", what: "Executional images and audit results" },
   { from: "finance", to: "watchtower", what: "Spend and savings reporting" },
   { from: "assure", to: "watchtower", what: "Onboarding, compliance and PSL health" },
+  // Sustainability inside design effectiveness (Nov 2026). The Impact Grade is built from the PEF score.
+  { from: "impact-grade", to: "shopper-iq", what: "Impact Grade (0-100) scores criterion S11, measured footprint, in design effectiveness" },
+  { from: "shopper-iq", to: "impact-grade", what: "Outlet count and mix, distribution pattern and expected reuse for the job's grade (step 2)" },
+  { from: "crm", to: "impact-grade", what: "Client sustainability targets and Impact Grade floor" },
+  { from: "assure", to: "impact-grade", what: "Supplier Score: the SRM scorecard's CSR, EMS, FSC, Sedex, diverse and renewable-energy results, read at calculation time" },
+  { from: "briefing", to: "impact-grade", what: "Provisional Impact Grade on every ideation concept, from its substrate, checked against the client's floor" },
+  { from: "sourcing", to: "impact-grade", what: "Spec substrates, weights, supplier and markets feed the spec's grade record, which jobs roll up" },
+  { from: "impact-grade", to: "sourcing", what: "Impact Grade on every spec, checked against the client's floor" },
+  { from: "impact-grade", to: "orders", what: "Impact Grade on estimate lines, deliveries and deployments" },
+  { from: "impact-grade", to: "assure", what: "Average Impact Grade of the specs each supplier is ordered on" },
+  { from: "assure", to: "sourcing", what: "Vendor capabilities, machines and tooling (moulds, dies) for RFQ invitations" },
 ];

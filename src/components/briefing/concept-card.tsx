@@ -3,12 +3,17 @@ import { Pill } from "@/components/ui";
 import { MSymbol } from "@/components/symbol";
 import { money, SPEC_TYPE_LABEL, type SpecConcept, type SubstrateSpecs } from "@/lib/briefing";
 import { EcoGradeBadge } from "./labels";
+import { ImpactGradeBadge } from "@/components/impact-grade/grade-badge";
 
 const ICON: Record<string, string> = { "2d": "description", "3d": "view_in_ar", promo_merch: "redeem", design: "brush", custom_goods_services: "handyman" };
 
 /** Claude does not generate images: a styled placeholder stands in for the concept visual. */
-export function ConceptVisual({ concept }: { concept: Pick<SpecConcept, "name" | "suggested_spec_type" | "suggested_length" | "suggested_width" | "suggested_depth" | "suggested_unit" | "suggested_substrate_name"> }) {
+export function ConceptVisual({ concept }: { concept: Pick<SpecConcept, "render_svg" | "name" |"suggested_spec_type" | "suggested_length" | "suggested_width" | "suggested_depth" | "suggested_unit" | "suggested_substrate_name"> }) {
   const dims = [concept.suggested_length, concept.suggested_width, concept.suggested_depth].filter((x) => x != null);
+  // The SVG was sanitised (no scripts, links or handlers) by the render step before it was stored.
+  if (concept.render_svg) {
+    return <div className="aspect-[16/7] w-full overflow-hidden rounded-lg border border-line bg-white [&>svg]:h-full [&>svg]:w-full" role="img" aria-label={`Illustration of ${concept.name}`} dangerouslySetInnerHTML={{ __html: concept.render_svg }} />;
+  }
   return (
     <div className="relative grid aspect-[16/7] w-full place-items-center overflow-hidden rounded-lg border border-line" style={{ background: "linear-gradient(135deg, #B776BC22, #9DC5ED33 60%, #F0F7F7)" }} aria-hidden>
       <div className="absolute inset-3 rounded-md border border-dashed border-[#B776BC66]" />
@@ -58,7 +63,20 @@ export function ConceptCard({ concept: c, top, actions, compact }: { concept: Sp
       {(c.suggested_length || c.suggested_width) && (
         <p className="text-xs"><span className="text-muted">Size:</span> {c.suggested_length ?? "?"} × {c.suggested_width ?? "?"}{c.suggested_depth ? ` × ${c.suggested_depth}` : ""} {c.suggested_unit ?? ""}</p>
       )}
-      <EcoGradeBadge eco={c.eco} />
+      {c.impact_grade && c.impact_grade.score !== null ? (
+        <div className="space-y-0.5 rounded-lg border border-line bg-surface-2/70 px-2.5 py-2" title={c.impact_grade.note}>
+          <div className="flex flex-wrap items-center gap-1.5">
+            <MSymbol name="eco" size={15} className="text-ok" />
+            <span className="eyebrow">Impact Grade</span>
+            <ImpactGradeBadge score={c.impact_grade.score} href="/impact-grade" />
+            <Pill tone="warn">Provisional</Pill>
+          </div>
+          <p className="text-[0.7rem] text-muted">
+            {c.impact_grade.low !== null && c.impact_grade.high !== null && <>Range {Math.round(c.impact_grade.low)}–{Math.round(c.impact_grade.high)} · </>}
+            {c.impact_grade.confidence}% confident · {c.impact_grade.coverage}% of the grade has data. Firms up on the spec with a supplier, PEF and design answers.
+          </p>
+        </div>
+      ) : <EcoGradeBadge eco={c.eco} />}
       {(c.indicative_unit_price != null || c.indicative_total != null) && (
         <div className="rounded-lg border border-line bg-surface-2/70 px-2.5 py-2 text-xs">
           <p className="eyebrow">Indicative price</p>

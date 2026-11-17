@@ -287,7 +287,7 @@ create trigger crm_feedback_region before insert or update on public.crm_feedbac
 create or replace function public._crm_require() returns void
 language plpgsql stable security definer set search_path = public as $$
 begin
-  if auth.uid() is null or not public.is_internal() then raise exception 'Only adm Indicia staff can do this in CRM' using errcode = '42501'; end if;
+  if auth.uid() is null or not public.is_internal() then raise exception 'Only staff can do this in CRM' using errcode = '42501'; end if;
 end $$;
 
 create or replace function public._crm_event(p_client uuid, p_entity text, p_id text, p_action text, p_detail jsonb default '{}'::jsonb)
@@ -322,7 +322,7 @@ end $$;
 -- ---------------------------------------------------------------------------
 -- Accounts
 -- ---------------------------------------------------------------------------
--- Anyone at adm Indicia can open an account; changing the lead or tier of an existing account takes the current account
+-- Anyone on the team can open an account; changing the lead or tier of an existing account takes the current account
 -- lead, a CRM owner or an admin.
 create or replace function public.crm_account_save(p_id uuid, p_client uuid, p_market text, p_account_lead uuid, p_tier_id uuid,
   p_status text default 'active', p_notes text default null) returns uuid
@@ -330,7 +330,7 @@ language plpgsql security definer set search_path = public as $$
 declare a public.crm_accounts; v_market text := public._market_code(p_market); v_id uuid;
 begin
   perform public._crm_require();
-  if not public._crm_internal_person(p_account_lead) then raise exception 'The account lead must be someone at adm Indicia'; end if;
+  if not public._crm_internal_person(p_account_lead) then raise exception 'The account lead must be someone on the team'; end if;
   perform public._crm_lib(p_tier_id, 'crm_account_tiers', 'account tier');
   if coalesce(p_status, 'active') not in ('prospect','active','dormant','closed') then raise exception 'Choose prospect, active, dormant or closed'; end if;
   if p_id is null then
@@ -420,7 +420,7 @@ begin
     if v_market is null then raise exception 'The account must belong to the same client'; end if;
   end if;
   if p_contact is not null and not exists (select 1 from public.crm_contacts where id = p_contact and client_id = v_client) then raise exception 'The contact must belong to the same client'; end if;
-  if not public._crm_internal_person(p_owner) then raise exception 'Who had the interaction must be someone at adm Indicia'; end if;
+  if not public._crm_internal_person(p_owner) then raise exception 'Who had the interaction must be someone on the team'; end if;
   insert into public.crm_interactions (client_id, account_id, opportunity_id, contact_id, type_id, subject, summary, occurred_at, owner, market, created_by)
   values (v_client, p_account, p_opportunity, p_contact, p_type_id, trim(p_subject), nullif(trim(p_summary), ''), coalesce(p_occurred_at, now()),
           coalesce(p_owner, auth.uid()), v_market, auth.uid())
@@ -446,7 +446,7 @@ begin
     select market into v_market from public.crm_accounts where id = p_account and client_id = p_client;
     if v_market is null then raise exception 'The account must belong to the same client'; end if;
   end if;
-  if not public._crm_internal_person(p_owner) then raise exception 'The owner must be someone at adm Indicia'; end if;
+  if not public._crm_internal_person(p_owner) then raise exception 'The owner must be someone on the team'; end if;
   insert into public.crm_opportunities (client_id, account_id, title, description, stage, value, currency, probability, expected_close, owner, market, created_by)
   values (p_client, p_account, trim(p_title), nullif(trim(p_description), ''), v_stage, p_value,
           coalesce(nullif(upper(trim(p_currency)), ''), (select default_currency from public.sourcing_clients where id = p_client)),
@@ -559,7 +559,7 @@ begin
   if p_period_start is null or p_period_end is null or p_period_end < p_period_start then raise exception 'Enter a plan period that ends after it starts'; end if;
   if coalesce(p_status, 'draft') not in ('draft','active','closed') then raise exception 'Choose draft, active or closed'; end if;
   if p_growth_target is not null and p_growth_target < 0 then raise exception 'The growth target can''t be negative'; end if;
-  if not public._crm_internal_person(p_owner) then raise exception 'The owner must be someone at adm Indicia'; end if;
+  if not public._crm_internal_person(p_owner) then raise exception 'The owner must be someone on the team'; end if;
   if p_id is not null then
     select * into pl from public.crm_account_plans where id = p_id for update;
     if pl.id is null then raise exception 'Plan not found'; end if;
@@ -594,7 +594,7 @@ begin
   if pl.id is null then raise exception 'Plan not found'; end if;
   if pl.status = 'closed' then raise exception 'This plan is closed'; end if;
   if coalesce(trim(p_action), '') = '' then raise exception 'Describe the action'; end if;
-  if not public._crm_internal_person(p_owner) then raise exception 'The owner must be someone at adm Indicia'; end if;
+  if not public._crm_internal_person(p_owner) then raise exception 'The owner must be someone on the team'; end if;
   insert into public.crm_plan_actions (plan_id, action, owner, due_date, created_by) values (p_plan, trim(p_action), coalesce(p_owner, auth.uid()), p_due, auth.uid())
   returning id into v_id;
   perform public._crm_event(pl.client_id, 'plan', p_plan::text, 'action_added', jsonb_build_object('action', trim(p_action), 'due', p_due));

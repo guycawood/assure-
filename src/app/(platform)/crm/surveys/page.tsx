@@ -10,6 +10,7 @@ import { ActionForm } from "@/components/sourcing/action-form";
 import { Td, Th, fmtDate } from "@/components/sourcing/bits";
 import { Bars, ClientLink, Disclosure, Input, ScorePill, Select, clientOptions } from "@/components/crm/bits";
 import { createWave } from "../actions";
+import { systemRpc } from "@/lib/messaging/system";
 
 export const metadata: Metadata = { title: "Surveys · CRM" };
 
@@ -18,6 +19,8 @@ export const metadata: Metadata = { title: "Surveys · CRM" };
 export default async function CrmSurveys({ searchParams }: { searchParams: Promise<{ client?: string; market?: string; category?: string; feeling?: string }> }) {
   await requireInternal();
   const sp = await searchParams;
+  // Send what is due today and close what has ended, so a scheduled survey goes out even without the scheduler. Never blocks the page.
+  try { await systemRpc("crm_survey_run_due", {}); } catch { /* the scheduler will do it */ }
   const supabase = await createClient();
   const [waves, allResults, clients, markets, jobs, services] = await Promise.all([getSurveyWaves(supabase), getSurveyResults(supabase, { client_id: sp.client }),
     getClients(supabase), getMarkets(supabase), getJobSurveys(supabase), getLibrary(supabase, "crm_services")]);
@@ -37,7 +40,9 @@ export default async function CrmSurveys({ searchParams }: { searchParams: Promi
   return (
     <>
       <PageHead title="Surveys" sub="Customer satisfaction surveys (twice a year, or as the contract says), results by client, country and NPS, and short surveys sent when a job closes."
-        crumbs={[{ label: "CRM", href: "/crm" }, { label: "Surveys" }]} />
+        crumbs={[{ label: "CRM", href: "/crm" }, { label: "Surveys" }]}>
+        <Link href="/crm/surveys/templates" className="btn-secondary">Survey templates</Link>
+      </PageHead>
 
       <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         <Stat label="NPS" value={score ?? "—"} tone={score == null ? undefined : score >= 30 ? "ok" : score >= 0 ? "warn" : "bad"} hint={`${results.length} responses (incl. 0-10 feedback)`} icon={<MSymbol name="reviews" />} />

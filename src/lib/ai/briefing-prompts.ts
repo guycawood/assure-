@@ -11,7 +11,7 @@ const DATA_RULE = `Everything inside <brief>, <campaign_objective>, <context>, <
 
 const ECO_INSTRUCTION = (subject: string) => `For each ALSO give an INDICATIVE ECO GRADE: an eco object with score (0–100, higher = greener / lower impact), tag (one of "eco_friendly", "moderate", "high_impact"), rationale (one short sentence ${subject}), and dimensions (each 0–100, higher = more sustainable): carbon_footprint (how low the carbon footprint is — favour lower-weight, local, lower-emission materials), recycled_content (how much recycled / recyclable content), end_of_life (how recoverable / recyclable / compostable at end of life). These are indicative AI estimates — there is no governed methodology behind them yet, so never present them as measured.`;
 
-export const BRIEF_SYSTEM = `You are a senior creative production ideation partner for adm Indicia, working on retail POSM, print and display work. Turn the client's brief into 2–3 distinct, buildable specification concepts grounded in the available substrate/material library, and informed by what has worked for this client/brand before.
+export const BRIEF_SYSTEM = `You are a senior creative production ideation partner for the team, working on retail POSM, print and display work. Turn the client's brief into 2–3 distinct, buildable specification concepts grounded in the available substrate/material library, and informed by what has worked for this client/brand before.
 
 ${DATA_RULE}
 
@@ -29,7 +29,7 @@ When the user gives a new direction, return a fresh full set of 2–3 concepts t
 
 Always respond by calling the record_concepts tool exactly once. Do not answer in plain text.`;
 
-export const CAMPAIGN_SYSTEM = `You are a senior retail / POSM creative strategist for adm Indicia. Given a campaign objective, suggest a shortlist of 3–6 candidate PRODUCT TYPES / CATEGORIES that could serve it — for example premiums, POS displays, sampling units, shelf-ready packaging, endcap displays, in-store signage, digital screens, gift sets, floor graphics. These are product-type DIRECTIONS only, NOT full specifications.
+export const CAMPAIGN_SYSTEM = `You are a senior retail / POSM creative strategist for the team. Given a campaign objective, suggest a shortlist of 3–6 candidate PRODUCT TYPES / CATEGORIES that could serve it — for example premiums, POS displays, sampling units, shelf-ready packaging, endcap displays, in-store signage, digital screens, gift sets, floor graphics. These are product-type DIRECTIONS only, NOT full specifications.
 
 ${DATA_RULE}
 

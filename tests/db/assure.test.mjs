@@ -81,7 +81,7 @@ test("certificates: staff add as pending; the uploader can't verify; vendors can
     values ($1,$2,current_date + 30,'verified','Chased twice') returning id, verification_status, uploaded_by, region, market`, [S1, ISO]);
   assert.deepEqual([c.verification_status, c.uploaded_by, c.region, c.market], ["pending", ids.agent, "APAC", "China"]);
   await rejects(as("agent", "select public.assure_review_certificate($1,'verify',null)", [c.id]), /someone else/);
-  await rejects(as("vendor", "select public.assure_review_certificate($1,'verify',null)", [c.id]), /Only adm Indicia staff/);
+  await rejects(as("vendor", "select public.assure_review_certificate($1,'verify',null)", [c.id]), /Only staff/);
   await rejects(as("lead", "select public.assure_review_certificate($1,'reject','')", [c.id]), /reason/);
   await as("lead", "select public.assure_review_certificate($1,'verify',null)", [c.id]);
   const v = await one("plain", "select status, expiry_status, cert_type_name from public.supplier_certificates_v where id = $1", [c.id]);
@@ -117,7 +117,7 @@ test("document review queue: vendors upload for their own company only and never
   const d = await one("vendor", "insert into public.supplier_documents (supplier_id, doc_type, title, file_path, status) values ($1,'invoice','INV 1','x','verified') returning id, status, uploaded_by_role", [S1]);
   assert.deepEqual([d.status, d.uploaded_by_role], ["pending", "vendor"]);
   await rejects(as("vendor", "update public.supplier_documents set status = 'verified' where id = $1", [d.id]), /permission denied/);
-  await rejects(as("vendor", "select public.assure_review_document($1,'verify',null)", [d.id]), /Only adm Indicia staff/);
+  await rejects(as("vendor", "select public.assure_review_document($1,'verify',null)", [d.id]), /Only staff/);
   await rejects(as("agent", "select public.assure_review_document($1,'reject',null)", [d.id]), /reason/);
   await as("agent", "select public.assure_review_document($1,'verify',null)", [d.id]);
   await rejects(as("lead", "select public.assure_review_document($1,'reject','x')", [d.id]), /already been reviewed/);
@@ -133,7 +133,7 @@ test("pre-assessment: vendor submits; legal transitions only; reviewer fields st
   await rejects(as("agent", "select public.assure_pa_transition($1,'start_review',null,null)", [id]), /review is not open/);
   await as("vendor", "select public.assure_pa_submit($1)", [id]);
   await rejects(as("vendor", "update public.vendor_pre_assessments set status = 'onboarded' where id = $1", [id]), /permission denied/);
-  await rejects(as("vendor", "select public.assure_pa_transition($1,'vm_approve',null,null)", [id]), /Only adm Indicia staff/);
+  await rejects(as("vendor", "select public.assure_pa_transition($1,'vm_approve',null,null)", [id]), /Only staff/);
   await rejects(as("proc", "select public.assure_pa_transition($1,'vm_approve',null,null)", [id]), /vendor manager/);
   await rejects(as("agent", "select public.assure_pa_transition($1,'confirm_onboarding',null,null)", [id]), /Only procurement/);
   await as("agent", "select public.assure_pa_transition($1,'start_review','Looks complete',null)", [id]);
@@ -199,16 +199,16 @@ test("NCRs: vendor acknowledges and responds; corrective actions verified by som
   assert.equal("internal_notes" in vn, false);
   const { id: ca } = await one("agent", "select public.assure_ca_add($1,'Recalibrate press',null,null) as id", [n.id]);
   await rejects(as("agent", "select public.assure_ncr_close($1,'closed','Done')", [n.id]), /Verify every corrective action/);
-  await rejects(as("vendor", "select public.assure_ca_set_status($1,'verified',null)", [ca]), /Only adm Indicia staff/);
+  await rejects(as("vendor", "select public.assure_ca_set_status($1,'verified',null)", [ca]), /Only staff/);
   await as("vendor", "select public.assure_ca_set_status($1,'done','Calibrated 3 Oct')", [ca]);
   await as("agent", "select public.assure_ca_set_status($1,'verified',null)", [ca]);
-  await rejects(as("vendor", "select public.assure_ncr_close($1,'closed','x')", [n.id]), /Only adm Indicia staff/);
+  await rejects(as("vendor", "select public.assure_ncr_close($1,'closed','x')", [n.id]), /Only staff/);
   await as("agent", "select public.assure_ncr_close($1,'closed','Verified on re-inspection')", [n.id]);
   assert.equal((await one("plain", "select status from public.ncrs where id = $1", [n.id])).status, "closed");
   // the person who completes an action can't verify it
   const n2 = await one("agent", "insert into public.ncrs (supplier_id, category_id, title) values ($1,$2,'Late') returning id", [S1, NCRCAT]);
   const { id: ca2 } = await one("agent", "select public.assure_ca_add($1,'Internal follow-up','internal',null) as id", [n2.id]);
-  await rejects(as("vendor", "select public.assure_ca_set_status($1,'done',null)", [ca2]), /adm Indicia completes/);
+  await rejects(as("vendor", "select public.assure_ca_set_status($1,'done',null)", [ca2]), /The team completes/);
   await as("agent", "select public.assure_ca_set_status($1,'done',null)", [ca2]);
   await rejects(as("agent", "select public.assure_ca_set_status($1,'verified',null)", [ca2]), /someone else/);
 });
@@ -230,7 +230,7 @@ test("performance: scores via the audited function; composite computed; vendors 
 });
 
 test("issues feed: generated on the server from thresholds, idempotent, vendor responds, staff resolve", async () => {
-  await rejects(as("vendor", "select public.assure_generate_issues($1)", [S1]), /Only adm Indicia staff/);
+  await rejects(as("vendor", "select public.assure_generate_issues($1)", [S1]), /Only staff/);
   await rejects(as("vendor", "insert into public.performance_issues (supplier_id, issue_type, source_key, title) values ($1,'ncr','x','x')", [S1]), /permission denied/);
   const n = await one("plain", "select public.assure_generate_issues($1) as n", [S1]);
   const issues = await as("plain", "select issue_type, severity from public.performance_issues where supplier_id = $1 order by issue_type", [S1]);
@@ -242,7 +242,7 @@ test("issues feed: generated on the server from thresholds, idempotent, vendor r
   assert.equal((await one("plain", "select public.assure_generate_issues($1) as n", [S1])).n, 0);
   const i = await one("vendor", "select id from public.vendor_performance_issues where issue_type = 'otif_miss'");
   await as("vendor", "select public.assure_issue_vendor_respond($1,'respond','Port congestion','Book earlier vessel',current_date + 30)", [i.id]);
-  await rejects(as("vendor", "select public.assure_issue_resolve($1,'done')", [i.id]), /Only adm Indicia staff/);
+  await rejects(as("vendor", "select public.assure_issue_resolve($1,'done')", [i.id]), /Only staff/);
   await as("lead", "select public.assure_issue_resolve($1,'Q4 OTIF back to 92')", [i.id]);
   assert.equal((await one("vendor", "select acknowledgement_status from public.vendor_performance_issues where id = $1", [i.id])).acknowledgement_status, "resolved");
 });
@@ -263,7 +263,7 @@ test("contracts: status only through functions; signing order enforced; finalisa
   assert.deepEqual(parties.rows.map((p) => p.status), ["sent", "sent"]);
   await rejects(as("plain", "select public.assure_contract_sign($1,'DocuSign 123')", [parties.rows[1].id]), /Earlier signers/);
   await rejects(as("plain", "select public.assure_contract_sign($1,'')", [parties.rows[0].id]), /evidence/);
-  await rejects(as("vendor", "select public.assure_contract_sign($1,'x')", [parties.rows[0].id]), /Only adm Indicia staff/);
+  await rejects(as("vendor", "select public.assure_contract_sign($1,'x')", [parties.rows[0].id]), /Only staff/);
   assert.equal((await one("plain", "select public.assure_contract_sign($1,'DocuSign env 1') as s", [parties.rows[0].id])).s, "signed");
   assert.equal((await one("plain", "select status from public.contracts where id = $1", [c.id])).status, "sent");
   assert.equal((await one("plain", "select public.assure_contract_sign($1,'DocuSign env 1') as s", [parties.rows[1].id])).s, "counter_signed");
@@ -341,7 +341,7 @@ test("action plan tasks: open -> in_progress -> completed -> verified; verify is
   await rejects(as("other", "select public.assure_task_set_status($1,'in_progress',null)", [k.id]), /not for your company/);
   await as("vendor", "select public.assure_task_set_status($1,'in_progress','Started')", [k.id]);
   await as("vendor", "select public.assure_task_set_status($1,'completed','Done')", [k.id]);
-  await rejects(as("vendor", "select public.assure_task_set_status($1,'verified',null)", [k.id]), /Only adm Indicia staff/);
+  await rejects(as("vendor", "select public.assure_task_set_status($1,'verified',null)", [k.id]), /Only staff/);
   await as("agent", "select public.assure_task_set_status($1,'verified',null)", [k.id]);
   const k2 = await one("agent", "insert into public.action_plan_tasks (supplier_id, title) values ($1,'Internal') returning id", [S1]);
   await as("agent", "select public.assure_task_set_status($1,'completed',null)", [k2.id]);
@@ -365,7 +365,7 @@ test("surveys: questions snapshot at launch; only the vendor answers; staff revi
   const v = await one("vendor", "select * from public.vendor_survey_responses where id = $1", [id]);
   assert.equal(v.questions[0].id, "q1");
   assert.equal("review_notes" in v, false);
-  await rejects(as("vendor", "select public.assure_survey_review($1,'approve',null,null)", [id]), /Only adm Indicia staff/);
+  await rejects(as("vendor", "select public.assure_survey_review($1,'approve',null,null)", [id]), /Only staff/);
   await as("plain", "select public.assure_survey_review($1,'approve','Policy seen',null)", [id]);
   assert.equal((await one("plain", "select status from public.survey_responses where id = $1", [id])).status, "completed");
 });
@@ -380,7 +380,7 @@ test("workflows: seeded presets; approver role checked; no approving two steps i
   await rejects(as("admin", "select public.assure_workflow_act($1,'reject','')", [id]), /Say why/);
   await as("proc", "select public.assure_workflow_act($1,'approve',null)", [id]);
   await rejects(as("proc", "select public.assure_workflow_act($1,'approve',null)", [id]), /needs a executive|executive/);
-  await rejects(as("vendor", "select public.assure_workflow_act($1,'approve',null)", [id]), /Only adm Indicia staff/);
+  await rejects(as("vendor", "select public.assure_workflow_act($1,'approve',null)", [id]), /Only staff/);
   assert.equal((await one("head", "select public.assure_workflow_act($1,'approve',null) as s", [id])).s, "completed");
   const { id: w2 } = await one("plain", "select public.assure_workflow_launch($1,$2,null) as id", [tp.id, S1]);
   await as("admin", "select public.assure_workflow_act($1,'approve',null)", [w2]);

@@ -173,7 +173,7 @@ begin
       insert into public.job_specs (id, job_id, title, spec_type, complexity, product_category, impact_grade, design_score, harmonised, spend_exempt, created_at)
       values (v_spec, v_job, v_items[1 + floor(public._m97_r(i * 10 + k, 'it') * 10)::int] || ' (demo)', v_type, v_cx,
         case v_type when '2d' then 'Print' when '3d' then 'Retail display' when 'promo_merch' then 'Promo & merch' else 'Goods & services' end,
-        round(3 + public._m97_r(i * 10 + k, 'ig') * 6 + case when v_ci = 1 then -0.6 else 0 end, 1),
+        round((3 + public._m97_r(i * 10 + k, 'ig') * 6 + case when v_ci = 1 then -0.6 else 0 end) * 10, 1), -- Impact Grade 0-100
         case when public._m97_r(i * 10 + k, 'dsn') < 0.85 then least(10, round(4.5 + public._m97_r(i * 10 + k, 'ds') * 5 + case when v_route = 'create' then 0.4 else 0 end, 1)) end,
         public._m97_r(i * 10 + k, 'harm') < 0.1, public._m97_r(i * 10 + k, 'ex') < 0.06, (v_open + time '11:00')::timestamptz);
 

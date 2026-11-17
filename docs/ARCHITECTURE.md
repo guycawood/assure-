@@ -1,6 +1,6 @@
 # System Guy — architecture and build conventions
 
-System Guy is adm Indicia's platform. It is made of **modules that each stand alone** and are **linked through the workflow** by explicit handoffs:
+System Guy is our platform. It is made of **modules that each stand alone** and are **linked through the workflow** by explicit handoffs:
 
 | Order | Module | Base path | Role |
 |---|---|---|---|
@@ -53,11 +53,11 @@ Next.js 15 App Router (server components + server actions), Postgres via Supabas
 - One file per module: `tests/db/<module>.test.mjs`, using `setupDb()` from `tests/db/helpers.mjs`.
 - Test access rules (who can/can't), state transitions, and calculations. `npm run test:db` runs all files.
 
-## UI conventions (adm Indicia look, Base44 shell)
+## UI conventions (System Guy look, Base44 shell)
 - Shell: per-module left sidebar + top bar with module tabs (`src/components/shell.tsx`). Pages render inside `<main>`; do not add your own `<main>`.
 - Components: `Card`, `Panel`, `PageHead` (with `crumbs`), `Stat`, `Pill`, `Empty`, `btn.primary|secondary|danger`, `ButtonLink` from `src/components/ui.tsx`; icons via `MSymbol` (Google Material Symbols names) from `src/components/symbol.tsx`.
 - Tables: `<table>` with `.th` / `.td` classes inside a `Card`. Forms: `.label` + `.input`.
-- Tone: conversational, plain English, no jargon. Write "adm Indicia" exactly like that.
+- Tone: conversational, plain English, no jargon.
 - Brand colours: tokens in `globals.css` and `brand.*` in Tailwind (New-blue `#010062`, Pale `#F0F7F7`, module colours from the service palette).
 
 ## Verification before handing back

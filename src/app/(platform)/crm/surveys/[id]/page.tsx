@@ -12,6 +12,7 @@ import { Td, Th, fmtDate, fmtDateTime } from "@/components/sourcing/bits";
 import { ApprovalRequests } from "@/components/approvals/requests";
 import { ClientLink, ScorePill, Select, clientOptions } from "@/components/crm/bits";
 import { addToWave, closeWave, sendWave } from "../../actions";
+import { remindWave, scheduleWave } from "../../survey-mgmt-actions";
 
 export const metadata: Metadata = { title: "Survey · CRM" };
 
@@ -26,6 +27,14 @@ export default async function CrmSurveyWave({ params, searchParams }: { params: 
   if (!wave) notFound();
   const [recipients, results, clients, tpl] = await Promise.all([getSurveyRecipients(supabase, id), getSurveyResults(supabase, { wave_id: id }), getClients(supabase), getTemplate(supabase, wave.template_id)]);
   const questions = (tpl?.data.sections ?? []).flatMap((s) => s.questions.map((q) => ({ ...q, section: s.label })));
+  // Fields added after the views were defined are read from the tables.
+  const [{ data: sched }, { data: remRows }] = await Promise.all([
+    supabase.from("crm_survey_waves").select("scheduled_for").eq("id", id).maybeSingle(),
+    supabase.from("crm_survey_recipients").select("id, reminders_sent, last_reminded_at, reminder_skipped").eq("wave_id", id),
+  ]);
+  const scheduledFor = (sched as { scheduled_for: string | null } | null)?.scheduled_for ?? null;
+  const rem = new Map(((remRows as { id: string; reminders_sent: number; last_reminded_at: string | null; reminder_skipped: string | null }[] | null) ?? []).map((r) => [r.id, r]));
+  const waiting = recipients.filter((r) => r.status === "sent" || r.status === "opened").length;
   const selected = results.find((r) => r.id === sp.response) ?? null;
 
   return (
@@ -49,7 +58,28 @@ export default async function CrmSurveyWave({ params, searchParams }: { params: 
           <ActionForm action={sendWave} hidden={{ id }} submit="Send survey" confirm="Send the survey emails now? Each contact gets one email signed by their owner." inline />
         </Card>
       )}
-      {wave.status === "sent" && <ActionForm action={closeWave} hidden={{ id }} submit="Close survey" variant="secondary" inline confirm="Close the survey? Links stop working." />}
+      {wave.status === "draft" && !wave.approval_pending && recipients.length > 0 && (
+        <Card className="flex flex-wrap items-end gap-4 px-5 py-4">
+          <div>
+            <p className="text-sm font-semibold">Send later</p>
+            <p className="text-xs text-muted">{scheduledFor ? `Scheduled to send on ${fmtDate(scheduledFor)}. It goes out as you, with the same checks as sending now.` : "Choose a day and the platform sends it for you, with the same checks as sending now."}</p>
+          </div>
+          <ActionForm action={scheduleWave} hidden={{ id }} submit={scheduledFor ? "Change the date" : "Schedule"} variant="secondary" inline>
+            <input type="date" name="date" required defaultValue={scheduledFor ?? ""} aria-label="Send on" className="input py-1.5" />
+          </ActionForm>
+          {scheduledFor && <ActionForm action={scheduleWave} hidden={{ id }} submit="Remove the schedule" variant="secondary" inline />}
+        </Card>
+      )}
+      {wave.status === "sent" && (
+        <Card className="flex flex-wrap items-center gap-4 px-5 py-4">
+          <div className="min-w-[260px] flex-1">
+            <p className="text-sm font-semibold">{waiting} {waiting === 1 ? "person has" : "people have"} not answered yet</p>
+            <p className="text-xs text-muted">A reminder goes to people who have not answered: the first 3 days after the invitation, then at least 5 days apart, twice at most. People who have opted out since are skipped.</p>
+          </div>
+          {waiting > 0 && <ActionForm action={remindWave} hidden={{ id }} submit="Send reminders" confirm="Send a reminder to everyone who has not answered and is due one?" inline />}
+          <ActionForm action={closeWave} hidden={{ id }} submit="Close survey" variant="secondary" inline confirm="Close the survey? Links stop working." />
+        </Card>
+      )}
 
       {selected && (
         <Panel title={`Response: ${selected.contact_name ?? "contact"}`} sub={`${selected.client_name} · ${fmtDateTime(selected.created_at)}`} actions={<Link href={`/crm/surveys/${id}`} className="text-xs underline">Close</Link>}>
@@ -71,12 +101,14 @@ export default async function CrmSurveyWave({ params, searchParams }: { params: 
       <Panel title="Recipients" sub="One link per contact; it works once">
         {recipients.length === 0 ? <Empty title="Nobody added yet">Add a client&apos;s contacts flagged to receive the survey.</Empty> : (
           <div className="overflow-x-auto"><table className="w-full text-sm">
-            <thead><tr><Th>Contact</Th><Th>Client</Th><Th>Signed by</Th><Th>Status</Th><Th>Sent</Th><Th>Responded</Th><Th>Result</Th></tr></thead>
+            <thead><tr><Th>Contact</Th><Th>Client</Th><Th>Signed by</Th><Th>Status</Th><Th>Sent</Th><Th>Reminders</Th><Th>Responded</Th><Th>Result</Th></tr></thead>
             <tbody>{recipients.map((r) => (
               <tr key={r.id}><Td className="font-semibold">{r.contact_name}<div className="text-xs font-normal text-muted">{r.contact_email}</div></Td>
                 <Td><ClientLink id={r.client_id} name={r.client_name} /></Td><Td>{r.owner_name ?? "—"}</Td>
                 <Td><Pill tone={STATUS_TONE[r.status] ?? "neutral"}>{r.status}</Pill>{r.excluded_reason && <div className="text-xs text-bad">{r.excluded_reason}</div>}</Td>
-                <Td>{fmtDate(r.sent_at)}</Td><Td>{fmtDate(r.responded_at)}</Td>
+                <Td>{fmtDate(r.sent_at)}</Td>
+                <Td>{rem.get(r.id)?.reminders_sent ? `${rem.get(r.id)!.reminders_sent} (last ${fmtDate(rem.get(r.id)!.last_reminded_at)})` : "—"}{rem.get(r.id)?.reminder_skipped && <div className="text-xs text-bad">Not reminded: {rem.get(r.id)!.reminder_skipped}</div>}</Td>
+                <Td>{fmtDate(r.responded_at)}</Td>
                 <Td>{r.response_id ? <Link className="font-semibold text-accent hover:underline" href={`/crm/surveys/${id}?response=${r.response_id}`}>View</Link> : "—"}</Td></tr>))}</tbody>
           </table></div>
         )}

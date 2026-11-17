@@ -14,7 +14,7 @@ export default async function PushedPricesPage() {
 
   return (
     <>
-      <PageHead title="Pushed prices" sub="When a job matches your agreed rate card closely, adm Indicia states the price and asks you to confirm it, instead of running a quote request. Confirm or decline by the respond-by date." />
+      <PageHead title="Pushed prices" sub="When a job matches your agreed rate card closely, we state the price and ask you to confirm it, instead of running a quote request. Confirm or decline by the respond-by date." />
       <Card className="overflow-x-auto">
         {rows.length === 0 ? <Empty title="No pushed prices">Nothing is waiting for your confirmation.</Empty> : (
           <table className="w-full text-sm">
@@ -39,7 +39,7 @@ export default async function PushedPricesPage() {
                             action={respondPush} hidden={{ id: p.id, decision: "decline" }} submit="Decline price">
                             <label className="label" htmlFor={`r-${p.id}`}>Why can&apos;t you accept it?</label>
                             <textarea id={`r-${p.id}`} name="reason" required rows={3} maxLength={1000} className="input" />
-                            <p className="text-xs text-muted">adm Indicia will run a quote request for this item instead.</p>
+                            <p className="text-xs text-muted">We will run a quote request for this item instead.</p>
                           </ActionDialog>
                         </div>
                       )}

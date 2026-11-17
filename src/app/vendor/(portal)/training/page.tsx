@@ -24,7 +24,7 @@ export default async function TrainingPage() {
 
   return (
     <>
-      <PageHead title="Training" sub={`Guides and videos for working with adm Indicia. Start a module, work through it, then mark it complete.${assigned ? ` ${assigned} in your list.` : ""}`} />
+      <PageHead title="Training" sub={`Guides and videos for working with us. Start a module, work through it, then mark it complete.${assigned ? ` ${assigned} in your list.` : ""}`} />
       {mods.length === 0 ? <Card><Empty title="No training available yet" /></Card> : (
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
           {mods.map((m) => {

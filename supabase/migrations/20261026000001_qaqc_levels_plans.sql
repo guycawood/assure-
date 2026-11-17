@@ -38,7 +38,7 @@ select x.k, x.code, x.name, x.data::jsonb, 'active', date '2026-01-01', 'Default
   ('qaqc_levels', 'L1', 'L1 Document upload', '{"level":1,"description":"Supplier declaration or certificate of conformity uploaded before shipping.","checkpoints":["pre_shipment"],"required_evidence":["pre_shipment:COC|DECLARATION"],"verifier":"auto","signoff_required":false,"min_photos":0,"approved_body_required":false}'),
   ('qaqc_levels', 'L2', 'L2 Self-inspection', '{"level":2,"description":"The vendor inspects against the spec with a checklist and photos, then declares conformity.","checkpoints":["production","pre_shipment"],"required_evidence":["production:CHECKLIST","production:PHOTO_SET","pre_shipment:COC|DECLARATION"],"verifier":"auto","signoff_required":false,"min_photos":3,"approved_body_required":false}'),
   ('qaqc_levels', 'L3', 'L3 Production control', '{"level":3,"description":"Pre-production sample or mock-up approved, production check sheet, and an AQL sampling result recorded by the vendor.","checkpoints":["mockup","production","pre_shipment"],"required_evidence":["mockup:SAMPLE_APPROVAL","production:CHECKLIST","production:PHOTO_SET","pre_shipment:AQL_REPORT"],"verifier":"auto","aql_code":"AQL-2.5","signoff_required":false,"min_photos":3,"approved_body_required":false}'),
-  ('qaqc_levels', 'L4', 'L4 Independent inspection', '{"level":4,"description":"adm Indicia QC or an appointed inspection agency inspects before shipment and reports an AQL result; a quality role verifies it.","checkpoints":["mockup","production","pre_shipment"],"required_evidence":["mockup:SAMPLE_APPROVAL","production:CHECKLIST","pre_shipment:INSPECTION_REPORT"],"verifier":"quality","aql_code":"AQL-2.5","signoff_required":true,"min_photos":0,"approved_body_required":true}'),
+  ('qaqc_levels', 'L4', 'L4 Independent inspection', '{"level":4,"description":"Our QC or an appointed inspection agency inspects before shipment and reports an AQL result; a quality role verifies it.","checkpoints":["mockup","production","pre_shipment"],"required_evidence":["mockup:SAMPLE_APPROVAL","production:CHECKLIST","pre_shipment:INSPECTION_REPORT"],"verifier":"quality","aql_code":"AQL-2.5","signoff_required":true,"min_photos":0,"approved_body_required":true}'),
   ('qaqc_levels', 'L5', 'L5 Third-party audit', '{"level":5,"description":"Accredited lab testing and/or a factory audit by an accredited body, plus an independent final inspection and a certificate from an approved body.","checkpoints":["mockup","production","pre_shipment"],"required_evidence":["mockup:SAMPLE_APPROVAL","production:LAB_TEST_REPORT|AUDIT_REPORT","pre_shipment:INSPECTION_REPORT","pre_shipment:CERTIFICATE"],"verifier":"third_party","aql_code":"AQL-1.5","signoff_required":true,"min_photos":0,"approved_body_required":true}'),
 
   ('qaqc_evidence_types', 'COC', 'Certificate of conformity', '{"description":"The supplier certifies the goods conform to the spec.","needs":["issued_on"],"window":"po","lookback_days":0,"allowed_types":["application/pdf","image/"],"min_files":1}'),
@@ -47,7 +47,7 @@ select x.k, x.code, x.name, x.data::jsonb, 'active', date '2026-01-01', 'Default
   ('qaqc_evidence_types', 'CHECKLIST', 'Inspection checklist / check sheet', '{"description":"The production or self-inspection check sheet, completed.","needs":[],"window":"none","allowed_types":["application/pdf","image/","application/vnd.","text/csv"],"min_files":1}'),
   ('qaqc_evidence_types', 'SAMPLE_APPROVAL', 'Sample / mock-up approval', '{"description":"Approval of the pre-production sample or mock-up.","needs":["issued_on"],"window":"po","lookback_days":30,"allowed_types":["application/pdf","image/"],"min_files":1}'),
   ('qaqc_evidence_types', 'AQL_REPORT', 'AQL sampling report', '{"description":"AQL sampling result recorded by the vendor: sample size, defects found and the result.","needs":["inspection_date","aql","result"],"window":"po","lookback_days":0,"allowed_types":["application/pdf","image/","application/vnd."],"min_files":1}'),
-  ('qaqc_evidence_types', 'INSPECTION_REPORT', 'Independent inspection report', '{"description":"Pre-shipment or final inspection report with the AQL result, from adm Indicia QC or an approved inspection agency.","needs":["inspection_date","aql","result","body"],"window":"po","lookback_days":0,"body_types":["inspection_agency"],"allowed_types":["application/pdf"],"min_files":1}'),
+  ('qaqc_evidence_types', 'INSPECTION_REPORT', 'Independent inspection report', '{"description":"Pre-shipment or final inspection report with the AQL result, from our QC or an approved inspection agency.","needs":["inspection_date","aql","result","body"],"window":"po","lookback_days":0,"body_types":["inspection_agency"],"allowed_types":["application/pdf"],"min_files":1}'),
   ('qaqc_evidence_types', 'LAB_TEST_REPORT', 'Lab test report', '{"description":"Test report from an accredited laboratory.","needs":["issued_on","result","body"],"window":"po","lookback_days":365,"body_types":["lab"],"allowed_types":["application/pdf"],"min_files":1}'),
   ('qaqc_evidence_types', 'AUDIT_REPORT', 'Factory audit report', '{"description":"Factory audit report from an accredited body.","needs":["issued_on","result","body"],"window":"po","lookback_days":365,"body_types":["certification_body"],"allowed_types":["application/pdf"],"min_files":1}'),
   ('qaqc_evidence_types', 'CERTIFICATE', 'Certificate', '{"description":"Product or chain-of-custody certificate (e.g. FSC, recycled content) from an approved body; must not be expired.","needs":["certificate_number","expires_on","body"],"window":"validity","body_types":["certification_body","lab"],"allowed_types":["application/pdf","image/"],"min_files":1}'),
@@ -366,7 +366,7 @@ end $$;
 create or replace function public.qaqc_required_level(p_po uuid default null, p_spec uuid default null) returns jsonb
 language plpgsql stable security definer set search_path = public as $$
 begin
-  if not public.is_internal() then raise exception 'Only adm Indicia staff can do this' using errcode = '42501'; end if;
+  if not public.is_internal() then raise exception 'Only staff can do this' using errcode = '42501'; end if;
   if p_po is null and p_spec is null then raise exception 'Choose a purchase order or a spec'; end if;
   return public._qaqc_compute(p_spec, p_po, current_date);
 end $$;
@@ -511,7 +511,7 @@ create or replace function public.qaqc_plan_create(p_po uuid default null, p_spe
 language plpgsql security definer set search_path = public as $$
 declare p public.purchase_orders; s public.job_specs; j public.jobs; v_c jsonb; v_id uuid; v_lvl int;
 begin
-  if not public.is_internal() then raise exception 'Only adm Indicia staff can do this' using errcode = '42501'; end if;
+  if not public.is_internal() then raise exception 'Only staff can do this' using errcode = '42501'; end if;
   if p_po is not null then
     select * into p from public.purchase_orders where id = p_po;
     if p.id is null then raise exception 'Purchase order not found'; end if;
@@ -539,7 +539,7 @@ create or replace function public.qaqc_set_level(p_plan uuid, p_level int, p_rea
 language plpgsql security definer set search_path = public as $$
 declare pl public.qaqc_plans; j public.jobs; v_applying boolean := public._approval_applying('QAQC_LOWER', p_plan::text);
 begin
-  if not public.is_internal() then raise exception 'Only adm Indicia staff can change a QA/QC level' using errcode = '42501'; end if;
+  if not public.is_internal() then raise exception 'Only staff can change a QA/QC level' using errcode = '42501'; end if;
   select * into pl from public.qaqc_plans where id = p_plan for update;
   if pl.id is null then raise exception 'QA/QC plan not found'; end if;
   if p_level is null or p_level not between 1 and 5 then raise exception 'Choose a level from L1 to L5'; end if;
@@ -569,7 +569,7 @@ create or replace function public.qaqc_request_waiver(p_plan uuid, p_reason text
 language plpgsql security definer set search_path = public as $$
 declare pl public.qaqc_plans; j public.jobs; v uuid;
 begin
-  if not public.is_internal() then raise exception 'Only adm Indicia staff can ask for a QA/QC waiver' using errcode = '42501'; end if;
+  if not public.is_internal() then raise exception 'Only staff can ask for a QA/QC waiver' using errcode = '42501'; end if;
   select * into pl from public.qaqc_plans where id = p_plan;
   if pl.id is null then raise exception 'QA/QC plan not found'; end if;
   if pl.status in ('passed','waived') then raise exception 'This QA/QC plan is already %', pl.status; end if;
@@ -829,11 +829,11 @@ create or replace function public.qaqc_vendor_submit(p_checkpoint uuid, p_eviden
 language plpgsql security definer set search_path = public as $$
 begin perform public._vendor_block_viewer(); return public._core_qaqc_vendor_submit(p_checkpoint, p_evidence, p_data); end $$;
 
--- Internal (adm Indicia QC inspector or the account team on the vendor's behalf). The submitter can never verify it.
+-- Internal (Our QC inspector or the account team on the vendor's behalf). The submitter can never verify it.
 create or replace function public.qaqc_submit(p_checkpoint uuid, p_evidence jsonb, p_data jsonb) returns jsonb
 language plpgsql security definer set search_path = public as $$
 begin
-  if not public.is_internal() or public.my_supplier_id() is not null then raise exception 'Only adm Indicia staff can do this' using errcode = '42501'; end if;
+  if not public.is_internal() or public.my_supplier_id() is not null then raise exception 'Only staff can do this' using errcode = '42501'; end if;
   return public._qaqc_submit(p_checkpoint, p_evidence, p_data, false);
 end $$;
 
@@ -844,7 +844,7 @@ create or replace function public._qaqc_review_block(p_checkpoint uuid) returns 
 language plpgsql stable security definer set search_path = public as $$
 declare c public.qaqc_checkpoints; pl public.qaqc_plans; pol record;
 begin
-  if auth.uid() is null or not public.is_internal() then return 'Only adm Indicia staff can review QA/QC'; end if;
+  if auth.uid() is null or not public.is_internal() then return 'Only staff can review QA/QC'; end if;
   select * into c from public.qaqc_checkpoints where id = p_checkpoint;
   if c.id is null then return 'Checkpoint not found'; end if;
   select * into pl from public.qaqc_plans where id = c.plan_id;
@@ -952,7 +952,7 @@ $$;
 create or replace function public.qaqc_plan_detail(p_plan uuid) returns jsonb
 language plpgsql stable security definer set search_path = public as $$
 begin
-  if not public.is_internal() then raise exception 'Only adm Indicia staff can do this' using errcode = '42501'; end if;
+  if not public.is_internal() then raise exception 'Only staff can do this' using errcode = '42501'; end if;
   return public._qaqc_plan_json(p_plan, false);
 end $$;
 

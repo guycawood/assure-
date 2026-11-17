@@ -74,7 +74,7 @@ test("rule engine: the highest applicable level wins and every rule that fired i
   // Checkpoints follow the level (L3: mock-up, production, pre-shipment).
   const cps = (await asSuper("select checkpoint from public.qaqc_checkpoints where plan_id = $1 order by seq", [P.plan.id])).rows.map((x) => x.checkpoint);
   assert.deepEqual(cps, ["mockup", "production", "pre_shipment"]);
-  await rejects(as("vA", "select public.qaqc_required_level($1, null)", [P.po]), /Only adm Indicia staff/);
+  await rejects(as("vA", "select public.qaqc_required_level($1, null)", [P.po]), /Only staff/);
 });
 
 test("raising needs a reason; lowering below the computed level needs a quality role who did not ask", async () => {
@@ -169,7 +169,7 @@ test("review: a quality role verifies, never the uploader; rejections need a rea
   await as("lead", "select public.qaqc_submit($1,$2,$3)", [c.id, JSON.stringify([{ type: "SAMPLE_APPROVAL", file_id: f.id, issued_on: day(0) }]), JSON.stringify({ result: "pass" })]);
   await rejects(as("lead", "select public.qaqc_review_checkpoint($1, true, null)", [c.id]), /You uploaded this evidence/);
   await rejects(as("agent", "select public.qaqc_review_checkpoint($1, true, null)", [c.id]), /quality/);
-  await rejects(as("vA", "select public.qaqc_review_checkpoint($1, true, null)", [c.id]), /adm Indicia staff/);
+  await rejects(as("vA", "select public.qaqc_review_checkpoint($1, true, null)", [c.id]), /staff/);
   // Shows in the approvals inbox for a quality role who did not upload it.
   assert.ok((await as("head", "select * from public.approvals_inbox('mine')")).rows.some((x) => x.approval_type === "QAQC_VERIFY" && x.item_id === c.id));
   assert.equal((await as("lead", "select * from public.approvals_inbox('mine')")).rows.some((x) => x.item_id === c.id), false);
@@ -260,7 +260,7 @@ test("client portal: client-safe KPIs for the client's own jobs only", async () 
   await rejects(as("client", "select public.client_portal_delivery_kpis($1)", [cB]), /do not have access/);
   const internal = (await one("agent", "select public.crm_client_delivery_kpis($1) k", [cB])).k;
   assert.ok(internal.ncrs.raised >= 0);
-  await rejects(as("client", "select public.crm_client_delivery_kpis($1)", [cA]), /adm Indicia staff/);
+  await rejects(as("client", "select public.crm_client_delivery_kpis($1)", [cA]), /staff/);
   // Client health carries OTIF and QA/QC.
   const h = (await one("agent", "select otif_percent, qaqc_pass_percent from public.crm_client_health where client_id = $1", [cB]));
   assert.ok("otif_percent" in h && "qaqc_pass_percent" in h);

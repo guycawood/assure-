@@ -1,4 +1,4 @@
--- Client Portal + External Reporting (external; clients of adm Indicia).
+-- Client Portal + External Reporting (external; clients).
 -- Clients see ONLY their own accounts, and only client-safe columns: never supplier names or costs, margins/markups,
 -- benchmarks, NTI, internal notes or other clients' data. Every client read goes through a security definer function
 -- below that scopes rows with _client_scope() and builds the output column by column (no row-level grants on internal tables).
@@ -212,7 +212,7 @@ begin
   if p_role not in ('approver','viewer') then raise exception 'Choose approver or viewer'; end if;
   select * into p from public.profiles where id = p_user for update;
   if p.id is null then raise exception 'Person not found'; end if;
-  if p.is_admin or p.user_type = 'internal' then raise exception 'adm Indicia staff can preview the Client Portal; they can''t be given client access'; end if;
+  if p.is_admin or p.user_type = 'internal' then raise exception 'Staff can preview the Client Portal; they can''t be given client access'; end if;
   if p.supplier_id is not null then raise exception 'This person is linked to a vendor company; unlink them in User access first'; end if;
   select * into c from public.sourcing_clients where id = p_client;
   if c.id is null then raise exception 'Client not found'; end if;
@@ -308,7 +308,7 @@ begin
     from public.briefs b where b.id in (select public._client_brief_ids(v)));
 end $$;
 
--- Comments on a brief, with author names (client staff by name; anyone else as "adm Indicia").
+-- Comments on a brief, with author names (client staff by name; anyone else as "the team").
 create or replace function public._client_comment_rows(p_brief uuid) returns jsonb
 language sql stable security definer set search_path = public as $$
   select coalesce(jsonb_agg(jsonb_build_object('id', cc.id, 'body', cc.body, 'created_at', cc.created_at,
@@ -482,7 +482,7 @@ begin
   if v_role <> 'approver' then raise exception 'Only approvers can approve or decline estimates; ask your approver' using errcode = '42501'; end if;
   if e.status <> 'sent' then raise exception 'This estimate is already %', e.status; end if;
   if exists (select 1 from public.client_decisions where estimate_id = e.id and decided_at >= coalesce(e.sent_at, e.created_at)) then
-    raise exception 'Your decision on this estimate is already with adm Indicia';
+    raise exception 'Your decision on this estimate is already with us';
   end if;
   if p_approve is null then raise exception 'Choose approve or decline'; end if;
   if not p_approve and coalesce(trim(p_comment), '') = '' then raise exception 'Tell us why you are declining'; end if;

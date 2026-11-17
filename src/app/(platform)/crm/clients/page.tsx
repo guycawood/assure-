@@ -8,13 +8,15 @@ import { ActionForm } from "@/components/sourcing/action-form";
 import { StatusPill, Td, Th } from "@/components/sourcing/bits";
 import { ClientLink, Disclosure, Input, RagPill, Select, TextArea, marketOptions } from "@/components/crm/bits";
 import { createClientAccount } from "../actions";
+import { ImpactGradeBadge } from "@/components/impact-grade/grade-badge";
+import { getClientGrades } from "@/lib/impact-grade-data";
 
 export const metadata: Metadata = { title: "Clients · CRM" };
 
 export default async function CrmClients() {
   await requireInternal();
   const supabase = await createClient();
-  const [clients, accounts, health, opps, markets] = await Promise.all([getClients(supabase), getAccounts(supabase), getHealth(supabase), getOpportunities(supabase), getMarkets(supabase)]);
+  const [clients, accounts, health, opps, markets, grades] = await Promise.all([getClients(supabase), getAccounts(supabase), getHealth(supabase), getOpportunities(supabase), getMarkets(supabase), getClientGrades(supabase)]);
   const hById = new Map(health.map((h) => [h.client_id, h]));
 
   return (
@@ -38,7 +40,7 @@ export default async function CrmClients() {
       <Card className="overflow-x-auto">
         {clients.length === 0 ? <Empty title="No clients yet" /> : (
           <table className="w-full text-sm">
-            <thead><tr><Th>Client</Th><Th>Markets</Th><Th>Account leads</Th><Th>Open pipeline</Th><Th className="text-right">Spend this year</Th><Th>Health</Th><Th>Set-up</Th></tr></thead>
+            <thead><tr><Th>Client</Th><Th>Markets</Th><Th>Account leads</Th><Th>Open pipeline</Th><Th className="text-right">Spend this year</Th><Th>Health</Th><Th>Impact Grade</Th><Th>Set-up</Th></tr></thead>
             <tbody>
               {clients.map((c) => {
                 const acc = accounts.filter((a) => a.client_id === c.id);
@@ -53,6 +55,7 @@ export default async function CrmClients() {
                     <Td>{open.length ? <>{moneyByCurrency(open.map((o) => ({ value: o.weighted_value, currency: o.currency })))}<div className="text-xs text-muted">weighted · {open.length} open</div></> : <span className="text-muted">—</span>}</Td>
                     <Td className="text-right tabular-nums">{h ? money(h.spend_ytd, h.currency) : "—"}</Td>
                     <Td>{h ? <RagPill rag={h.rag} title={h.reasons.join(" · ")} /> : "—"}</Td>
+                    <Td>{(() => { const g = grades.get(c.id); return <span title={g ? `Average of ${g.graded} graded of ${g.specs} specs on this client's jobs` : "No specs on this client's jobs yet"}><ImpactGradeBadge score={g?.avg} /></span>; })()}</Td>
                     <Td><StatusPill meta={SETUP_STATUS} value={c.crm_setup_status} /></Td>
                   </tr>
                 );

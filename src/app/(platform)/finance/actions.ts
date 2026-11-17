@@ -74,6 +74,10 @@ export async function createBill(_: FormResult, fd: FormData): Promise<FormResul
   revalidatePath("/finance", "layout");
   redirect(`/finance/billing/${data}`);
 }
+/** Finance waives the delivery check for one estimate (for example a service with nothing to deliver). Recorded with the reason. */
+export async function waiveBillGate(_: FormResult, fd: FormData) {
+  return call("finance_bill_waive_gate", { p_estimate: id(fd, "estimate_id"), p_reason: str(fd, "reason") }, "Delivery check waived. You can create the bill now.");
+}
 export async function sendBill(_: FormResult, fd: FormData) {
   return call("finance_bill_send", { p_bill: id(fd) }, "Bill marked as sent");
 }

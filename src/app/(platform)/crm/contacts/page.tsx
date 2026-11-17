@@ -86,7 +86,7 @@ export default async function CrmContacts({ searchParams }: { searchParams: Prom
           <p className="mt-2 text-xs text-muted">Leavers stay on record for history but are no longer contacted, surveyed or emailed.</p>
         </Disclosure>
       </div>
-      <p className="text-xs text-muted">Owner roles and services come from the CRM Watchtower libraries; {peopleOptions(people).length} people at adm Indicia can own contacts.</p>
+      <p className="text-xs text-muted">Owner roles and services come from the CRM Watchtower libraries; {peopleOptions(people).length} people on the team can own contacts.</p>
     </>
   );
 }

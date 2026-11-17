@@ -111,7 +111,7 @@ create or replace view public.approvals_rfq with (security_invoker = true) as
   select 'rfq', 'RFQ_AWARD', r.id::text, r.rfq_number, 'Award ' || r.title,
          r.created_by, coalesce(least(r.due_at, now()), r.sent_at), a.best, r.currency, c.name, public._market_code(r.market), r.region,
          public.approval_status('RFQ_AWARD', coalesce(least(r.due_at, now()), r.sent_at), public._market_code(r.market), a.best),
-         public.approval_rule('RFQ_AWARD', j.client_id, public._market_code(r.market), a.best, 'Anyone at adm Indicia'), '/rfq/' || r.id,
+         public.approval_rule('RFQ_AWARD', j.client_id, public._market_code(r.market), a.best, 'Anyone on the team'), '/rfq/' || r.id,
          public.rfq_can_award(r.id), public._market_name(r.market)
     from public.rfqs r join public.jobs j on j.id = r.job_id join public.sourcing_clients c on c.id = j.client_id
     cross join lateral (select min(q.total_value)::numeric as best from public.rfq_responses q
@@ -249,7 +249,7 @@ create or replace view public.approvals_logistics with (security_invoker = true)
          'POD for ' || d.delivery_number || ' · ' || s.name as title, sh.pod_uploaded_by as requested_by, coalesce(sh.pod_received_at, sh.created_at) as requested_at,
          null::numeric as amount, null::text as currency, c.name as client, public._market_code(d.market) as market, d.region,
          public.approval_status('POD_VERIFY', coalesce(sh.pod_received_at, sh.created_at), public._market_code(d.market), null) as status,
-         'Anyone at adm Indicia except the uploader; every mandatory POD point checked' as approver_rule, '/logistics/pods' as href,
+         'Anyone on the team except the uploader; every mandatory POD point checked' as approver_rule, '/logistics/pods' as href,
          public.is_internal() and sh.pod_uploaded_by is distinct from auth.uid() as can_decide, public._market_name(d.market) as market_name
     from public.shipments sh join public.deliveries d on d.id = sh.delivery_id join public.suppliers s on s.id = sh.supplier_id
     left join public.purchase_orders p on p.id = d.po_id left join public.jobs j on j.id = p.job_id left join public.sourcing_clients c on c.id = j.client_id
@@ -265,7 +265,7 @@ create or replace view public.approvals_execution with (security_invoker = true)
          'Audit install · ' || j.title as title, dep.installed_by as requested_by, coalesce(dep.installation_date::timestamptz, dep.created_at) as requested_at,
          null::numeric as amount, null::text as currency, c.name as client, public._market_code(dep.market) as market, dep.region,
          public.approval_status('DEPLOYMENT_AUDIT', coalesce(dep.installation_date::timestamptz, dep.created_at), public._market_code(dep.market), null) as status,
-         'Anyone at adm Indicia except who recorded the install' as approver_rule, '/execution/deployments/' || dep.id as href,
+         'Anyone on the team except who recorded the install' as approver_rule, '/execution/deployments/' || dep.id as href,
          public.is_internal() and dep.installed_by is distinct from auth.uid() as can_decide, public._market_name(dep.market) as market_name
     from public.deployments dep join public.jobs j on j.id = dep.job_id join public.sourcing_clients c on c.id = j.client_id
    where dep.stage = 'installed' and dep.audit_status in ('pending','needs_review')
@@ -273,7 +273,7 @@ create or replace view public.approvals_execution with (security_invoker = true)
   select 'execution', 'QUALITY_GATE', g.id::text, j.job_number, initcap(g.gate_key) || ' gate · ' || j.title,
          f.uploaded_by, f.created_at, null, null, c.name, public._market_code(j.market), j.region,
          public.approval_status('QUALITY_GATE', f.created_at, public._market_code(j.market), null),
-         public.approval_rule('QUALITY_GATE', j.client_id, public._market_code(j.market), null, 'Anyone at adm Indicia (check sheet uploaded)'),
+         public.approval_rule('QUALITY_GATE', j.client_id, public._market_code(j.market), null, 'Anyone on the team (check sheet uploaded)'),
          '/execution/jobs/' || j.id, public.is_internal() and public._quality_gate_block(j.id, g.gate_key) is null, public._market_name(j.market)
     from public.job_quality_gates g join public.jobs j on j.id = g.job_id join public.sourcing_clients c on c.id = j.client_id
     join lateral (select x.uploaded_by, x.created_at from public.files x where x.entity_type = 'job_quality_gate' and x.entity_id = j.id::text || ':' || g.gate_key
@@ -314,14 +314,14 @@ create or replace view public.approvals_assure with (security_invoker = true) as
   union all
   select 'assure', 'CERTIFICATE', ce.id::text, s.supplier_code, t.name || ' · ' || s.name, ce.uploaded_by, ce.created_at, null, null, s.client,
          public._market_code(ce.market), ce.region,
-         public.approval_status('CERTIFICATE', ce.created_at, public._market_code(ce.market), null), 'Anyone at adm Indicia except the uploader', '/assure/compliance/review',
+         public.approval_status('CERTIFICATE', ce.created_at, public._market_code(ce.market), null), 'Anyone on the team except the uploader', '/assure/compliance/review',
          public.is_internal() and ce.uploaded_by is distinct from auth.uid(), public._market_name(ce.market)
     from public.supplier_certificates ce join public.suppliers s on s.id = ce.supplier_id join public.library_records t on t.id = ce.cert_type_id
    where ce.verification_status = 'pending' and not ce.not_applicable
   union all
   select 'assure', 'DOCUMENT', dc.id::text, s.supplier_code, dc.title || ' · ' || s.name, dc.uploaded_by, dc.created_at, null, null, s.client,
          public._market_code(dc.market), dc.region,
-         public.approval_status('DOCUMENT', dc.created_at, public._market_code(dc.market), null), 'Anyone at adm Indicia except the uploader', '/assure/compliance/review',
+         public.approval_status('DOCUMENT', dc.created_at, public._market_code(dc.market), null), 'Anyone on the team except the uploader', '/assure/compliance/review',
          public.is_internal() and dc.uploaded_by is distinct from auth.uid(), public._market_name(dc.market)
     from public.supplier_documents dc join public.suppliers s on s.id = dc.supplier_id where dc.status = 'pending'
   union all
@@ -347,7 +347,7 @@ create or replace view public.approvals_assure with (security_invoker = true) as
   select 'assure', 'SURVEY_REVIEW', sr.id::text, s.supplier_code, sr.template_name || ' · ' || s.name, coalesce(sr.launched_by, sr.submitted_by),
          coalesce(sr.submitted_at, sr.created_at), null, null, s.client, public._market_code(sr.market), sr.region,
          public.approval_status('SURVEY_REVIEW', coalesce(sr.submitted_at, sr.created_at), public._market_code(sr.market), null),
-         public.approval_rule('SURVEY_REVIEW', null, public._market_code(sr.market), null, 'Anyone at adm Indicia'), '/assure/surveys',
+         public.approval_rule('SURVEY_REVIEW', null, public._market_code(sr.market), null, 'Anyone on the team'), '/assure/surveys',
          public.is_internal() and public._survey_review_block(sr.id) is null, public._market_name(sr.market)
     from public.survey_responses sr join public.suppliers s on s.id = sr.supplier_id where sr.status in ('submitted','under_review')
   union all
@@ -363,7 +363,7 @@ create or replace view public.approvals_assure with (security_invoker = true) as
   union all
   select 'assure', 'CA_VERIFY', a.id::text, coalesce(n.ncr_ref, s.supplier_code), 'Verify corrective action · ' || left(a.description, 80), a.done_by, a.done_at, null, null,
          s.client, public._market_code(s.market), s.region, public.approval_status('CA_VERIFY', a.done_at, public._market_code(s.market), null),
-         'Anyone at adm Indicia except who completed it', '/assure/quality/ncr/' || n.id, public.is_internal() and a.done_by is distinct from auth.uid(),
+         'Anyone on the team except who completed it', '/assure/quality/ncr/' || n.id, public.is_internal() and a.done_by is distinct from auth.uid(),
          public._market_name(s.market)
     from public.ncr_corrective_actions a join public.ncrs n on n.id = a.ncr_id join public.suppliers s on s.id = a.supplier_id where a.status = 'done'
   union all
@@ -371,7 +371,7 @@ create or replace view public.approvals_assure with (security_invoker = true) as
          coalesce((select max(a.verified_at) from public.ncr_corrective_actions a where a.ncr_id = n.id), n.created_at), null, null,
          s.client, public._market_code(n.market), n.region,
          public.approval_status('NCR_CLOSE', coalesce((select max(a.verified_at) from public.ncr_corrective_actions a where a.ncr_id = n.id), n.created_at), public._market_code(n.market), null),
-         public.approval_rule('NCR_CLOSE', null, public._market_code(n.market), null, 'Anyone at adm Indicia'), '/assure/quality/ncr/' || n.id,
+         public.approval_rule('NCR_CLOSE', null, public._market_code(n.market), null, 'Anyone on the team'), '/assure/quality/ncr/' || n.id,
          public.is_internal() and public._ncr_close_block(n.id) is null, public._market_name(n.market)
     from public.ncrs n join public.suppliers s on s.id = n.supplier_id
    where n.status = 'open' and exists (select 1 from public.ncr_corrective_actions a where a.ncr_id = n.id)
@@ -380,7 +380,7 @@ create or replace view public.approvals_assure with (security_invoker = true) as
   select 'assure', 'ISSUE_RESOLVE', i.id::text, s.supplier_code, 'Resolve issue · ' || i.title || ' · ' || s.name, s.srt_owner,
          coalesce(i.acknowledged_at, i.created_at), null, null, s.client, public._market_code(coalesce(i.market, s.market)), coalesce(i.region, s.region),
          public.approval_status('ISSUE_RESOLVE', coalesce(i.acknowledged_at, i.created_at), public._market_code(coalesce(i.market, s.market)), null),
-         public.approval_rule('ISSUE_RESOLVE', null, public._market_code(coalesce(i.market, s.market)), null, 'Anyone at adm Indicia'), '/assure/performance',
+         public.approval_rule('ISSUE_RESOLVE', null, public._market_code(coalesce(i.market, s.market)), null, 'Anyone on the team'), '/assure/performance',
          public.is_internal() and public._issue_resolve_block(i.id) is null, public._market_name(coalesce(i.market, s.market))
     from public.performance_issues i join public.suppliers s on s.id = i.supplier_id
    where i.acknowledgement_status = 'responded'
@@ -406,7 +406,7 @@ create or replace view public.approvals_shopper_iq with (security_invoker = true
          'Verify result · ' || c.name || ' · ' || tp.name as title, e.created_by as requested_by, e.created_at as requested_at,
          e.spend::numeric as amount, e.currency, coalesce(sc.name, c.client) as client, public._market_code(e.market) as market, e.region,
          public.approval_status('SIQ_EFFECTIVENESS', e.created_at, public._market_code(e.market), null) as status,
-         public.approval_rule('SIQ_EFFECTIVENESS', c.client_id, public._market_code(e.market), null, 'Anyone at adm Indicia · not who recorded it') as approver_rule,
+         public.approval_rule('SIQ_EFFECTIVENESS', c.client_id, public._market_code(e.market), null, 'Anyone on the team · not who recorded it') as approver_rule,
          '/shopper-iq/campaigns' as href, public.siq_effectiveness_can_verify(e.id) as can_decide, public._market_name(e.market) as market_name
     from public.siq_effectiveness e join public.campaigns c on c.id = e.campaign_id join public.library_records tp on tp.id = e.touchpoint_id
     left join public.sourcing_clients sc on sc.id = c.client_id
@@ -415,7 +415,7 @@ create or replace view public.approvals_shopper_iq with (security_invoker = true
   select 'shopper-iq', 'SIQ_ASSET', a.id::text, a.asset_code, 'Rights sign-off · ' || a.title, a.created_by, a.created_at, null, null,
          coalesce(sc.name, c.client), public._market_code(a.market), a.region,
          public.approval_status('SIQ_ASSET', a.created_at, public._market_code(a.market), null),
-         public.approval_rule('SIQ_ASSET', c.client_id, public._market_code(a.market), null, 'Anyone at adm Indicia · not who added it'),
+         public.approval_rule('SIQ_ASSET', c.client_id, public._market_code(a.market), null, 'Anyone on the team · not who added it'),
          '/shopper-iq/assets', public.siq_asset_can_signoff(a.id), public._market_name(a.market)
     from public.siq_assets a left join public.campaigns c on c.id = a.campaign_id left join public.sourcing_clients sc on sc.id = c.client_id
    where a.rights_status = 'pending'
@@ -454,7 +454,7 @@ returns table (module text, approval_type text, item_id text, ref text, title te
 language plpgsql stable security definer set search_path = public as $$
 #variable_conflict use_column
 begin
-  if auth.uid() is null or not public.is_internal() then raise exception 'The approvals inbox is for adm Indicia staff' using errcode = '42501'; end if;
+  if auth.uid() is null or not public.is_internal() then raise exception 'The approvals inbox is for staff' using errcode = '42501'; end if;
   if coalesce(p_scope, 'mine') not in ('mine','all') then raise exception 'Choose mine or all'; end if;
   if p_scope = 'all' and not public.is_admin() then raise exception 'Only admins can see every approval on the platform' using errcode = '42501'; end if;
   return query

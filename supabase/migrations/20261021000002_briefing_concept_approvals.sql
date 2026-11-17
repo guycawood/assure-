@@ -202,7 +202,7 @@ begin
     public._concept_href(c));
   if v_client = 'pending' then
     perform public.notify(cu.user_id, 'client', 'Concept for your approval: ' || c.name,
-      'adm Indicia would like your approval on a concept for ' || coalesce(b.title, 'your brief') || '.', '/client-portal/briefs/' || c.brief_id)
+      'We would like your approval on a concept for ' || coalesce(b.title, 'your brief') || '.', '/client-portal/briefs/' || c.brief_id)
       from public.client_users cu where cu.client_id = sc.client_id and cu.role = 'approver';
   end if;
 end $$;

@@ -27,7 +27,7 @@ export default async function VendorInvoices() {
 
   return (
     <>
-      <PageHead title="Invoices & payments" sub="Invoices you have sent against adm Indicia purchase orders, how matching is going, and when you will be paid." />
+      <PageHead title="Invoices & payments" sub="Invoices you have sent against our purchase orders, how matching is going, and when you will be paid." />
       <section className="grid gap-3 sm:grid-cols-4">
         <Stat label="Orders to invoice" value={toInvoice.length} icon={<MSymbol name="receipt_long" size={20} />} />
         <Stat label="Invoices in progress" value={open.length} icon={<MSymbol name="pending_actions" size={20} />} />

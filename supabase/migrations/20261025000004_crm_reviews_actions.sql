@@ -110,7 +110,7 @@ begin
   v_agenda := array(select trim(x) from unnest(coalesce(p_agenda, '{}')) x where trim(x) <> '');
   if cardinality(v_agenda) = 0 then raise exception 'Add at least one agenda item'; end if;
   if p_account is not null and not exists (select 1 from public.crm_accounts where id = p_account and client_id = v_client) then raise exception 'The account must belong to the same client'; end if;
-  if exists (select 1 from unnest(coalesce(p_internal, '{}')) x where not public._crm_internal_person(x)) then raise exception 'Internal attendees must be people at adm Indicia'; end if;
+  if exists (select 1 from unnest(coalesce(p_internal, '{}')) x where not public._crm_internal_person(x)) then raise exception 'Internal attendees must be people on the team'; end if;
   if exists (select 1 from unnest(coalesce(p_contacts, '{}')) x where not exists (select 1 from public.crm_contacts c where c.id = x and c.client_id = v_client)) then
     raise exception 'Client attendees must be contacts of the same client';
   end if;
@@ -216,7 +216,7 @@ begin
   end if;
   if not exists (select 1 from public.sourcing_clients where id = v_client) then raise exception 'Client not found'; end if;
   if coalesce(trim(p_title), '') = '' then raise exception 'Describe the action'; end if;
-  if not public._crm_internal_person(p_owner) then raise exception 'The owner must be someone at adm Indicia'; end if;
+  if not public._crm_internal_person(p_owner) then raise exception 'The owner must be someone on the team'; end if;
   if p_id is null then
     insert into public.crm_actions (client_id, account_id, source, review_id, title, detail, owner, due_date, client_visible, created_by)
     values (v_client, p_account, case when p_review is not null then 'review' else 'ad_hoc' end, p_review, trim(p_title), nullif(trim(p_detail), ''),
@@ -312,7 +312,7 @@ language plpgsql stable security definer set search_path = public as $$
 declare v uuid[] := public._client_scope(p_client);
 begin
   return (select coalesce(jsonb_agg(jsonb_build_object('id', a.id, 'client_name', c.name, 'title', a.title, 'detail', a.detail, 'due_date', a.due_date, 'status', a.status,
-      'from_review', r.title, 'owner_name', coalesce(nullif(p.full_name, ''), 'adm Indicia')) order by (a.status in ('done','cancelled')), a.due_date nulls last), '[]'::jsonb)
+      'from_review', r.title, 'owner_name', coalesce(nullif(p.full_name, ''), 'Team')) order by (a.status in ('done','cancelled')), a.due_date nulls last), '[]'::jsonb)
     from public.crm_actions a join public.sourcing_clients c on c.id = a.client_id left join public.crm_reviews r on r.id = a.review_id
     left join public.profiles p on p.id = a.owner
    where a.client_id = any (v) and a.client_visible and a.status <> 'cancelled');

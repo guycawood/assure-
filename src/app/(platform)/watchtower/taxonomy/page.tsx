@@ -48,7 +48,7 @@ export default async function TaxonomyPage({ searchParams }: { searchParams: Pro
       <PageHead
         title="Product taxonomy"
         crumbs={[{ label: "Watchtower", href: "/watchtower" }, { label: "Taxonomy" }]}
-        sub="One governed naming tree for everything adm Indicia buys and produces: form type, category, subcategory and product type. Specs, orders, spend reporting and the AAC triage rules all use it. Materials stay on each spec's bill of materials."
+        sub="One governed naming tree for everything the team buys and produces: form type, category, subcategory and product type. Specs, orders, spend reporting and the AAC triage rules all use it. Materials stay on each spec's bill of materials."
       />
 
       <nav aria-label="Taxonomy domains" className="flex flex-wrap gap-2 text-sm">

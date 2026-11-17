@@ -15,7 +15,7 @@ export type VendorCompany = {
   legal_entity: string | null; trading_name: string | null; website: string | null; address: string | null;
   primary_contact_name: string | null; contact_phone: string | null;
   subscription_tier: string | null; subscription_status: string; subscription_renewal: string | null;
-  my_permission: VendorPermission | null;
+  my_permission: VendorPermission | null; my_roles: string[] | null;
 };
 
 export type VendorCtx = { profile: Profile; company: VendorCompany | null; permission: VendorPermission | null };

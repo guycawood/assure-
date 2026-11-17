@@ -32,7 +32,7 @@ export default async function ClientAccessPage() {
       <PageHead
         title="Client access"
         crumbs={[{ label: "Watchtower", href: "/watchtower" }, { label: "Client access" }]}
-        sub="Client users see only the accounts listed here in the Client Portal. Approvers can approve or decline estimates; viewers can follow progress and comment. adm Indicia staff can preview any client read-only."
+        sub="Client users see only the accounts listed here in the Client Portal. Approvers can approve or decline estimates; viewers can follow progress and comment. Staff can preview any client read-only."
       />
       {error && <Card className="p-4 text-sm text-bad">{error.message}</Card>}
       <ApprovalRequests types={["CLIENT_ACCESS"]} meId={me.id} title="Approver rights waiting for a second admin" history={5} />
@@ -44,7 +44,7 @@ export default async function ClientAccessPage() {
       </section>
 
       {me.is_admin && (
-        <Panel title="Give someone access" sub="People appear here after their first sign-in with a non-adm Indicia email. Giving access makes them a client user.">
+        <Panel title="Give someone access" sub="People appear here after their first sign-in with an external email. Giving access makes them a client user.">
           <ClientActionForm action={grantClientAccess} submit="Give access" className="px-5 py-4">
             <div className="grid gap-3 md:grid-cols-3">
               <div>

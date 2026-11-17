@@ -564,7 +564,7 @@ create or replace function public._sc_internal_scope(p_client uuid) returns uuid
 language plpgsql stable security definer set search_path = public as $$
 declare v uuid[];
 begin
-  if auth.uid() is null or not public.is_internal() then raise exception 'The scorecard across clients is for adm Indicia staff only' using errcode = '42501'; end if;
+  if auth.uid() is null or not public.is_internal() then raise exception 'The scorecard across clients is for staff only' using errcode = '42501'; end if;
   if p_client is not null then
     if not exists (select 1 from public.sourcing_clients where id = p_client) then raise exception 'Client not found'; end if;
     return array[p_client];
@@ -597,7 +597,7 @@ $$;
 create or replace function public.scorecard_target(p_kpi text, p_client uuid default null, p_market text default null, p_date date default current_date) returns jsonb
 language plpgsql stable security definer set search_path = public as $$
 begin
-  if auth.uid() is null or not public.is_internal() then raise exception 'Only adm Indicia staff can read scorecard targets' using errcode = '42501'; end if;
+  if auth.uid() is null or not public.is_internal() then raise exception 'Only staff can read scorecard targets' using errcode = '42501'; end if;
   return public._sc_target(p_kpi, p_client, p_market, p_date);
 end $$;
 -- Filter options (business units, brands, markets present in the data) for the filter bar.

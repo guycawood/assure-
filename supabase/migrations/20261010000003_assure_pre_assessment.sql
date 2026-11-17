@@ -80,7 +80,7 @@ begin
   end if;
   select * into r from public.vendor_pre_assessments where id = p_id for update;
   if not found or r.supplier_id <> v_sup then raise exception 'This pre-assessment is not for your company' using errcode = '42501'; end if;
-  if r.status not in ('draft','under_review') then raise exception 'This pre-assessment is with adm Indicia and can''t be changed now'; end if;
+  if r.status not in ('draft','under_review') then raise exception 'This pre-assessment is with the team and can''t be changed now'; end if;
   update public.vendor_pre_assessments set company_name = trim(p_company), contact_name = p_contact_name, contact_email = lower(trim(p_contact_email)),
     major_category = p_category, head_office_country = p_country, data = coalesce(p_data, '{}'::jsonb), updated_at = now()
    where id = p_id;

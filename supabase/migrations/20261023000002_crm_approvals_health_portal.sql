@@ -335,7 +335,7 @@ begin
    where a.client_id = any (v) and a.status in ('active','prospect'));
 end $$;
 
--- A client user (approver or viewer) rates adm Indicia 0-10 with an optional comment, for one of their own accounts.
+-- A client user (approver or viewer) rates us 0-10 with an optional comment, for one of their own accounts.
 create or replace function public.client_feedback_submit(p_client uuid, p_score int, p_comment text default null, p_market text default null) returns uuid
 language plpgsql security definer set search_path = public as $$
 declare v_id uuid; v_market text := public._market_code(p_market); v_account uuid; v_name text; c public.sourcing_clients;
@@ -359,7 +359,7 @@ begin
   values (p_client, 'feedback', v_id::text, 'submitted_in_portal', jsonb_build_object('score', p_score), auth.uid());
   select * into c from public.sourcing_clients where id = p_client;
   select coalesce(nullif(full_name, ''), email) into v_name from public.profiles where id = auth.uid();
-  perform public.notify(u, 'crm', format('%s rated adm Indicia %s/10', v_name, p_score), coalesce(left(nullif(trim(p_comment), ''), 140), c.name), '/crm/feedback')
+  perform public.notify(u, 'crm', format('%s rated the team %s/10', v_name, p_score), coalesce(left(nullif(trim(p_comment), ''), 140), c.name), '/crm/feedback')
     from (select distinct a.account_lead u from public.crm_accounts a where a.client_id = p_client and a.account_lead is not null
            and (v_account is null or a.id = v_account)) t;
   return v_id;

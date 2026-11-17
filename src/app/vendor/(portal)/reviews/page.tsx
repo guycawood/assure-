@@ -20,7 +20,7 @@ export default async function ReviewsPage() {
   const act = canAct(ctx.permission);
   return (
     <>
-      <PageHead title="Business reviews" sub="Quarterly reviews and check-ins adm Indicia has shared with you. Accept the meeting, suggest another date, or send notes for the agenda." />
+      <PageHead title="Business reviews" sub="Quarterly reviews and check-ins we have shared with you. Accept the meeting, suggest another date, or send notes for the agenda." />
       {list.length === 0 ? <Card><Empty title="No reviews shared with you yet" /></Card> : list.map((r) => (
         <Card key={r.id} className="space-y-3 p-5">
           <div className="flex flex-wrap items-start gap-2">
@@ -34,7 +34,7 @@ export default async function ReviewsPage() {
           {r.description && <p className="text-sm">{r.description}</p>}
           <div className="grid gap-4 text-sm sm:grid-cols-3">
             <div><p className="eyebrow">Agenda</p><ul className="ml-4 list-disc">{r.agenda_items.map((a, i) => <li key={i}>{a}</li>)}</ul></div>
-            <div><p className="eyebrow">adm Indicia</p><p>{r.internal_attendees.join(", ") || "—"}</p></div>
+            <div><p className="eyebrow">Our team</p><p>{r.internal_attendees.join(", ") || "—"}</p></div>
             <div><p className="eyebrow">Your team</p><p>{r.vendor_attendees.join(", ") || "—"}</p></div>
           </div>
           {(r.vendor_suggested_date || r.vendor_notes) && (

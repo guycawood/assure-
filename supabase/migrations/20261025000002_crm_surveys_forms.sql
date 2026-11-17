@@ -182,7 +182,7 @@ begin
     return 'pending';
   end if;
   select * into t from public.library_effective('crm_email_templates', 'SURVEY-INVITE', current_date);
-  for r in select sr.id, sr.token, ct.email, ct.full_name, c.name as client_name, coalesce(nullif(p.full_name, ''), p.email, 'The adm Indicia team') as owner_name
+  for r in select sr.id, sr.token, ct.email, ct.full_name, c.name as client_name, coalesce(nullif(p.full_name, ''), p.email, 'Our team') as owner_name
              from public.crm_survey_recipients sr join public.crm_contacts ct on ct.id = sr.contact_id join public.sourcing_clients c on c.id = sr.client_id
              left join public.profiles p on p.id = sr.owner
             where sr.wave_id = p_wave and sr.status = 'queued' loop
@@ -225,11 +225,11 @@ begin
     select sum(e.sell_price), min(e.currency) into v_spend, v_cur from public.estimates e where e.job_id = new.id and e.status = 'approved';
     insert into public.crm_job_surveys (job_id, client_id, contact_id, project_number, spend, currency)
     values (new.id, new.client_id, ct.id, new.job_number, v_spend, coalesce(v_cur, new.currency)) returning id, token into v_id, v_token;
-    select coalesce(nullif(p.full_name, ''), p.email, 'The adm Indicia team') into v_owner from public.profiles p where p.id = coalesce(ct.owner, new.manager);
+    select coalesce(nullif(p.full_name, ''), p.email, 'Our team') into v_owner from public.profiles p where p.id = coalesce(ct.owner, new.manager);
     insert into public.email_outbox (to_email, subject, body, link, created_by, source, source_id)
     values (ct.email, 'How did project ' || new.job_number || ' go?',
       'Dear ' || public._crm_first_name(ct.full_name) || E',\n\nProject ' || new.job_number || ' (' || new.title || E') is complete. Two minutes to tell us how it went would help us improve.\n\n/s/' || v_token
-        || E'\n\nThank you,\n' || coalesce(v_owner, 'The adm Indicia team') || E'\nadm Indicia\n\nNo longer want these emails? /u/' || v_token,
+        || E'\n\nThank you,\n' || coalesce(v_owner, 'Our team') || E'\n\nNo longer want these emails? /u/' || v_token,
       '/s/' || v_token, auth.uid(), 'crm_job_survey', v_id);
     insert into public.crm_events (client_id, entity_type, entity_id, action, detail, actor)
     values (new.client_id, 'job_survey', v_id::text, 'sent', jsonb_build_object('job', new.job_number, 'contact', ct.id), auth.uid());

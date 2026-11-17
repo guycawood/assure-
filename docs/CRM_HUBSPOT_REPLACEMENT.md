@@ -1,6 +1,6 @@
 # CRM as the HubSpot replacement
 
-CRM in System Guy replaces HubSpot. This is what adm Indicia uses HubSpot for today (from the Client Services
+CRM in System Guy replaces HubSpot. This is what the team uses HubSpot for today (from the Client Services
 guides IWW326 Stakeholder Mapping, IWW327 Performance Tracker, IWW334 Customer Satisfaction Survey, Oct 2023;
 form-submission exports on client team sites; marketing and internal comms emails, 2026; the Data Domain
 Owners sheet, which names HubSpot as the source for client contacts), and what CRM must do to take each job over.

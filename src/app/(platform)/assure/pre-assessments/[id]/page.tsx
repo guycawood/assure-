@@ -39,7 +39,13 @@ export default async function PreAssessmentDetail({ params }: { params: Promise<
   const isProc = me.is_admin || me.srt_role === "procurement" || me.srt_role === "head";
   const certGroups = ["quality_certs", "environmental_certs", "health_safety_certs", "esg_certs", "ethical_audits", "product_transport_certs"]
     .map((k) => [k, ((d[k] as Cert[] | undefined) ?? []).filter((c) => c.cert_number || c.audit_date)] as const).filter(([, list]) => list.length);
-  const needsFeedback = (act: string) => ["request_info", "vm_reject", "reject"].includes(act);
+  const custom = ((d.custom as Record<string, string> | undefined) ?? {});
+  const qText = new Map<string, string>();
+  if (Object.keys(custom).length) {
+    const { data: fv } = await supabase.rpc("form_versions_list", { p_form: "onboarding" });
+    for (const v of (fv as { questions: { id: string; text: string }[] }[] | null) ?? []) for (const q of v.questions) qText.set(q.id, q.text);
+  }
+  const needsFeedback =(act: string) => ["request_info", "vm_reject", "reject"].includes(act);
 
   return (
     <>
@@ -67,6 +73,12 @@ export default async function PreAssessmentDetail({ params }: { params: Promise<
                   <tbody>{list.map((c, i) => <tr key={i}><td className="td">{c.type}</td><td className="td">{c.cert_number}</td><td className="td">{c.audit_date ? formatDate(c.audit_date) : ""}</td></tr>)}</tbody></table>
               </div>
             ))}
+            {Object.keys(custom).length > 0 && (
+              <div>
+                <p className="mb-1 text-xs font-semibold uppercase tracking-[0.06em] text-muted">Additional questions (form version {String(d.form_version ?? "")})</p>
+                <dl className="space-y-2 text-sm">{Object.entries(custom).map(([k, v]) => <div key={k}><dt className="text-muted">{qText.get(k) ?? k}</dt><dd>{v}</dd></div>)}</dl>
+              </div>
+            )}
             {a.feedback_to_vendor && <p className="rounded-lg bg-surface-2 p-3 text-sm"><b>Last message to the vendor:</b> {a.feedback_to_vendor}</p>}
           </div>
         </Panel>

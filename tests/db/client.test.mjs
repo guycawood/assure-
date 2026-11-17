@@ -55,7 +55,7 @@ test("client identity: free-text client resolves by code or name (case-insensiti
 
 test("only admins grant client access; staff and vendor-linked people can't be clients; grants are audited", async () => {
   await rejects(as("lead", "select public.client_access_grant($1, $2, 'approver')", [U.cA1, A]), /Only admins/);
-  await rejects(as("admin", "select public.client_access_grant($1, $2, 'approver')", [ids.plain, A]), /staff/);
+  await rejects(as("admin", "select public.client_access_grant($1, $2, 'approver')", [ids.plain, A]), /staff/i);
   await rejects(as("admin", "select public.client_access_grant($1, $2, 'owner')", [U.cA1, A]), /approver or viewer/);
   await as("admin", "select public.client_access_grant($1, $2, 'approver')", [U.cA1, A]);
   await as("admin", "select public.client_access_grant($1, $2, 'viewer')", [U.cA2, A]);

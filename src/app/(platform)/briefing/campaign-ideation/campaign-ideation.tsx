@@ -31,10 +31,9 @@ export function CampaignIdeation() {
     if (r && !r.ok) setError(r.message);
   });
   const submit = (id: string) => {
-    const note = window.prompt("Anything the approver should know? (optional)");
-    if (note === null) return;
+    // No window.prompt (blocked in embedded browsers): the note is optional, so submit straight away.
     start(async () => {
-      const r = await submitConcept(id, note);
+      const r = await submitConcept(id, "");
       if (!r.ok) { setError(r.message); return; }
       setSubmitted((s) => [...s, id]);
       router.refresh();

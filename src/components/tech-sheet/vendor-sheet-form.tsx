@@ -10,7 +10,7 @@ const yn = (b: boolean | null | undefined) => (b == null ? "" : b ? "yes" : "no"
 function Num({ name, label, value, req }: { name: string; label: string; value: unknown; req?: boolean }) {
   return (
     <label className="block text-xs">
-      <span className="label">{label}{req && <span className="ml-1 text-bad" title="Required by adm Indicia">*</span>}</span>
+      <span className="label">{label}{req && <span className="ml-1 text-bad" title="Required by us">*</span>}</span>
       <input name={name} inputMode="decimal" defaultValue={v(value)} className="input" />
     </label>
   );
@@ -18,7 +18,7 @@ function Num({ name, label, value, req }: { name: string; label: string; value: 
 function Txt({ name, label, value, req, wide }: { name: string; label: string; value: unknown; req?: boolean; wide?: boolean }) {
   return (
     <label className={`block text-xs ${wide ? "sm:col-span-2" : ""}`}>
-      <span className="label">{label}{req && <span className="ml-1 text-bad" title="Required by adm Indicia">*</span>}</span>
+      <span className="label">{label}{req && <span className="ml-1 text-bad" title="Required by us">*</span>}</span>
       <input name={name} defaultValue={v(value)} maxLength={500} className="input" />
     </label>
   );
@@ -26,7 +26,7 @@ function Txt({ name, label, value, req, wide }: { name: string; label: string; v
 
 /**
  * The vendor's technical & packaging data sheet for one PO line. "Save draft" keeps it private to the vendor's work; "Declare"
- * confirms the values (a new version is recorded). Fields adm Indicia requires (by the requirement matrix) are starred.
+ * confirms the values (a new version is recorded). Fields we require (by the requirement matrix) are starred.
  */
 export function VendorSheetForm({ poId, specId, versionId, sheet, required, options }: {
   poId: string; specId: string; versionId: string | null; sheet: TechSheet | null; required: RequiredField[]; options: MaterialOptions;
@@ -133,7 +133,7 @@ export function VendorSheetForm({ poId, specId, versionId, sheet, required, opti
           );
         })}
       </fieldset>
-      <label className="block text-xs"><span className="label">Notes for adm Indicia (optional)</span><input name="notes" defaultValue={v(sheet?.notes)} maxLength={2000} className="input" /></label>
+      <label className="block text-xs"><span className="label">Notes for us (optional)</span><input name="notes" defaultValue={v(sheet?.notes)} maxLength={2000} className="input" /></label>
     </ActionForm>
   );
 }

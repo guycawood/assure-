@@ -55,7 +55,7 @@ export function SurveyForm({ token, page }: { token: string; page: SurveyPage })
     <form className="space-y-5" onSubmit={(e) => { e.preventDefault(); submit(); }}>
       <div>
         <h1 className="font-display text-[1.6rem] font-bold leading-tight">{page.kind === "job" ? `How did ${page.title} go?` : page.title}</h1>
-        <p className="mt-1 text-sm text-muted">{page.first_name ? `Hello ${page.first_name}. ` : ""}{page.kind === "job" ? "Two quick questions about this project for " : "Please tell us how adm Indicia is doing for "}{page.client_name}.
+        <p className="mt-1 text-sm text-muted">{page.first_name ? `Hello ${page.first_name}. ` : ""}{page.kind === "job" ? "Two quick questions about this project for " : "Please tell us how we are doing for "}{page.client_name}.
           {page.kind === "survey" && ` Score each statement from 1 (${(page.scale ?? "1 = poor").split(",")[0].replace(/^1\s*=\s*/, "")}) to 5. If you give ${limit} or lower, tell us why so we can fix it.`}</p>
       </div>
 
@@ -86,7 +86,7 @@ export function SurveyForm({ token, page }: { token: string; page: SurveyPage })
           ))}
           <section className="space-y-4 rounded-2xl border border-line bg-surface p-5 shadow-card">
             <h2 className="font-display text-base font-bold">Overall</h2>
-            <p className="text-sm">How likely are you to recommend adm Indicia to a colleague? (0 = not at all, 10 = extremely likely)</p>
+            <p className="text-sm">How likely are you to recommend us to a colleague? (0 = not at all, 10 = extremely likely)</p>
             <Scale name="Recommend" value={npsScore} min={0} max={10} onChange={setNps} />
             {(["start", "continue", "stop"] as const).map((k) => (
               <label key={k} className="block"><span className="label">What should we {k === "start" ? "start doing" : k === "continue" ? "continue doing" : "stop doing"}?</span>

@@ -11,7 +11,9 @@ export async function LibraryIndex({ module, basePath }: { module?: string; base
   // A section shows its areas' libraries too (Sourcing includes RFQs; Order Management includes Logistics and Execution).
   const keys = module ? membersOf(module) : null;
   const [allDefs, counts] = await Promise.all([getLibraryDefs(supabase), getLibraryCounts(supabase)]);
-  const defs = keys ? allDefs.filter((d) => keys.includes(d.module as ModuleKey)) : allDefs;
+  // Rate cards live in Sourcing (Sourcing > Rate cards), so they are not listed here.
+  const visible = allDefs.filter((d) => d.key !== "rate_cards");
+  const defs = keys ? visible.filter((d) => keys.includes(d.module as ModuleKey)) : visible;
   const mods = MODULES.filter((m) => defs.some((d) => sectionKey(d.module) === m.key));
   return (
     <div className="flex flex-col gap-5">

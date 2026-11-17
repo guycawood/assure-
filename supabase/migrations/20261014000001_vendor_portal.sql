@@ -86,7 +86,7 @@ begin
   select tier into v_cur from public.supplier_subscriptions where supplier_id = v_sup;
   if v_cur is not distinct from p_tier then raise exception 'You are already on this plan'; end if;
   if exists (select 1 from public.subscription_requests where supplier_id = v_sup and status = 'open') then
-    raise exception 'You already have a plan change request open. adm Indicia will be in touch.';
+    raise exception 'You already have a plan change request open. The team will be in touch.';
   end if;
   insert into public.subscription_requests (supplier_id, current_tier, requested_tier, note, requested_by)
   values (v_sup, v_cur, p_tier, nullif(trim(p_note), ''), auth.uid()) returning id into v_id;
@@ -182,7 +182,7 @@ begin
   if v_email !~ '^[^@\s]+@[^@\s]+\.[^@\s]+$' or length(v_email) > 254 then raise exception 'Enter a valid email address'; end if;
   if p_level not in ('admin','standard','viewer') then raise exception 'Choose admin, standard or viewer'; end if;
   select split_part(v_email, '@', 2) = any (select lower(d) from unnest(internal_email_domains) d) into v_internal from public.srt_settings where id;
-  if coalesce(v_internal, false) then raise exception 'adm Indicia staff can''t be added to a vendor team'; end if;
+  if coalesce(v_internal, false) then raise exception 'Staff can''t be added to a vendor team'; end if;
   if exists (select 1 from public.supplier_team_members where lower(email) = v_email and supplier_id <> v_sup and status in ('pending','active')) then
     raise exception 'This person is already on another company''s portal team';
   end if;
@@ -209,7 +209,7 @@ begin
   select name into v_name from public.suppliers where id = v_sup;
   insert into public.email_outbox (to_email, subject, body, supplier_id, created_by)
   values (v_email, 'You have been added to the ' || v_name || ' vendor portal',
-          format(E'Hello,\n\nYou have been added to the adm Indicia vendor portal for %s. Sign in with this email address to get started.\n\nadm Indicia Supplier Team', v_name),
+          format(E'Hello,\n\nYou have been added to the vendor portal for %s. Sign in with this email address to get started.\n\nSupplier Team', v_name),
           v_sup, auth.uid());
   perform public._assure_log(v_sup, 'team', v_id, 'invited', null, p_level, 'Vendor team member invited', v_email);
   return v_id;
@@ -237,7 +237,7 @@ begin
   if t.id is null or t.supplier_id <> v_sup or t.status = 'removed' then raise exception 'Team member not found' using errcode = '42501'; end if;
   if t.linked_user_id = auth.uid() then raise exception 'You can''t remove yourself'; end if;
   select lower(primary_contact_email) into v_primary from public.suppliers where id = v_sup;
-  if lower(t.email) = v_primary then raise exception 'Your company''s primary contact can''t be removed here. Ask adm Indicia to change it.'; end if;
+  if lower(t.email) = v_primary then raise exception 'Your company''s primary contact can''t be removed here. Ask the team to change it.'; end if;
   update public.supplier_team_members set status = 'removed' where id = p_member;
   -- Access ends now: unlink the person's account from this company.
   update public.profiles set supplier_id = null
@@ -381,7 +381,7 @@ end $$;
 -- ---------------------------------------------------------------------------
 -- Contracts: the vendor opens, signs (in signing order), declines and comments.
 -- ---------------------------------------------------------------------------
--- Same view as before plus is_internal, so the portal knows which signers are adm Indicia's.
+-- Same view as before plus is_internal, so the portal knows which signers are staff.
 create or replace view public.vendor_contract_parties as
   select p.id, p.contract_id, p.name, p.email, p.role, p.signing_order, p.status, p.signed_at, p.is_internal
     from public.contract_parties p join public.contracts c on c.id = p.contract_id
@@ -426,7 +426,7 @@ begin
   select * into c from public.contracts where id = p.contract_id for update;
   if c.supplier_id is distinct from v_sup or c.status = 'draft' then raise exception 'Signer not found' using errcode = '42501'; end if;
   if c.status not in ('sent','viewed','in_review','signed') then raise exception 'This contract is not out for signature'; end if;
-  if p.is_internal or p.role <> 'signer' then raise exception 'adm Indicia signs this part' using errcode = '42501'; end if;
+  if p.is_internal or p.role <> 'signer' then raise exception 'The team signs this part' using errcode = '42501'; end if;
   if p.status in ('signed','declined') then raise exception 'This signer has already %', p.status; end if;
   select email into v_email from public.profiles where id = auth.uid();
   if lower(p.email) <> lower(v_email) and public.vendor_my_permission() <> 'admin' then

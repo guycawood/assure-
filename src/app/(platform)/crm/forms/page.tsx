@@ -43,7 +43,7 @@ export default async function CrmForms() {
           <TextArea name="fields" label="Fields" value={FIELD_EXAMPLE} rows={7} className="sm:col-span-2" required />
           <p className="-mt-2 text-xs text-muted sm:col-span-2">{FIELD_HELP}</p>
           <TextArea name="consent_text" label="Consent text (shown as a tick box; leave empty for none)" rows={2} className="sm:col-span-2"
-            value="I agree that adm Indicia may email me about future events and services." />
+            value="I agree that the team may email me about future events and services." />
         </ActionForm>
       </Disclosure>
     </>

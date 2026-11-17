@@ -16,6 +16,8 @@ import { JourneyTimeline } from "@/components/qaqc/journey-timeline";
 import { createPlans } from "../../qaqc/actions";
 import { getSheetDetails, getSheetRows } from "@/lib/tech-sheet-data";
 import { PoTechSheets } from "@/components/tech-sheet/internal-panel";
+import { InternalProofs } from "@/components/proofs/internal-proofs";
+import type { PoProofs } from "@/lib/proofs";
 
 export const metadata: Metadata = { title: "Purchase order" };
 
@@ -32,6 +34,8 @@ export default async function PoPage({ params }: { params: Promise<{ id: string 
   const [plans, journey] = await Promise.all([getPlans(supabase, { po: id }), getJourney(supabase, p.job_id)]);
   const reviewable = await reviewableIds(supabase, plans);
   const techSheets = await getSheetDetails(supabase, (await getSheetRows(supabase, { po_id: id })).map((r) => r.id));
+  const { data: proofData } = await supabase.rpc("po_proofs_internal", { p_po: id });
+  const proofs = (proofData ?? { proof_waived: false, production_started_at: null, rounds: [] }) as PoProofs;
   const blocked = !supplier || supplier.purchasing_blocked || !supplier.active;
   const [{ data: etPending }, { data: etCan }] = await Promise.all([
     supabase.rpc("po_etender_pending", { p_po: id }), supabase.rpc("po_etender_can_decide", { p_po: id }),
@@ -69,6 +73,13 @@ export default async function PoPage({ params }: { params: Promise<{ id: string 
             ]} />
             {p.rejected_reason && <p className="border-t border-line px-5 py-2 text-sm text-bad">Rejected: {p.rejected_reason}</p>}
           </Panel>
+          {["accepted"].includes(p.status) || proofs.rounds.length > 0 ? (
+            <div id="proof">
+              <Panel title="Proof" sub="From the QA and QC process: the supplier sends a digital or physical proof, client services check it, the client approves it, then production starts.">
+                <InternalProofs poId={id} data={proofs} status={p.status} />
+              </Panel>
+            </div>
+          ) : null}
           <div id="qaqc">
             <Panel title="QA/QC" sub="Level per line from the Watchtower threshold rules; evidence comes from the vendor portal and is checked at upload.">
               {plans.length > 0 ? <QaqcPlans plans={plans} reviewable={reviewable} poId={id} />

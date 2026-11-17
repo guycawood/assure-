@@ -26,11 +26,11 @@ insert into public.sourcing_clients (id, code, name, default_currency, default_m
 on conflict (code) do nothing;
 
 insert into public.sourcing_billing_entities (id, code, name, region, market, vat_number, currency) values
-  ('c6000000-0000-4000-8000-000000000001', 'BE-UK', 'adm Indicia UK Ltd (demo)', 'EMEA', 'United Kingdom', 'GB000000000', 'GBP'),
-  ('c6000000-0000-4000-8000-000000000002', 'BE-DE', 'adm Indicia GmbH (demo)', 'EMEA', 'Germany', 'DE000000000', 'EUR'),
-  ('c6000000-0000-4000-8000-000000000003', 'BE-SG', 'adm Indicia Asia Pte (demo)', 'APAC', 'Singapore', 'SG000000000', 'EUR'),
-  ('c6000000-0000-4000-8000-000000000004', 'BE-US', 'adm Indicia Inc (demo)', 'Americas', 'United States', 'US000000000', 'EUR'),
-  ('c6000000-0000-4000-8000-000000000005', 'BE-VN', 'adm Indicia Vietnam (demo)', 'APAC', 'Vietnam', 'VN000000000', 'EUR')
+  ('c6000000-0000-4000-8000-000000000001', 'BE-UK', 'Harlow Brand Services Ltd (demo)', 'EMEA', 'United Kingdom', 'GB000000000', 'GBP'),
+  ('c6000000-0000-4000-8000-000000000002', 'BE-DE', 'Northgate Brand Services GmbH (demo)', 'EMEA', 'Germany', 'DE000000000', 'EUR'),
+  ('c6000000-0000-4000-8000-000000000003', 'BE-SG', 'Meridian Brand Services Pte Ltd (demo)', 'APAC', 'Singapore', 'SG000000000', 'EUR'),
+  ('c6000000-0000-4000-8000-000000000004', 'BE-US', 'Redwood Brand Services Inc (demo)', 'Americas', 'United States', 'US000000000', 'EUR'),
+  ('c6000000-0000-4000-8000-000000000005', 'BE-VN', 'Lotus Brand Services Co Ltd (demo)', 'APAC', 'Vietnam', 'VN000000000', 'EUR')
 on conflict (code) do nothing;
 
 -- ---------------------------------------------------------------------------

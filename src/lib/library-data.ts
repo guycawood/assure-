@@ -26,7 +26,7 @@ export async function getLibraryDef(supabase: Client, key: string): Promise<Libr
 }
 
 export async function getRecords(supabase: Client, key: string): Promise<LibraryRecord[]> {
-  const { data } = await supabase.from("library_records").select("*").eq("library_key", key).order("name").limit(5000);
+  const { data } = await supabase.from("library_records").select("*").eq("library_key", key).order("name").limit(20000);
   return (data ?? []) as LibraryRecord[];
 }
 

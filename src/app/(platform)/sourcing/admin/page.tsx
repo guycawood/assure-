@@ -14,11 +14,11 @@ export const metadata: Metadata = { title: "Sourcing admin" };
 export default async function SourcingAdmin() {
   const me = await requireInternal();
   const supabase = await createClient();
-  const [clients, entities, people, access, settings, matrix, cards, thresholds, doa, events] = await Promise.all([
+  const [clients, entities, people, access, settings, matrix, thresholds, doa, events] = await Promise.all([
     getClients(supabase), getBillingEntities(supabase), getPeople(supabase),
     rows<{ user_id: string; is_lead: boolean; is_finance: boolean; doa_level: number | null }>(supabase, "sourcing_user_access"),
     rows<{ triage_tolerance_percent: number; push_confidence_threshold: number; instant_price_limit: number; push_respond_days: number }>(supabase, "sourcing_settings"),
-    getLibrary(supabase, "sourcing_control_matrix"), getLibrary(supabase, "rate_cards"), getLibrary(supabase, "high_value_thresholds"), getLibrary(supabase, "doa_levels"),
+    getLibrary(supabase, "sourcing_control_matrix"), getLibrary(supabase, "high_value_thresholds"), getLibrary(supabase, "doa_levels"),
     getEvents(supabase, { entity: "settings" }, 20),
   ]);
   const acc = new Map(access.map((a) => [a.user_id, a]));
@@ -27,7 +27,7 @@ export default async function SourcingAdmin() {
   return (
     <>
       <PageHead crumbs={[{ label: "Sourcing", href: "/sourcing" }, { label: "Admin" }]} title="Sourcing admin"
-        sub="Client commercial rules, billing entities, who can approve what, and the triage rules. Governed libraries (control matrix, rate cards, thresholds, DOA) are changed in the Watchtower." />
+        sub="Client commercial rules, billing entities, who can approve what, and the triage rules. Governed libraries (control matrix, thresholds, DOA) are changed in the Watchtower. Rate cards are managed in Sourcing > Rate cards." />
       <ApprovalRequests types={["ACCESS_SOURCING", "SOURCING_SETTINGS"]} meId={me.id} title="Access and settings changes waiting for approval" history={5} />
 
       <Panel title="Clients and commercial rules" sub="Minimum quotes, markup, quote tolerance, savings target and e-tender threshold per client">
@@ -45,7 +45,7 @@ export default async function SourcingAdmin() {
         <details className="border-t border-line px-5 py-3"><summary className="cursor-pointer text-sm font-semibold">Add a client</summary><div className="mt-3 max-w-3xl"><ClientForm /></div></details>
       </Panel>
 
-      <Panel title="Billing entities" sub="The adm Indicia legal entity a job is invoiced from">
+      <Panel title="Billing entities" sub="The legal entity a job is invoiced from">
         <table className="w-full text-sm">
           <thead><tr><Th>Entity</Th><Th>Region</Th><Th>Market</Th><Th>Currency</Th><Th>VAT</Th></tr></thead>
           <tbody>{entities.map((b) => (
@@ -110,13 +110,6 @@ export default async function SourcingAdmin() {
         <Panel title="High-value thresholds" sub="Watchtower library: RFQs at or above need a sourcing lead's approval">
           <table className="w-full text-sm"><thead><tr><Th>Market</Th><Th>Threshold</Th></tr></thead>
             <tbody>{thresholds.map((r) => (<tr key={r.id}><Td>{String(r.data.market ?? "All other markets")}</Td><Td>{money(Number(r.data.threshold), String(r.data.currency ?? "EUR"))}</Td></tr>))}</tbody></table>
-        </Panel>
-        <Panel title="Rate cards" sub="Watchtower library: drive Adopt, Adapt and Push">
-          <table className="w-full text-sm"><thead><tr><Th>Card</Th><Th>Type</Th><Th>Size (mm)</Th><Th>Qty band</Th><Th>Price</Th><Th>Supplier</Th></tr></thead>
-            <tbody>{cards.map((r) => (
-              <tr key={r.id}><Td className="font-semibold">{r.name}</Td><Td>{String(r.data.spec_type)}</Td><Td>{r.data.finished_length_mm ? `${r.data.finished_length_mm} × ${r.data.finished_width_mm}` : "Any"}</Td>
-                <Td>{String(r.data.min_qty ?? 0)}–{String(r.data.max_qty ?? "∞")}</Td><Td>{money(Number(r.data.unit_price), String(r.data.currency ?? "EUR"), 2)}</Td><Td>{String(r.data.supplier_code ?? "—")}</Td></tr>
-            ))}</tbody></table>
         </Panel>
         <Panel title="Delegation of authority" sub="Watchtower library: the level needed is read from the version in force on the PO date">
           <table className="w-full text-sm"><thead><tr><Th>Level</Th><Th>Up to</Th></tr></thead>

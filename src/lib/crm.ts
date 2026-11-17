@@ -104,6 +104,8 @@ export type ClientRow = {
   credit_limit: number | null; payment_terms_days: number | null; crm_setup_status: string; crm_setup_note: string | null;
   default_markup_percent: number; gsc_commission_percent: number; year_end_rebate_percent: number; savings_target_percent: number;
   min_quotes_required: number; e_tender_threshold: number | null;
+  /** Creative work for this client starts with a kick-off instead of a quote. */
+  on_retainer?: boolean; retainer_note?: string | null;
 };
 export type AccountRow = {
   id: string; client_id: string; client_name: string; client_code: string; market: string; market_name: string | null; region: string;

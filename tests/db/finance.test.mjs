@@ -41,7 +41,7 @@ await asSuper("insert into auth.users (id, email) values ($1,'a@alpha-f.example'
 await asSuper("insert into public.sourcing_user_access (user_id, is_finance) values ($1, true)", [ids.head]);
 
 const { rows: [client] } = await asSuper("insert into public.sourcing_clients (code, name) values ('FCL','Finance Client') returning id");
-const { rows: [be] } = await asSuper("insert into public.sourcing_billing_entities (code, name, region, market) values ('BE-FDE','adm Indicia GmbH','EMEA','Germany') returning id");
+const { rows: [be] } = await asSuper("insert into public.sourcing_billing_entities (code, name, region, market) values ('BE-FDE','Northgate Brand Services GmbH','EMEA','Germany') returning id");
 
 async function makePo(supplierId, { value = 1000, status = "accepted", sell = 15 } = {}) {
   const { rows: [job] } = await as("agent", "insert into public.jobs (title, client_id, billing_entity_id, region, market, budget) values ('Finance job',$1,$2,'EMEA','Germany',5000) returning id", [client.id, be.id]);
@@ -73,6 +73,11 @@ async function deliverWithPod(poId) {
   const { rows: [f] } = await as("agent", "select public.file_register('logistics','shipment',$1,null,'pod.pdf','application/pdf',10,'aGVsbG8=',null,'POD') as id", [ship]);
   await as("agent", "select public.logistics_attach_pod($1,$2,$3)", [ship, f.id, day(-1)]);
   return { del, ship };
+}
+// Delivered, with every POD verified: the estimate is ready to invoice.
+async function readyToBill(P) {
+  const { ship } = await deliverWithPod(P.po);
+  await as("lead", "select public.logistics_pod_verify($1,$2,null)", [ship, allChecks]);
 }
 const allChecks = JSON.stringify(Object.fromEntries(Array.from({ length: 8 }, (_, i) => [`POD-${i + 1}`, true])));
 
@@ -260,6 +265,7 @@ test("estimate finance review: queue rules, decline needs a reason, stale after 
 test("client bills from approved estimates: numbered, one live bill per estimate, draft -> sent -> paid", async () => {
   const P = await makePo(sA, { value: 2000, sell: 15 });
   await rejects(as("agent", "select public.finance_bill_create($1, 19, null)", [P.est]), /Only Finance/);
+  await readyToBill(P);
   const { rows: [{ id }] } = await as("finance", "select public.finance_bill_create($1, 19, null) as id", [P.est]);
   await rejects(as("finance", "select public.finance_bill_create($1, 0, null)", [P.est]), /already has a bill/);
   const b = await one("finance", "select bill_number, status, net_amount, vat_amount, gross_amount, market, billing_entity_code from public.v_client_bills where id = $1", [id]);
@@ -274,6 +280,34 @@ test("client bills from approved estimates: numbered, one live bill per estimate
   await rejects(as("finance", "select public.finance_bill_create($1, 0, null)", [draft.est]), /approved the estimate/);
 });
 
+test("ready to invoice: a bill waits for delivered goods and verified PODs, unless Finance waives the check with a reason", async () => {
+  const P = await makePo(sA, { value: 600 });
+  let r = (await one("finance", "select public.finance_bill_readiness($1) r", [P.est])).r;
+  assert.equal(r.ready, false);
+  assert.match(r.missing.join(" "), /No deliveries/);
+  await rejects(as("finance", "select public.finance_bill_create($1, 0, null)", [P.est]), /Not ready to invoice: No deliveries recorded/);
+  // delivered but the POD is not verified yet
+  const { ship } = await deliverWithPod(P.po);
+  r = (await one("finance", "select public.finance_bill_readiness($1) r", [P.est])).r;
+  assert.match(r.missing.join(" "), /POD\(s\) not verified|not delivered yet/);
+  await rejects(as("finance", "select public.finance_bill_create($1, 0, null)", [P.est]), /Not ready to invoice/);
+  await as("lead", "select public.logistics_pod_verify($1,$2,null)", [ship, allChecks]);
+  r = (await one("finance", "select public.finance_bill_readiness($1) r", [P.est])).r;
+  assert.deepEqual([r.ready, r.missing.length], [true, 0]);
+  await as("finance", "select public.finance_bill_create($1, 0, null)", [P.est]);
+
+  // a service with nothing to deliver: Finance waives with a reason, which is recorded
+  const S = await makePo(sA, { value: 300 });
+  await rejects(as("agent", "select public.finance_bill_waive_gate($1, 'long enough reason here')", [S.est]), /Only Finance/);
+  await rejects(as("finance", "select public.finance_bill_waive_gate($1, 'short')", [S.est]), /at least 10/);
+  await as("finance", "select public.finance_bill_waive_gate($1, 'Design service, nothing to deliver')", [S.est]);
+  const w = await one("finance", "select bill_gate_waived_reason r, bill_gate_waived_by b from public.estimates where id = $1", [S.est]);
+  assert.deepEqual([w.r, w.b], ["Design service, nothing to deliver", ids.finance]);
+  assert.equal((await one("finance", "select count(*)::int n from public.finance_events where entity = 'estimate' and entity_id = $1 and event = 'bill_gate_waived'", [S.est])).n, 1);
+  await as("finance", "select public.finance_bill_create($1, 0, null)", [S.est]);
+  await rejects(as("finance", "select public.finance_bill_waive_gate($1, 'Trying again after billing')", [S.est]), /already has a bill/);
+});
+
 test("Client Portal bills: the client sees its own sent and paid bills only, never drafts or cost", async () => {
   const cu = "00000000-0000-0000-0000-0000000000c9";
   await asSuper("insert into auth.users (id, email) values ($1, 'ap@fcl.example')", [cu]);
@@ -281,6 +315,7 @@ test("Client Portal bills: the client sees its own sent and paid bills only, nev
   await as("admin", "select public.client_access_grant($1, $2, 'viewer')", [cu, client.id]);
   const sent = await makePo(sA, { value: 1000 });
   const draft = await makePo(sA, { value: 500 });
+  await readyToBill(sent); await readyToBill(draft);
   const { rows: [{ id: sentBill }] } = await as("finance", "select public.finance_bill_create($1, 0, null) as id", [sent.est]);
   await as("finance", "select public.finance_bill_create($1, 0, null)", [draft.est]);
   await as("finance", "select public.finance_bill_send($1)", [sentBill]);

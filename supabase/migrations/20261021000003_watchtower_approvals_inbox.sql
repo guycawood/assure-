@@ -177,7 +177,7 @@ create or replace view public.approvals_logistics with (security_invoker = true)
          'POD for ' || d.delivery_number || ' · ' || s.name as title, sh.pod_uploaded_by as requested_by, coalesce(sh.pod_received_at, sh.created_at) as requested_at,
          null::numeric as amount, null::text as currency, c.name as client, d.market, d.region,
          public.approval_status('POD_VERIFY', coalesce(sh.pod_received_at, sh.created_at), d.market, null) as status,
-         'Anyone at adm Indicia except the uploader; every mandatory POD point checked' as approver_rule, '/logistics/pods' as href,
+         'Anyone on the team except the uploader; every mandatory POD point checked' as approver_rule, '/logistics/pods' as href,
          public.is_internal() and sh.pod_uploaded_by is distinct from auth.uid() as can_decide
     from public.shipments sh join public.deliveries d on d.id = sh.delivery_id join public.suppliers s on s.id = sh.supplier_id
     left join public.purchase_orders p on p.id = d.po_id left join public.jobs j on j.id = p.job_id left join public.sourcing_clients c on c.id = j.client_id
@@ -191,7 +191,7 @@ create or replace view public.approvals_execution with (security_invoker = true)
          'Audit install · ' || j.title as title, dep.installed_by as requested_by, coalesce(dep.installation_date::timestamptz, dep.created_at) as requested_at,
          null::numeric as amount, null::text as currency, c.name as client, dep.market, dep.region,
          public.approval_status('DEPLOYMENT_AUDIT', coalesce(dep.installation_date::timestamptz, dep.created_at), dep.market, null) as status,
-         'Anyone at adm Indicia except who recorded the install' as approver_rule, '/execution/deployments/' || dep.id as href,
+         'Anyone on the team except who recorded the install' as approver_rule, '/execution/deployments/' || dep.id as href,
          public.is_internal() and dep.installed_by is distinct from auth.uid() as can_decide
     from public.deployments dep join public.jobs j on j.id = dep.job_id join public.sourcing_clients c on c.id = j.client_id
    where dep.stage = 'installed' and dep.audit_status in ('pending','needs_review')
@@ -199,7 +199,7 @@ create or replace view public.approvals_execution with (security_invoker = true)
   select 'execution', 'QUALITY_GATE', g.id::text, j.job_number, initcap(g.gate_key) || ' gate · ' || j.title,
          f.uploaded_by, f.created_at, null, null, c.name, j.market, j.region,
          public.approval_status('QUALITY_GATE', f.created_at, j.market, null),
-         'Anyone at adm Indicia (check sheet uploaded)', '/execution/jobs/' || j.id, public.is_internal()
+         'Anyone on the team (check sheet uploaded)', '/execution/jobs/' || j.id, public.is_internal()
     from public.job_quality_gates g join public.jobs j on j.id = g.job_id join public.sourcing_clients c on c.id = j.client_id
     join lateral (select x.uploaded_by, x.created_at from public.files x where x.entity_type = 'job_quality_gate' and x.entity_id = j.id::text || ':' || g.gate_key
                    order by x.created_at desc limit 1) f on true
@@ -231,13 +231,13 @@ create or replace view public.approvals_assure with (security_invoker = true) as
     from public.vendor_rfis r join public.suppliers s on s.id = r.supplier_id where r.status = 'submitted'
   union all
   select 'assure', 'CERTIFICATE', ce.id::text, s.supplier_code, t.name || ' · ' || s.name, ce.uploaded_by, ce.created_at, null, null, s.client, ce.market, ce.region,
-         public.approval_status('CERTIFICATE', ce.created_at, ce.market, null), 'Anyone at adm Indicia except the uploader', '/assure/compliance/review',
+         public.approval_status('CERTIFICATE', ce.created_at, ce.market, null), 'Anyone on the team except the uploader', '/assure/compliance/review',
          public.is_internal() and ce.uploaded_by is distinct from auth.uid()
     from public.supplier_certificates ce join public.suppliers s on s.id = ce.supplier_id join public.library_records t on t.id = ce.cert_type_id
    where ce.verification_status = 'pending' and not ce.not_applicable
   union all
   select 'assure', 'DOCUMENT', dc.id::text, s.supplier_code, dc.title || ' · ' || s.name, dc.uploaded_by, dc.created_at, null, null, s.client, dc.market, dc.region,
-         public.approval_status('DOCUMENT', dc.created_at, dc.market, null), 'Anyone at adm Indicia except the uploader', '/assure/compliance/review',
+         public.approval_status('DOCUMENT', dc.created_at, dc.market, null), 'Anyone on the team except the uploader', '/assure/compliance/review',
          public.is_internal() and dc.uploaded_by is distinct from auth.uid()
     from public.supplier_documents dc join public.suppliers s on s.id = dc.supplier_id where dc.status = 'pending'
   union all
@@ -257,7 +257,7 @@ create or replace view public.approvals_assure with (security_invoker = true) as
   union all
   select 'assure', 'SURVEY_REVIEW', sr.id::text, s.supplier_code, sr.template_name || ' · ' || s.name, sr.submitted_by, coalesce(sr.submitted_at, sr.created_at), null, null,
          s.client, sr.market, sr.region, public.approval_status('SURVEY_REVIEW', coalesce(sr.submitted_at, sr.created_at), sr.market, null),
-         'Anyone at adm Indicia', '/assure/surveys', public.is_internal()
+         'Anyone on the team', '/assure/surveys', public.is_internal()
     from public.survey_responses sr join public.suppliers s on s.id = sr.supplier_id where sr.status in ('submitted','under_review')
   union all
   select 'assure', 'WORKFLOW_STEP', w.id::text, s.supplier_code, w.name || ' · ' || st.name, coalesce(prev.acted_by, w.initiated_by), coalesce(prev.acted_at, w.started_at),
@@ -272,7 +272,7 @@ create or replace view public.approvals_assure with (security_invoker = true) as
   union all
   select 'assure', 'CA_VERIFY', a.id::text, coalesce(n.ncr_ref, s.supplier_code), 'Verify corrective action · ' || left(a.description, 80), a.done_by, a.done_at, null, null,
          s.client, s.market, s.region, public.approval_status('CA_VERIFY', a.done_at, s.market, null),
-         'Anyone at adm Indicia except who completed it', '/assure/quality/ncr/' || n.id, public.is_internal() and a.done_by is distinct from auth.uid()
+         'Anyone on the team except who completed it', '/assure/quality/ncr/' || n.id, public.is_internal() and a.done_by is distinct from auth.uid()
     from public.ncr_corrective_actions a join public.ncrs n on n.id = a.ncr_id join public.suppliers s on s.id = a.supplier_id where a.status = 'done'
   union all
   select 'assure', 'VENDOR_APPLICATION', va.id::text, va.application_ref, 'Vendor application · ' || va.company_name, null::uuid, va.created_at, null, null, null, null, null,
@@ -315,7 +315,7 @@ returns table (module text, approval_type text, item_id text, ref text, title te
 language plpgsql stable security definer set search_path = public as $$
 #variable_conflict use_column
 begin
-  if auth.uid() is null or not public.is_internal() then raise exception 'The approvals inbox is for adm Indicia staff' using errcode = '42501'; end if;
+  if auth.uid() is null or not public.is_internal() then raise exception 'The approvals inbox is for staff' using errcode = '42501'; end if;
   if coalesce(p_scope, 'mine') not in ('mine','all') then raise exception 'Choose mine or all'; end if;
   if p_scope = 'all' and not public.is_admin() then raise exception 'Only admins can see every approval on the platform' using errcode = '42501'; end if;
   return query

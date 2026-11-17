@@ -157,6 +157,27 @@ export async function decideRisk(supplierId: string, role: "cm" | "quality", _: 
   return { ok: true, message: "Decision recorded." };
 }
 
+/** Category management says whether the supplier is of interest, before the information request goes out (process step i3). */
+export async function decideCategoryInterest(supplierId: string, _: OnbResult, fd: FormData): Promise<OnbResult> {
+  await requireInternal();
+  const supabase = await createClient();
+  const interested = fd.get("decision") === "interested";
+  const { error } = await supabase.rpc("onboarding_category_interest", { p_supplier: supplierId, p_interested: interested, p_note: s(fd, "note") });
+  if (error) return { error: friendly(error) };
+  refresh(supplierId);
+  return { ok: true, message: interested ? "Recorded. The information request can now be sent." : "Recorded. The request is closed." };
+}
+
+/** The Sedex or FSC database was searched: record what was found (process step i8). It also feeds the SRM scorecard. */
+export async function recordExternalCheck(supplierId: string, _: OnbResult, fd: FormData): Promise<OnbResult> {
+  await requireInternal();
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("onboarding_external_check", { p_supplier: supplierId, p_source: s(fd, "source"), p_result: s(fd, "result"), p_reference: s(fd, "reference"), p_note: s(fd, "note") });
+  if (error) return { error: friendly(error) };
+  refresh(supplierId);
+  return { ok: true, message: "Recorded. The scorecard now uses it." };
+}
+
 /* ---------------- Stage 6-9 ---------------- */
 
 export async function linkContract(supplierId: string, _: OnbResult, fd: FormData): Promise<OnbResult> {

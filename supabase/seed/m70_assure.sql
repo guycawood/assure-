@@ -196,7 +196,7 @@ insert into public.contract_templates (name, category, folder, description, cont
   ('Mutual NDA', 'nda', 'Core agreements', 'Two-way confidentiality agreement.', 'Dummy NDA wording.'),
   ('Statement of work', 'sow', 'Projects', 'Per-campaign statement of work.', 'Dummy SOW wording: deliverables, timeline, acceptance.'),
   ('Price amendment', 'amendments', 'Amendments', 'Changes unit prices under an existing MSA.', 'Dummy amendment wording.'),
-  ('Supplier code of conduct acknowledgement', 'terms_conditions', 'Compliance', 'Vendor confirms the adm Indicia Code of Conduct.', 'Dummy code of conduct text.');
+  ('Supplier code of conduct acknowledgement', 'terms_conditions', 'Compliance', 'Vendor confirms the Code of Conduct.', 'Dummy code of conduct text.');
 
 insert into public.contracts (contract_ref, supplier_id, template_id, title, document_type, status, value, currency, start_date, end_date, due_date,
                               sent_at, finalized_at, content_summary, internal_notes, created_at)
@@ -300,7 +300,7 @@ insert into public.survey_templates (name, description, category, questions) val
      {"id":"esg2","text":"What share of your electricity is renewable?","type":"single_choice","options":["None","Under 50%","50% or more","100%"],"required":true},
      {"id":"esg3","text":"How would you rate your waste recycling?","type":"rating","required":false},
      {"id":"esg4","text":"Anything else we should know?","type":"textarea","required":false}]'),
-  ('Quality system check', 'Confirms how quality is controlled on adm Indicia work.', 'quality',
+  ('Quality system check', 'Confirms how quality is controlled on us work.', 'quality',
    '[{"id":"q1","text":"Do you inspect every batch before shipping?","type":"yes_no","required":true},
      {"id":"q2","text":"Which AQL level do you use?","type":"text","required":true},
      {"id":"q3","text":"Date of your last internal audit","type":"date","required":false}]');
@@ -359,7 +359,7 @@ update public.conversations c set last_message_at = (select max(created_at) from
 -- ---------------------------------------------------------------------------
 insert into public.training_modules (title, resource_type, description, url, content, category, audience, duration_minutes, display_order) values
   ('Getting started with SRM', 'document', 'What SRM does and where to find things.', null,
-   'SRM is where adm Indicia manages suppliers: onboarding, compliance, quality, performance and contracts.', 'Getting started', 'all', 10, 1),
+   'SRM is where we manage suppliers: onboarding, compliance, quality, performance and contracts.', 'Getting started', 'all', 10, 1),
   ('Reviewing vendor documents', 'document', 'How to check and verify certificates and documents.', null,
    'Open the document review queue, check the document matches the supplier and dates, then verify or reject with a reason.', 'Compliance', 'internal', 8, 2),
   ('Raising and closing an NCR', 'document', 'From failed inspection to verified corrective action.', null,

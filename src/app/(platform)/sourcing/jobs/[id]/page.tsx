@@ -8,6 +8,12 @@ import { JOB_NEXT, jobStatus, money, specType, type JobStatus } from "@/lib/sour
 import { rfqStatus, type Rfq } from "@/lib/rfq";
 import { ESTIMATE_STATUS, PO_STATUS, type Estimate, type PurchaseOrder } from "@/lib/orders";
 import { ButtonLink, Card, PageHead, Panel, Pill } from "@/components/ui";
+import { ImpactGradeBadge } from "@/components/impact-grade/grade-badge";
+import { getCarbonIntensity, getJobGrades, getSpecGrades } from "@/lib/impact-grade-data";
+import { JobImpactGrade } from "@/components/impact-grade/job-grade";
+import { HsTable } from "@/components/sourcing/hs-table";
+import { JobDeliveries } from "@/components/logistics/job-deliveries";
+import { IntensityChip } from "@/components/impact-grade/intensity-chip";
 import { ActionForm, Field } from "@/components/sourcing/action-form";
 import { ActivityList, Facts, JobStatusPill, RoutePill, StatusPill, Tabs, Td, Th, fmtDate, fmtDateTime } from "@/components/sourcing/bits";
 import { JobFields } from "@/components/sourcing/job-fields";
@@ -35,6 +41,9 @@ export default async function JobPage({ params, searchParams }: { params: Promis
     getEvents(supabase, { job_id: id }), getPeople(supabase), getClients(supabase), getBillingEntities(supabase), getEmissionLibraries(supabase),
   ]);
   const live = specs.filter((s) => !s.is_draft);
+  const [grades, intensityRows] = await Promise.all([getSpecGrades(supabase, specs.map((s) => s.id)), getCarbonIntensity(supabase, { jobId: id })]);
+  const intensity = new Map(intensityRows.map((r) => [r.spec_id, r]));
+  const jobGrade = (await getJobGrades(supabase, [id])).get(id) ?? { avg: null, specs: 0, graded: 0 };
   const done: Record<string, boolean> = {
     specs: live.length > 0,
     triage: live.length > 0 && live.every((s) => s.route),
@@ -50,6 +59,9 @@ export default async function JobPage({ params, searchParams }: { params: Promis
     <>
       <PageHead crumbs={[{ label: "Sourcing", href: "/sourcing" }, { label: "Jobs", href: "/sourcing/jobs" }, { label: job.job_number }]}
         title={job.title} sub={`${job.job_number} · ${job.client_name} · ${job.market} (${job.region})`}>
+        <Link href={`${base}?tab=impact-grade`} className="inline-flex items-center gap-1.5 text-sm" title={`Average of ${jobGrade.graded} graded of ${jobGrade.specs} specs. Open for the spec-by-spec breakdown.`}>
+          Impact Grade <ImpactGradeBadge score={jobGrade.avg} href={null} />
+        </Link>
         <JobStatusPill status={job.status} />
         <ButtonLink href={`${base}?tab=specs`} variant="primary">Add spec</ButtonLink>
       </PageHead>
@@ -65,9 +77,12 @@ export default async function JobPage({ params, searchParams }: { params: Promis
       <Tabs base={base} current={tab} tabs={[
         { key: "overview", label: "Overview", icon: "description" },
         { key: "specs", label: "Specs", icon: "layers", count: specs.length },
+        { key: "hs", label: "HS codes", icon: "tag", count: specs.filter((s) => s.hs_code).length },
+        { key: "impact-grade", label: "Impact Grade", icon: "eco", count: jobGrade.graded },
         { key: "rfqs", label: "RFQs", icon: "request_quote", count: rfqs.length },
         { key: "estimate", label: "Estimate", icon: "receipt_long", count: estimates.length },
         { key: "po", label: "Supplier POs", icon: "shopping_cart", count: pos.length },
+        { key: "deliveries", label: "Deliveries", icon: "local_shipping" },
         { key: "activity", label: "Files and activity", icon: "history" },
       ]} />
 
@@ -115,7 +130,7 @@ export default async function JobPage({ params, searchParams }: { params: Promis
             {specs.length === 0 ? <p className="px-5 py-6 text-sm text-muted">No specs yet. Add the first one below.</p> : (
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
-                  <thead><tr><Th>#</Th><Th>Spec</Th><Th>Type</Th><Th>Quantity</Th><Th>Unit weight</Th><Th>CO2e (kg)</Th><Th>Route</Th><Th>Applied price</Th></tr></thead>
+                  <thead><tr><Th>#</Th><Th>Spec</Th><Th>Type</Th><Th>Quantity</Th><Th>Unit weight</Th><Th>CO2e (kg)</Th><Th>Impact Grade</Th><Th>HS code</Th><Th>Route</Th><Th>Applied price</Th></tr></thead>
                   <tbody>
                     {specs.map((s) => (
                       <tr key={s.id}>
@@ -125,6 +140,8 @@ export default async function JobPage({ params, searchParams }: { params: Promis
                         <Td className="tabular-nums">{s.total_quantity.toLocaleString("en-GB")}</Td>
                         <Td className="tabular-nums">{s.unit_weight_grams != null ? `${Number(s.unit_weight_grams).toLocaleString("en-GB")} g` : "—"}</Td>
                         <Td className="tabular-nums">{s.co2e_total_kg != null ? Number(s.co2e_total_kg).toLocaleString("en-GB", { maximumFractionDigits: 1 }) : "—"}</Td>
+                        <Td><div className="flex flex-col items-start gap-1"><ImpactGradeBadge score={grades.get(s.id)} /><IntensityChip economic={intensity.get(s.id)?.economic_intensity} physical={intensity.get(s.id)?.physical_intensity} /></div></Td>
+                        <Td><Link href={`${base}?tab=hs`} className="hover:underline" title="Open the HS codes to check or change it">{s.hs_code ? <code className="text-xs font-bold">{s.hs_code}</code> : <span className="text-xs text-bad">Not set</span>}</Link></Td>
                         <Td><RoutePill route={s.route} confidence={s.confidence} />{s.route === "push" && <div className="text-xs text-muted">Supplier: {s.push_status}</div>}</Td>
                         <Td className="tabular-nums">{s.route && s.route !== "create" ? money(s.triage_unit_price, job.currency, 2) : "—"}</Td>
                       </tr>
@@ -145,6 +162,10 @@ export default async function JobPage({ params, searchParams }: { params: Promis
           </Panel>
         </>
       )}
+
+      {tab === "hs" && <HsTable jobId={id} />}
+
+      {tab === "impact-grade" &&<JobImpactGrade supabase={supabase} jobId={id} specs={specs.map((s) => ({ id: s.id, spec_no: s.spec_no, title: s.title, is_draft: s.is_draft }))} />}
 
       {tab === "rfqs" && (
         <Panel title="RFQs" sub="Sealed quote events for this job" actions={<ButtonLink href={`/rfq/new?job=${id}`} variant="primary">New RFQ</ButtonLink>}>
@@ -196,6 +217,8 @@ export default async function JobPage({ params, searchParams }: { params: Promis
           )}
         </Panel>
       )}
+
+      {tab === "deliveries" && <JobDeliveries jobId={id} jobMarket={job.market} pos={pos as never} specs={specs.map((s) => ({ id: s.id, spec_no: s.spec_no, title: s.title }))} />}
 
       {tab === "activity" && (
         <>

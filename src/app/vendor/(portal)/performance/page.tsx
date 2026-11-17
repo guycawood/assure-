@@ -5,6 +5,7 @@ import { human, statusTone } from "@/lib/vendor";
 import { Card, Empty, PageHead, Panel, Pill, Stat } from "@/components/ui";
 import { ActionButton, ActionDialog } from "@/components/vendor/action-form";
 import { respondIssue } from "../actions";
+import { VendorTrends } from "@/components/assure/period-chart";
 
 export const metadata = { title: "Performance & issues" };
 
@@ -28,7 +29,7 @@ export default async function PerformancePage() {
 
   return (
     <>
-      <PageHead title="Performance & issues" sub="Your scores each quarter (the composite is the plain average of the scores with data) and any issues raised from them. Acknowledge an issue and tell adm Indicia what you are doing about it." />
+      <PageHead title="Performance & issues" sub="Your scores each quarter (the composite is the plain average of the scores with data) and any issues raised from them. Acknowledge an issue and tell us what you are doing about it." />
       {latest ? (
         <div className="grid gap-4 sm:grid-cols-3 xl:grid-cols-6">
           <Stat label={`Composite ${latest.period}`} value={score(latest.composite_score)} tone={scoreTone(latest.composite_score)} />
@@ -38,7 +39,7 @@ export default async function PerformancePage() {
           <Stat label="Compliance" value={score(latest.compliance_score)} tone={scoreTone(latest.compliance_score)} />
           <Stat label="Sustainability" value={score(latest.sustainability_score)} tone={scoreTone(latest.sustainability_score)} />
         </div>
-      ) : <Card><Empty title="No scores yet">adm Indicia records scores each quarter.</Empty></Card>}
+      ) : <Card><Empty title="No scores yet">We record scores each quarter.</Empty></Card>}
 
       <Panel title="Issues" sub={`${issues.filter((i) => i.acknowledgement_status !== "resolved").length} open`}>
         {issues.length === 0 ? <Empty title="No issues">Nothing has been flagged.</Empty> : (
@@ -79,6 +80,8 @@ export default async function PerformancePage() {
           </ul>
         )}
       </Panel>
+
+      <VendorTrends records={recs} />
 
       {recs.length > 0 && (
         <Card className="overflow-x-auto">

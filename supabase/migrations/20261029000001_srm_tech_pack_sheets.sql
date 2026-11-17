@@ -517,7 +517,7 @@ declare s public.spec_tech_sheets; d jsonb := coalesce(p_data, '{}'::jsonb); k t
 begin
   select * into s from public.spec_tech_sheets where id = p_sheet for update;
   if s.id is null then raise exception 'Sheet not found' using errcode = '42501'; end if;
-  if s.status = 'verified' then raise exception 'This data sheet is verified against the goods, so it is locked. Ask adm Indicia to reopen it if something changed.'; end if;
+  if s.status = 'verified' then raise exception 'This data sheet is verified against the goods, so it is locked. Ask the team to reopen it if something changed.'; end if;
   if jsonb_typeof(d) <> 'object' then raise exception 'Nothing to save'; end if;
   foreach k in array array['length_mm','width_mm','height_mm','net_weight_g'] loop
     if d ? k and nullif(d->>k, '') is not null and (d->>k)::numeric <= 0 then raise exception 'Sizes and weights must be above zero'; end if;
@@ -988,7 +988,7 @@ $$;
 create or replace function public.tech_sheet_detail(p_sheet uuid) returns jsonb
 language plpgsql stable security definer set search_path = public as $$
 begin
-  if not public.is_internal() then raise exception 'Only adm Indicia staff can do this' using errcode = '42501'; end if;
+  if not public.is_internal() then raise exception 'Only staff can do this' using errcode = '42501'; end if;
   return public._tech_sheet_json(p_sheet, false);
 end $$;
 
@@ -1119,7 +1119,7 @@ create or replace function public.tech_sheet_ensure(p_spec uuid, p_supplier uuid
 language plpgsql security definer set search_path = public as $$
 declare v uuid; po uuid;
 begin
-  if not public.is_internal() then raise exception 'Only adm Indicia staff can do this' using errcode = '42501'; end if;
+  if not public.is_internal() then raise exception 'Only staff can do this' using errcode = '42501'; end if;
   if not exists (select 1 from public.suppliers where id = p_supplier) then raise exception 'Supplier not found'; end if;
   select p.id into po from public.purchase_orders p join public.estimate_lines el on el.estimate_id = p.estimate_id
    where el.spec_id = p_spec and p.supplier_id = p_supplier and p.status in ('issued','accepted') order by p.po_date desc limit 1;
@@ -1130,7 +1130,7 @@ end $$;
 create or replace function public.tech_sheet_save(p_sheet uuid, p_data jsonb, p_declare boolean default false) returns jsonb
 language plpgsql security definer set search_path = public as $$
 begin
-  if not public.is_internal() or public.my_supplier_id() is not null then raise exception 'Only adm Indicia staff can do this' using errcode = '42501'; end if;
+  if not public.is_internal() or public.my_supplier_id() is not null then raise exception 'Only staff can do this' using errcode = '42501'; end if;
   return public._tech_sheet_save(p_sheet, p_data, p_declare, false);
 end $$;
 
@@ -1138,7 +1138,7 @@ create or replace function public.tech_sheet_reopen(p_sheet uuid, p_reason text)
 language plpgsql security definer set search_path = public as $$
 declare t public.spec_tech_sheets;
 begin
-  if not public.is_internal() then raise exception 'Only adm Indicia staff can do this' using errcode = '42501'; end if;
+  if not public.is_internal() then raise exception 'Only staff can do this' using errcode = '42501'; end if;
   if coalesce(trim(p_reason), '') = '' then raise exception 'Say why the data sheet is reopened'; end if;
   select * into t from public.spec_tech_sheets where id = p_sheet for update;
   if t.id is null then raise exception 'Sheet not found'; end if;

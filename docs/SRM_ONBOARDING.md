@@ -1,6 +1,6 @@
 # SRM supplier onboarding: the nine-stage standard
 
-SRM onboards suppliers to adm Indicia's *Global Vendor Onboarding: combined best-practice process flow*: nine controlled
+SRM onboards suppliers to the team's *Global Vendor Onboarding: combined best-practice process flow*: nine controlled
 stages, one evidence trail and explicit exit criteria. Everything below is enforced in Postgres (row-level security and
 security-definer functions); the app only calls the functions.
 
@@ -179,7 +179,7 @@ in `onboarding_stages` (admins can edit the wording).
 
 | Role | Who | Does |
 |---|---|---|
-| Requester / market | anyone at adm Indicia | Business need, request, clarifications |
+| Requester / market | Anyone on the team | Business need, request, clarifications |
 | Procurement / Category Manager | in-market procurement, Procurement head, Procurement Director (`srt_role = director`); Category Manager = head, director or a `category_manager` scope | Triage, category fit and commercials, panels, release |
 | SRT / COE | SRT agents and leads | Intake, information request, evidence, contracts, tracker |
 | Supplier | vendor portal | Information request, evidence, signatures, training, remediation items |

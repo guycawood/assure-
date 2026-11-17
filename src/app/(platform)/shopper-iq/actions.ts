@@ -54,3 +54,14 @@ export async function addAsset(_prev: ActionResult, fd: FormData): Promise<Actio
   revalidatePath("/shopper-iq", "layout");
   return { ok: true, message: "Asset added. It can be reused in briefs once a colleague signs off rights and brand use." };
 }
+
+/** Link an asset to the spec it shows (or unlink it) so the library carries that spec's Impact Grade. */
+export async function linkAssetSpec(_prev: DecisionResult, fd: FormData): Promise<DecisionResult> {
+  await requireInternal();
+  const supabase = await createClient();
+  const spec = str(fd, "spec_id");
+  const { error } = await supabase.rpc("siq_asset_link_spec", { p_asset: str(fd, "id"), p_spec: spec || null });
+  if (error) return { error: error.message };
+  revalidatePath("/shopper-iq", "layout");
+  return { ok: true, message: spec ? "Linked. The asset now shows the spec's Impact Grade." : "Unlinked." };
+}

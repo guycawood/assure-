@@ -51,7 +51,7 @@ export default async function SitesPage() {
 
   return (
     <>
-      <PageHead title="Sites" sub="Where you make, store and ship from. adm Indicia uses your default dispatch site for logistics and carbon calculations, so keep it up to date. You can have one default.">
+      <PageHead title="Sites" sub="Where you make, store and ship from. We use your default dispatch site for logistics and carbon calculations, so keep it up to date. You can have one default.">
         {act && <ActionDialog label="Add site" variant="primary" title="Add a site" action={saveSite} submit="Save site" wide><SiteFields countries={countries} /></ActionDialog>}
       </PageHead>
       {sites.length === 0 ? <Card><Empty title="No sites yet">Add your factory and dispatch locations.</Empty></Card> : (

@@ -14,7 +14,7 @@ type Task = { id: string; title: string; description: string | null; category: s
 const COLUMNS = [
   { key: "open", label: "To do" },
   { key: "in_progress", label: "In progress" },
-  { key: "completed", label: "Done, waiting for adm Indicia" },
+  { key: "completed", label: "Done, waiting for us" },
   { key: "verified", label: "Verified" },
 ];
 
@@ -26,7 +26,7 @@ export default async function ActionPlansPage() {
 
   return (
     <>
-      <PageHead title="Action plans" sub="Improvement actions agreed with adm Indicia, and any you add yourself. Move them along as you work; when you mark one complete, adm Indicia verifies it.">
+      <PageHead title="Action plans" sub="Improvement actions agreed with us, and any you add yourself. Move them along as you work; when you mark one complete, we verify it.">
         {act && (
           <ActionDialog label="Add action" variant="primary" title="Add an improvement action" action={addTask} submit="Add">
             <div className="grid gap-3 sm:grid-cols-2">
@@ -65,7 +65,7 @@ export default async function ActionPlansPage() {
                         <textarea id={`n-${t.id}`} name="note" rows={3} maxLength={2000} className="input" />
                       </ActionDialog>
                     )}
-                    {t.status === "completed" && <p className="text-xs text-muted">Completed {formatDate(t.completed_at)}. adm Indicia will verify it.</p>}
+                    {t.status === "completed" && <p className="text-xs text-muted">Completed {formatDate(t.completed_at)}. We will verify it.</p>}
                   </Card>
                 ))}
               </div>

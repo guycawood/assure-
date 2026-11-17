@@ -73,7 +73,7 @@ export default async function NcrPage({ params }: { params: Promise<{ id: string
               {actions.map((a) => (
                 <tr key={a.id} className="align-top">
                   <td className="td">{a.description}{a.done_note && <div className="text-xs text-muted">{a.done_note}</div>}</td>
-                  <td className="td">{a.owner_side === "supplier" ? "Vendor" : "adm Indicia"}</td>
+                  <td className="td">{a.owner_side === "supplier" ? "Vendor" : "Team"}</td>
                   <td className="td"><Date_ d={a.due_date} /></td>
                   <td className="td">
                     <Pill tone={a.status === "verified" ? "ok" : a.status === "done" ? "info" : "warn"}>{a.status === "done" ? "Done, to verify" : a.status}</Pill>
@@ -101,7 +101,7 @@ export default async function NcrPage({ params }: { params: Promise<{ id: string
           <div className="border-t border-line p-5">
             <ActionForm action={addCorrectiveAction} submit="Add corrective action" hidden={{ ncr_id: n.id }} inline resetOnOk>
               <Field label="Action" className="min-w-[260px] flex-1"><input name="description" required className="input" /></Field>
-              <Field label="Owner" className="w-40"><Select name="owner_side" options={[{ value: "supplier", label: "Vendor" }, { value: "internal", label: "adm Indicia" }]} /></Field>
+              <Field label="Owner" className="w-40"><Select name="owner_side" options={[{ value: "supplier", label: "Vendor" }, { value: "internal", label: "Team" }]} /></Field>
               <Field label="Due" className="w-44"><input name="due_date" type="date" className="input" /></Field>
             </ActionForm>
           </div>

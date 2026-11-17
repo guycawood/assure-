@@ -107,6 +107,9 @@ export async function sendRfq(_: FormResult, fd: FormData): Promise<FormResult> 
   const note = await sentForApproval(await createClient(), "RATE_CARD_EXCEPTION", id(fd) ?? "");
   return note ? { ok: true, message: `Not sent yet: the rate-card exception needs approval. ${note} Then send the RFQ.` } : res;
 }
+export async function waiveImpactGrade(_: FormResult, fd: FormData) {
+  return simple("rfq_waive_impact_grade", { p_rfq: id(fd), p_reason: str(fd, "reason") }, `/rfq/${id(fd)}`, "Impact Grade waived for this RFQ");
+}
 export async function cancelRfq(_: FormResult, fd: FormData) {
   return simple("rfq_cancel", { p_rfq: id(fd), p_reason: str(fd, "reason") }, `/rfq/${id(fd)}`, "RFQ cancelled");
 }

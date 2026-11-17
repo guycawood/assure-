@@ -13,10 +13,10 @@
 -- Libraries
 -- ---------------------------------------------------------------------------
 insert into public.library_definitions (key, module, label, description, requires_approval, sort) values
-  ('crm_services', 'crm', 'Services', 'The services adm Indicia offers clients. Used for services offered / declined on contacts, the Performance Tracker and survey awareness questions.', true, 5),
+  ('crm_services', 'crm', 'Services', 'The services we offer clients. Used for services offered / declined on contacts, the Performance Tracker and survey awareness questions.', true, 5),
   ('crm_stakeholder_quadrants', 'crm', 'Stakeholder matrix quadrants', 'Inform, Establish, Maintain and Grow: the engagement strategy and suggested actions for each.', true, 6),
   ('crm_stakeholder_matrix', 'crm', 'Stakeholder matrix grid', 'Which quadrant each influence x decision-maker combination falls in. The default grid is marked to confirm.', true, 7),
-  ('crm_owner_roles', 'crm', 'Contact owner roles', 'Roles of the adm Indicia person who owns a client contact (CP, BD, AM, MAM, RAD, TL, PM).', false, 8),
+  ('crm_owner_roles', 'crm', 'Contact owner roles', 'Roles of the person who owns a client contact (CP, BD, AM, MAM, RAD, TL, PM).', false, 8),
   ('crm_next_steps', 'crm', 'Next steps', 'Next-step categories for the Performance Tracker.', false, 9),
   ('crm_settings', 'crm', 'CRM settings', 'Numbers CRM works with: when an opportunity needs updating, how often stakeholders are reviewed.', true, 10),
   ('crm_survey_templates', 'crm', 'Survey templates', 'Customer satisfaction survey questions (1-5 by section), NPS and the open questions.', true, 11),
@@ -65,9 +65,9 @@ select x.k, x.code, x.name, x.data::jsonb, 'active', date '2026-01-01'
     ('crm_settings', 'PERF_STALE_DAYS', 'Opportunity needs updating after (days)', '{"value":14}'),
     ('crm_settings', 'STAKEHOLDER_REVIEW_DAYS', 'Stakeholder review due after (days)', '{"value":90}'),
     ('crm_email_templates', 'SURVEY-INVITE', 'Customer satisfaction survey invitation',
-     '{"subject":"How are we doing, {{first_name}}?","body":"Dear {{first_name}},\n\nWe would value ten minutes of your time to tell us how adm Indicia is doing for {{client_name}}. Your answers go straight to the team and shape our plan for the year.\n\nTake the survey: {{link}}\n\nThank you,\n{{owner_name}}\nadm Indicia\n\nNo longer want these emails? {{unsubscribe}}"}'),
+     '{"subject":"How are we doing, {{first_name}}?","body":"Dear {{first_name}},\n\nWe would value ten minutes of your time to tell us how we are doing for {{client_name}}. Your answers go straight to the team and shape our plan for the year.\n\nTake the survey: {{link}}\n\nThank you,\n{{owner_name}}\n\nNo longer want these emails? {{unsubscribe}}"}'),
     ('crm_email_templates', 'NEWSLETTER', 'Client update',
-     '{"subject":"News from adm Indicia","body":"Dear {{first_name}},\n\nHere is our latest update.\n\n{{link}}\n\nBest regards,\n{{owner_name}}\nadm Indicia\n\nNo longer want these emails? {{unsubscribe}}"}'),
+     '{"subject":"News from us","body":"Dear {{first_name}},\n\nHere is our latest update.\n\n{{link}}\n\nBest regards,\n{{owner_name}}\n\nNo longer want these emails? {{unsubscribe}}"}'),
     ('crm_email_templates', 'INTERNAL', 'Internal communication',
      '{"subject":"Update from the Client Services team","body":"Hello {{first_name}},\n\n{{link}}\n\nThanks,\n{{owner_name}}"}'),
     ('crm_survey_templates', 'CSS-STANDARD', 'Customer satisfaction survey (standard)', $json${
@@ -247,7 +247,7 @@ begin
       update public.crm_contacts set market = public._market_code(v_text) where id = p_id;
     when 'decision_role' then update public.crm_contacts set decision_role = v_text where id = p_id;
     when 'owner' then
-      if not exists (select 1 from public.profiles where id = v_text::uuid and (is_admin or user_type = 'internal')) then raise exception 'The owner must be someone at adm Indicia'; end if;
+      if not exists (select 1 from public.profiles where id = v_text::uuid and (is_admin or user_type = 'internal')) then raise exception 'The owner must be someone on the team'; end if;
       update public.crm_contacts set owner = v_text::uuid where id = p_id;
     when 'owner_role_id' then update public.crm_contacts set owner_role_id = v_text::uuid where id = p_id;
     when 'department' then update public.crm_contacts set department = v_text where id = p_id;
@@ -282,7 +282,7 @@ declare n int; r record;
 begin
   perform public._crm_require();
   if p_ids is null or cardinality(p_ids) = 0 then raise exception 'Choose at least one contact'; end if;
-  if not exists (select 1 from public.profiles where id = p_owner and (is_admin or user_type = 'internal')) then raise exception 'The new owner must be someone at adm Indicia'; end if;
+  if not exists (select 1 from public.profiles where id = p_owner and (is_admin or user_type = 'internal')) then raise exception 'The new owner must be someone on the team'; end if;
   for r in select id, client_id, owner from public.crm_contacts where id = any (p_ids) and owner is distinct from p_owner loop
     perform public._crm_event(r.client_id, 'contact', r.id::text, 'owner_reassigned', jsonb_build_object('before', r.owner, 'after', p_owner, 'note', nullif(trim(p_note), '')));
   end loop;
@@ -333,7 +333,7 @@ begin
   end if;
   if p_contact is null then raise exception 'Choose the client contact this opportunity is with'; end if;
   if not exists (select 1 from public.crm_contacts where id = p_contact and client_id = v_client) then raise exception 'The contact must belong to the same client'; end if;
-  if not public._crm_internal_person(p_cs_lead) or not public._crm_internal_person(p_sme) then raise exception 'CS lead and SME must be people at adm Indicia'; end if;
+  if not public._crm_internal_person(p_cs_lead) or not public._crm_internal_person(p_sme) then raise exception 'CS lead and SME must be people on the team'; end if;
   perform public._crm_lib(p_service, 'crm_services', 'service');
   perform public._crm_lib(p_next_step, 'crm_next_steps', 'next step');
   if p_id is null then

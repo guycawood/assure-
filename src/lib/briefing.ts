@@ -1,13 +1,26 @@
-// Briefing+ pure helpers: labels, tones, types and the indicative eco grade maths. No I/O.
+﻿// Briefing+ pure helpers: labels, tones, types and the indicative eco grade maths. No I/O.
 import type { Tone } from "@/lib/srt";
 
-export type BriefStatus = "draft" | "submitted" | "in_ideation" | "spec_created" | "archived";
+export type BriefStatus = "draft" | "submitted" | "with_client" | "in_ideation" | "spec_created" | "archived";
+
+// Brief types the client chooses (Global Business Transformation: Client brief intake and validation, step b2).
+export const BRIEF_TYPES = [
+  { key: "artworking", label: "Artworking" }, { key: "creative_ideation", label: "Creative ideation" }, { key: "product_brief", label: "Product brief" },
+] as const;
+export const CREATIVE_ROUTES = { internal: "Internal creative team", supplier: "Supplier" } as const;
+/** The process fields on a brief (read from the table: the older briefs_v view predates them). */
+export type BriefProcess = {
+  brief_types: string[]; creative_needed: boolean | null; creative_route: "internal" | "supplier" | null;
+  creative_decided_at: string | null; creative_reviewed_by: string | null; creative_reviewed_at: string | null; creative_review_note: string | null;
+  returned_reason: string | null; returned_by: string | null; returned_at: string | null; meeting_requested: boolean;
+};
 export type ApprovalStatus = "pending" | "approved" | "changes_requested";
 
-export const BRIEF_STATUSES: BriefStatus[] = ["draft", "submitted", "in_ideation", "spec_created", "archived"];
+export const BRIEF_STATUSES: BriefStatus[] = ["draft", "submitted", "with_client", "in_ideation", "spec_created", "archived"];
 export const BRIEF_STATUS: Record<BriefStatus, { label: string; tone: Tone }> = {
   draft: { label: "Draft", tone: "neutral" },
   submitted: { label: "Submitted", tone: "info" },
+  with_client: { label: "With client", tone: "warn" },
   in_ideation: { label: "In ideation", tone: "accent" },
   spec_created: { label: "Spec created", tone: "ok" },
   archived: { label: "Archived", tone: "neutral" },
@@ -133,6 +146,10 @@ export type SpecConcept = {
   suggested_unit: string | null; suggested_calc_method: "quantity" | "square_measurement" | null; creative_direction: string;
   risks: string[]; fit_score: number | null; indicative_quantity: number | null; indicative_unit_price: number | null;
   indicative_total: number | null; price_currency: string | null; price_basis: string | null; eco: Eco | null; substrate_specs?: SubstrateSpecs | null;
+  /** Illustration made by the render step (sanitised SVG), stored on the concept. */
+  render_svg?: string | null; render_model?: string | null;
+  /** Provisional Impact Grade (attached on read from the governed formula; not stored on the concept). */
+  impact_grade?: { score: number | null; letter: string | null; confidence: number; low: number | null; high: number | null; coverage: number; note: string } | null;
 };
 
 export type ProductTypeSuggestion = {
@@ -180,6 +197,7 @@ export function money(n: number | null | undefined, currency = "GBP") {
   return `${currency} ${Number(n).toLocaleString("en-GB", { maximumFractionDigits: 2 })}`;
 }
 export const budgetRange = (b: Pick<Brief, "budget_low" | "budget_high" | "currency">) =>
-  b.budget_low == null && b.budget_high == null ? "" : `${b.currency} ${b.budget_low != null ? Number(b.budget_low).toLocaleString("en-GB") : "?"} – ${b.budget_high != null ? Number(b.budget_high).toLocaleString("en-GB") : "?"}`;
+  b.budget_low == null && b.budget_high == null ? "" : `${b.currency} ${b.budget_low != null ? Number(b.budget_low).toLocaleString("en-GB") : "?"} –${b.budget_high != null ? Number(b.budget_high).toLocaleString("en-GB") : "?"}`;
 
 export const canIdeate = (b: Pick<Brief, "status" | "approval_status">) => b.status === "in_ideation" && b.approval_status === "approved";
+

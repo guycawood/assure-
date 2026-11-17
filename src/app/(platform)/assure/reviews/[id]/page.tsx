@@ -37,7 +37,7 @@ export default async function ReviewPage({ params }: { params: Promise<{ id: str
           <div className="space-y-4 p-5">
             <Facts cols={3} items={[
               ["Supplier", <SupplierLink key="s" id={r.supplier_id} name={supplier?.name} tab="reviews" />], ["Date", <Date_ key="d" d={r.meeting_date} />],
-              ["Next review", <Date_ key="n" d={r.next_review_date} />], ["adm Indicia", r.internal_attendees.join(", ")], ["Vendor", r.vendor_attendees.join(", ")],
+              ["Next review", <Date_ key="n" d={r.next_review_date} />], ["Team", r.internal_attendees.join(", ")], ["Vendor", r.vendor_attendees.join(", ")],
               ["Created by", r.created_by ? personName(pMap.get(r.created_by)) : null],
             ]} />
             {r.description && <p className="text-sm">{r.description}</p>}

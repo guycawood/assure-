@@ -5,7 +5,7 @@ import { requireInternal } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { friendly, id, str, type FormResult } from "@/lib/sourcing-actions";
 
-// Internal actions on technical & packaging data sheets. The vendor declares; adm Indicia opens a sheet for a supplier
+// Internal actions on technical & packaging data sheets. The vendor declares; the team opens a sheet for a supplier
 // (pre-filled from that supplier's verified sheets) or reopens one. Verification only happens at the QA/QC pre-shipment check.
 
 function refresh(fd: FormData) {

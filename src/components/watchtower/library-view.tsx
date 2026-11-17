@@ -10,7 +10,9 @@ import { Card, Empty, PageHead, Pill, type Crumb } from "@/components/ui";
 import { MSymbol } from "@/components/symbol";
 import { AddRecordButton, CsvTools, RecordActions } from "./library-actions-ui";
 
-export type LibrarySearch = { q?: string; show?: string; sort?: string; dir?: string; group?: string; [k: string]: string | undefined };
+const MAX_ROWS = 500;
+
+export type LibrarySearch ={ q?: string; show?: string; sort?: string; dir?: string; group?: string; [k: string]: string | undefined };
 
 export const STATUS_TONE = { active: "ok", pending_approval: "warn", superseded: "neutral", retired: "neutral", rejected: "bad" } as const;
 export const STATUS_LABEL = { active: "Active", pending_approval: "Awaiting approval", superseded: "Superseded", retired: "Deactivated", rejected: "Rejected" } as const;
@@ -41,6 +43,9 @@ export async function LibraryView({ libraryKey, basePath, sp, crumbs }: { librar
   const dir = sp.dir === "desc" ? -1 : 1;
   const val = (r: (typeof rows)[number]) => sortKey === "name" ? r.name.toLowerCase() : sortKey === "code" ? (r.code ?? "") : sortKey === "usage" ? usage.get(r.id) ?? 0 : (r.data[sortKey] as string | number) ?? "";
   rows = [...rows].sort((a, b) => (val(a) > val(b) ? dir : val(a) < val(b) ? -dir : 0));
+  // Large reference libraries (e.g. end-of-life fate rates per country) render the first rows only; search narrows them.
+  const matched = rows.length;
+  if (rows.length > MAX_ROWS) rows = rows.slice(0, MAX_ROWS);
   const groupBy = sp.group === "1" && schema.groupBy ? schema.fields.find((f) => f.key === schema.groupBy) : undefined;
   const groups = groupBy
     ? [...new Set(rows.map((r) => String(r.data[groupBy.key] ?? "")))].map((g) => ({ label: displayValue(groupBy, g || null), rows: rows.filter((r) => String(r.data[groupBy.key] ?? "") === g) }))
@@ -88,7 +93,9 @@ export async function LibraryView({ libraryKey, basePath, sp, crumbs }: { librar
             <label className="flex items-center gap-2 pb-2 text-sm"><input type="checkbox" name="group" value="1" defaultChecked={sp.group === "1"} /> Group</label>
           )}
           <button className="rounded-lg border border-line px-3.5 py-2 text-sm font-semibold hover:bg-surface-2">Apply</button>
-          <span className="ml-auto pb-2 text-xs text-muted">Showing {rows.length} of {records.length}</span>
+          <span className="ml-auto pb-2 text-xs text-muted">
+            Showing {rows.length} of {records.length}{matched > rows.length ? ` (first ${MAX_ROWS} of ${matched} matches: search to narrow)` : ""}
+          </span>
         </form>
 
         {rows.length === 0 ? (

@@ -38,7 +38,7 @@ test("vendors are linked and see only their own company", async () => {
 });
 
 test("team: only portal admins invite; invited emails link on first sign-in with their level", async () => {
-  await rejects(as("va", "select public.vendor_team_invite('someone@adm-indicia.com','standard')"), /staff can't be added/);
+  await rejects(as("va", "select public.vendor_team_invite('someone@adm-indicia.com','standard')"), /staff can't be added/i);
   await rejects(as("va", "select public.vendor_team_invite('not-an-email','standard')"), /valid email/);
   await rejects(as("va", "select public.vendor_team_invite('x@alpha.example','owner')"), /admin, standard or viewer/);
   await as("va", "select public.vendor_team_invite('std@alpha.example','standard')");
@@ -103,7 +103,7 @@ test("sites: vendor-owned, one default dispatch site enforced, viewers read-only
 
 test("subscription: vendors request, never set; procurement sets with a reason", async () => {
   await rejects(as("va", "insert into public.supplier_subscriptions (supplier_id, tier, status) values ($1,'diamond','active')", [SA]), /permission denied/);
-  await rejects(as("va", "select public.assure_set_subscription($1,'diamond','active',null,'me')", [SA]), /Only adm Indicia staff/);
+  await rejects(as("va", "select public.assure_set_subscription($1,'diamond','active',null,'me')", [SA]), /Only staff/);
   await rejects(as("agent", "select public.assure_set_subscription($1,'diamond','active',null,'x')", [SA]), /Only procurement/);
   // Vendors can't change their own supplier record (tier, status, scores).
   const u = await as("va", "update public.suppliers set tier = 'strategic', status = 'active', rag = 'green' where id = $1 returning id", [SA]);
@@ -127,7 +127,7 @@ test("subscription: vendors request, never set; procurement sets with a reason",
   assert.equal((await one("vb", "select subscription_status from public.vendor_my_company")).subscription_status, "none");
 });
 
-test("contracts: vendor signs in order for its own company only, then adm Indicia completes", async () => {
+test("contracts: vendor signs in order for its own company only, then the team completes", async () => {
   // Fixture written as the system (status and parties are normally set by assure_contract_action).
   await db.exec("reset role; select set_config('request.jwt.claim.sub', '', false); select set_config('assure.system_write','on',false);");
   const cid = (await db.query("insert into public.contracts (contract_ref, supplier_id, title, status, sent_at) values ('CT-T-1', $1, 'Supply deal', 'sent', now()) returning id", [SA])).rows[0].id;
@@ -140,7 +140,7 @@ test("contracts: vendor signs in order for its own company only, then adm Indici
   await rejects(as("vb", "select public.vendor_contract_sign($1,'sign',null)", [pStd]), /not found/);
   await rejects(as("vaview", "select public.vendor_contract_sign($1,'sign',null)", [pStd]), /view-only/);
   await rejects(as("va", "select public.vendor_contract_sign($1,'sign',null)", [pVa]), /Earlier signers/);
-  await rejects(as("vastd", "select public.vendor_contract_sign($1,'sign',null)", [pInt]), /adm Indicia signs/);
+  await rejects(as("vastd", "select public.vendor_contract_sign($1,'sign',null)", [pInt]), /The team signs/);
   await as("vastd", "select public.vendor_contract_open($1)", [cid]);
   assert.equal((await one("va", "select status from public.vendor_contracts where id = $1", [cid])).status, "viewed");
   await as("vastd", "select public.vendor_contract_sign($1,'sign',null)", [pStd]);
@@ -163,7 +163,7 @@ test("action plans: vendor adds its own actions; viewers can't; staff still veri
   assert.deepEqual([r.supplier_id, r.status], [SA, "open"]);
   assert.equal((await as("vb", "select * from public.action_plan_tasks where id = $1", [id])).rows.length, 0);
   await as("vastd", "select public.assure_task_set_status($1,'completed','Done')", [id]);
-  await rejects(as("va", "select public.assure_task_set_status($1,'verified',null)", [id]), /Only adm Indicia staff/);
+  await rejects(as("va", "select public.assure_task_set_status($1,'verified',null)", [id]), /Only staff/);
 });
 
 test("orders: PO detail and the document library are vendor-scoped", async () => {
@@ -201,7 +201,7 @@ test("public application: anonymous, validated, honeypot, duplicates and notific
 
   // Staff review it.
   const id = (await one("proc", "select id from public.vendor_applications where application_ref = $1", [ref])).id;
-  await rejects(as("va", "select public.vendor_application_decide($1,'invited',null)", [id]), /Only adm Indicia staff/);
+  await rejects(as("va", "select public.vendor_application_decide($1,'invited',null)", [id]), /Only staff/);
   await rejects(as("proc", "select public.vendor_application_decide($1,'rejected','')", [id]), /reason/);
   await as("proc", "select public.vendor_application_decide($1,'reviewing',null)", [id]);
 });

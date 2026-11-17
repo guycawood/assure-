@@ -21,7 +21,7 @@ function ModuleFields({ m }: { m?: Mod }) {
       <div className="grid gap-3 sm:grid-cols-4">
         <Field label="Title" className="sm:col-span-2"><input name="title" required defaultValue={m?.title} className="input" /></Field>
         <Field label="Type"><Select name="resource_type" options={[{ value: "document", label: "Walkthrough" }, { value: "video", label: "Video" }, { value: "faq", label: "FAQ" }]} defaultValue={m?.resource_type ?? "document"} /></Field>
-        <Field label="Audience"><Select name="audience" options={[{ value: "all", label: "Everyone" }, { value: "internal", label: "adm Indicia staff" }, { value: "vendor", label: "Vendors" }]} defaultValue={m?.audience ?? "all"} /></Field>
+        <Field label="Audience"><Select name="audience" options={[{ value: "all", label: "Everyone" }, { value: "internal", label: "Staff" }, { value: "vendor", label: "Vendors" }]} defaultValue={m?.audience ?? "all"} /></Field>
         <Field label="Category"><input name="category" defaultValue={m?.category ?? "General"} className="input" /></Field>
         <Field label="Minutes"><input name="duration_minutes" type="number" min={1} defaultValue={m?.duration_minutes ?? ""} className="input" /></Field>
         <Field label="Order"><input name="display_order" type="number" defaultValue={m?.display_order ?? 0} className="input" /></Field>

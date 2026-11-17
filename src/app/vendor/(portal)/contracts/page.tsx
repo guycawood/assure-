@@ -17,7 +17,7 @@ export default async function ContractsPage() {
   const waiting = list.filter((c) => ["sent", "viewed", "in_review", "signed"].includes(c.status));
   return (
     <>
-      <PageHead title="Contracts" sub={`Contracts adm Indicia has sent you. Open one to read it, comment, and sign in the order shown.${waiting.length ? ` ${waiting.length} waiting for signatures.` : ""}`} />
+      <PageHead title="Contracts" sub={`Contracts we have sent you. Open one to read it, comment, and sign in the order shown.${waiting.length ? ` ${waiting.length} waiting for signatures.` : ""}`} />
       <Card className="overflow-x-auto">
         {list.length === 0 ? <Empty title="No contracts yet" /> : (
           <table className="w-full text-sm">

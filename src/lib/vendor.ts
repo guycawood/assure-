@@ -12,6 +12,9 @@ export const VENDOR_NAV: { label: string; items: NavLink[] }[] = [
   ] },
   { label: "Work", items: [
     { label: "Quote requests", href: "/vendor/quotes", icon: "request_quote" },
+    { label: "Rate card pricing", href: "/vendor/rate-cards", icon: "sell" },
+    { label: "Creative requests", href: "/vendor/creative", icon: "lightbulb" },
+    { label: "Sample jobs", href: "/vendor/sampling", icon: "science" },
     { label: "Pushed prices", href: "/vendor/pushed-prices", icon: "price_check" },
     { label: "Orders", href: "/vendor/orders", icon: "inventory_2" },
     { label: "Invoices & payments", href: "/vendor/invoices", icon: "receipt_long" },
@@ -23,6 +26,7 @@ export const VENDOR_NAV: { label: string; items: NavLink[] }[] = [
     { label: "Certificates & documents", href: "/vendor/compliance", icon: "verified" },
     { label: "QA/QC", href: "/vendor/qaqc", icon: "rule" },
     { label: "Technical & packaging data", href: "/vendor/tech-sheets", icon: "deployed_code" },
+    { label: "HS codes", href: "/vendor/hs-codes", icon: "tag" },
     { label: "Quality & NCRs", href: "/vendor/quality", icon: "fact_check" },
     { label: "Performance & issues", href: "/vendor/performance", icon: "monitoring" },
   ] },
@@ -30,6 +34,7 @@ export const VENDOR_NAV: { label: string; items: NavLink[] }[] = [
     { label: "Contracts", href: "/vendor/contracts", icon: "contract" },
     { label: "Business reviews", href: "/vendor/reviews", icon: "event_note" },
     { label: "Messages", href: "/vendor/messages", icon: "forum" },
+    { label: "Message channels", href: "/vendor/contact-preferences", icon: "chat" },
   ] },
   { label: "Improve", items: [
     { label: "Action plans", href: "/vendor/action-plans", icon: "checklist" },
@@ -40,6 +45,7 @@ export const VENDOR_NAV: { label: string; items: NavLink[] }[] = [
     { label: "Company & pre-assessment", href: "/vendor/profile", icon: "storefront" },
     { label: "Team", href: "/vendor/team", icon: "group" },
     { label: "Sites", href: "/vendor/sites", icon: "location_on" },
+    { label: "Capabilities & tooling", href: "/vendor/capabilities", icon: "precision_manufacturing" },
     { label: "Subscription", href: "/vendor/subscription", icon: "workspace_premium" },
   ] },
 ];
@@ -51,6 +57,16 @@ export const SUBSCRIPTION_TIERS = [
   { key: "diamond", name: "Diamond", price: "£12,000", colour: "#2A8BC9", features: ["Everything in Platinum", "Strategic co-marketing", "First-look opportunities", "Board-level engagement"] },
 ] as const;
 export const tierName = (k: string | null | undefined) => SUBSCRIPTION_TIERS.find((t) => t.key === k)?.name ?? "No plan";
+
+// Functional roles on top of the access level. No role chosen = full access at the person's level.
+export const VENDOR_ROLES = [
+  { key: "company_admin", label: "Company admin", help: "Runs the team and the company's portal. No financial access." },
+  { key: "profile_manager", label: "Profile manager", help: "Company profile, sites and capabilities." },
+  { key: "finance_contact", label: "Finance contact", help: "Invoices, bank details and payments." },
+  { key: "performance_lead", label: "Performance lead", help: "Scorecards, issues, action plans and reviews." },
+  { key: "compliance_esg", label: "Compliance / ESG", help: "Certificates, audits and ESG documents." },
+] as const;
+export const roleLabel = (k: string) => VENDOR_ROLES.find((r) => r.key === k)?.label ?? k;
 
 export const PERMISSION_LABEL: Record<VendorPermission, string> = { admin: "Portal admin", standard: "Standard", viewer: "View only" };
 export const PERMISSION_HELP: Record<VendorPermission, string> = {
@@ -107,7 +123,7 @@ export const daysUntil = (iso: string | null | undefined) =>
   iso ? Math.ceil((new Date(iso.length === 10 ? iso + "T23:59:59" : iso).getTime() - Date.now()) / 86400000) : null;
 
 /** Database messages written for people pass through; anything technical is replaced with a plain fallback. */
-export function friendlyError(message: string | undefined, fallback = "That didn't work. Try again, or contact adm Indicia.") {
+export function friendlyError(message: string | undefined, fallback = "That didn't work. Try again, or contact us.") {
   if (!message) return fallback;
   if (/violates|permission denied|syntax|column |relation |does not exist|duplicate key|invalid input|null value|PGRST|JWT/i.test(message)) return fallback;
   return message.length > 300 ? fallback : message;
@@ -197,6 +213,15 @@ export function cleanPaData(raw: unknown): PaData {
     .map((x) => ({ name: String(x.name), available: ["Yes", "No"].includes(String(x.available)) ? String(x.available) : "", comment: clip(x.comment, 200).trim() }))
     .filter((x) => x.available || x.comment);
   if (eqv.length) out.major_test_equipment = eqv;
+  // Answers to the extra onboarding questions (see form governance): keyed by question id.
+  if (r.custom && typeof r.custom === "object" && !Array.isArray(r.custom)) {
+    const c: Record<string, string> = {};
+    for (const [k, v] of Object.entries(r.custom as Record<string, unknown>).slice(0, 40)) {
+      if (/^[a-z][a-z0-9_]{1,23}$/.test(k)) { const t = clip(v, 1000).trim(); if (t) c[k] = t; }
+    }
+    if (Object.keys(c).length) out.custom = c;
+  }
+  if (typeof r.form_version === "number" && r.form_version > 0 && r.form_version < 100000) out.form_version = r.form_version;
   return out;
 }
 

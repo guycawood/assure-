@@ -22,6 +22,14 @@ import {
 import { getClientDeliveryKpis } from "@/lib/crm-data";
 import { DeliveryKpisView } from "@/components/qaqc/kpis";
 import { setQaMinLevel } from "../quality-actions";
+import { setClientSustainability } from "../sustainability-actions";
+import { ClientRules } from "@/components/crm/client-rules";
+import { setClientRetainer } from "../retainer-actions";
+import { getClientTargets } from "@/lib/client-targets-data";
+import { getCarbonIntensity, getClientGrade } from "@/lib/impact-grade-data";
+import { GradeStat } from "@/components/impact-grade/grade-stat";
+import { fmtIntensity, rollupIntensity } from "@/lib/carbon-intensity";
+import { targetLines } from "@/lib/client-targets";
 import { getScorecard, getScorecardOptions } from "@/lib/scorecard-reporting-data";
 import { toFilters, type ScorecardParams } from "@/lib/scorecard-reporting";
 import { ScorecardView } from "@/components/scorecard/scorecard-view";
@@ -34,6 +42,8 @@ const TABS = [
   { key: "activity", label: "Activity", icon: "forum" },
   { key: "opportunities", label: "Opportunities", icon: "filter_alt" },
   { key: "contract", label: "Contract & terms", icon: "contract" },
+  { key: "sustainability", label: "Sustainability", icon: "eco" },
+  { key: "rules", label: "Method & rules", icon: "rule" },
   { key: "health", label: "Health", icon: "monitor_heart" },
   { key: "delivery", label: "Delivery & quality", icon: "verified" },
   { key: "scorecard", label: "Scorecard", icon: "analytics" },
@@ -57,6 +67,7 @@ export default async function CrmClient({ params, searchParams }: { params: Prom
     getLibrary(supabase, "crm_account_tiers"), getLibrary(supabase, "crm_interaction_types"),
   ]);
   const health = healthRows[0];
+  const grade = await getClientGrade(supabase, id);
   const kpis = tab === "delivery" ? await getClientDeliveryKpis(supabase, id) : null;
   const [scorecard, scOptions] = tab === "scorecard" ? await Promise.all([getScorecard(supabase, id, toFilters(sp)), getScorecardOptions(supabase, id)]) : [null, null];
   const open = opps.filter((o) => OPEN_STAGES.includes(o.stage));
@@ -72,7 +83,8 @@ export default async function CrmClient({ params, searchParams }: { params: Prom
         {health && <RagPill rag={health.rag} title={health.reasons.join(" · ")} />}
       </PageHead>
 
-      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
+        <GradeStat avg={grade.avg} specs={grade.specs} graded={grade.graded} of="this client's jobs" icon={<MSymbol name="eco" />} />
         <Stat label="Spend this year" value={health ? money(health.spend_ytd, health.currency) : "—"} hint={health ? `Billed ${money(health.billed_ytd, health.currency)}` : undefined} icon={<MSymbol name="savings" />} />
         <Stat label="Open pipeline (weighted)" value={moneyByCurrency(open.map((o) => ({ value: o.weighted_value, currency: o.currency })))} hint={`${open.length} open`} icon={<MSymbol name="filter_alt" />} />
         <Stat label="Satisfaction" value={health?.satisfaction != null ? `${health.satisfaction}/10` : "—"} hint={health?.nps != null ? `NPS ${health.nps} · ${health.feedback_count} scores` : "No scores yet"} icon={<MSymbol name="reviews" />} />
@@ -257,6 +269,18 @@ export default async function CrmClient({ params, searchParams }: { params: Prom
               </details>
             </div>
           </Panel>
+          <Panel title="Creative retainer" sub="On a retainer, creative work starts with a kick-off and no quote. Otherwise every creative brief gets a quote the client approves, with its PO, before creative work starts.">
+            <div className="space-y-3 px-5 py-4 text-sm">
+              <p>{client.on_retainer ? <Pill tone="accent">On a retainer</Pill> : <Pill>No retainer: creative is quoted</Pill>}{client.retainer_note && <span className="ml-2 text-muted">{client.retainer_note}</span>}</p>
+              <details><summary className="cursor-pointer font-semibold text-accent">Change</summary>
+                <ActionForm action={setClientRetainer} hidden={{ id }} submit="Save" variant="secondary" className="mt-3 grid gap-3 sm:grid-cols-2">
+                  <Select name="on_retainer" label="On a creative retainer?" options={[{ value: "yes", label: "Yes" }, { value: "no", label: "No" }]} value={client.on_retainer ? "yes" : "no"} />
+                  <Input name="note" label="Retainer details (optional)" value={client.retainer_note} placeholder="e.g. 40 days a year, renews January" />
+                  <Input name="reason" label="Why (e.g. the agreement or contract)" required className="sm:col-span-2" />
+                </ActionForm>
+              </details>
+            </div>
+          </Panel>
           <Card className="overflow-x-auto">
             {contracts.length === 0 ? <Empty title="No contracts yet" /> : (
               <table className="w-full text-sm">
@@ -324,6 +348,12 @@ export default async function CrmClient({ params, searchParams }: { params: Prom
 
       {tab === "work" && <LinkedWork clientId={id} />}
 
+      {tab === "sustainability" && (
+        <ClientSustainability clientId={id} contracts={contracts.map((k) => ({ value: k.id, label: `${k.contract_code} · ${k.title}`, commitments: k.sustainability_commitments }))} />
+      )}
+
+      {tab === "rules" && <ClientRules clientId={id} meId={me.id} />}
+
       {tab === "scorecard" && (
         <ScorecardView report={scorecard} params={{ ...sp, client: undefined }} base={`/crm/clients/${id}`} keep={{ tab: "scorecard" }} options={scOptions}
           scopeNote={`Balanced scorecard for ${client.name}: the same KPIs and targets as the Client Portal and the business review pack.`} />
@@ -349,6 +379,59 @@ export default async function CrmClient({ params, searchParams }: { params: Prom
       )}
 
       <RecentChanges clientId={id} />
+    </>
+  );
+}
+
+/** The client's standing sustainability targets: Briefing+ pre-fills new briefs from them and ideation always applies them. */
+async function ClientSustainability({ clientId, contracts }: { clientId: string; contracts: { value: string; label: string; commitments: string | null }[] }) {
+  const supabase = await createClient();
+  const [t, ciRows] = await Promise.all([getClientTargets(supabase, clientId), getCarbonIntensity(supabase, { clientId })]);
+  const ci = rollupIntensity(ciRows);
+  const fromContracts = contracts.filter((k) => k.commitments);
+  return (
+    <>
+      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        <Stat label="Economic carbon intensity" value={fmtIntensity(ci.economic)} hint="kg CO2e per € of purchase spend, all this client's specs" />
+        <Stat label="Physical carbon intensity" value={fmtIntensity(ci.physical, "kg")} hint="kg CO2e per kg of material" />
+        <Stat label="CO2e measured" value={`${Math.round(ci.co2eKg).toLocaleString("en-GB")} kg`} hint={`${ci.measured} of ${ci.specs} specs have CO2e and spend`} />
+        <Stat label="Spend covered" value={`€${Math.round(ci.spendEur).toLocaleString("en-GB")}`} hint="Purchase spend on those specs, in EUR" />
+      </div>
+      <p className="text-xs text-muted">Carbon intensity is reported beside the Impact Grade, not scored in it (Impact Grade.xlsx, Outputs). CO2e is the material estimate per spec until PEF climate figures are stored per spec.</p>
+      <Panel title="Sustainability targets" sub="The client's standing requirements. New briefs start from them; ideation always applies them (the stricter of client and brief wins) and never suggests excluded materials.">
+        {t ? (
+          <div className="space-y-2 px-5 py-4 text-sm">
+            <ul className="flex flex-wrap gap-1.5">{targetLines(t).map((l) => <li key={l}><Pill tone="ok">{l}</Pill></li>)}</ul>
+            {t.reporting_obligations && <p className="text-muted"><span className="font-semibold text-fg">Reporting:</span> {t.reporting_obligations}</p>}
+            <p className="text-xs text-muted">{t.source_contract_code ? `From contract ${t.source_contract_code} · ` : ""}Updated {fmtDateTime(t.updated_at ?? null)}</p>
+          </div>
+        ) : <Empty title="No sustainability targets yet">Set them below so briefs and ideation for this client start from them.</Empty>}
+        <div className="border-t border-line px-5 py-4">
+          <details open={!t}><summary className="cursor-pointer text-sm font-semibold text-accent">{t ? "Change targets" : "Set targets"}</summary>
+            <ActionForm action={setClientSustainability} hidden={{ id: clientId }} submit="Save targets" className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+              <TextArea name="statement" label="What the client wants" value={t?.statement} className="sm:col-span-2 lg:col-span-4" placeholder="e.g. no PVC, recyclable at end of life, reuse the structure next season" />
+              <Input name="min_recycled_pct" label="Minimum recycled content (%)" type="number" value={t?.min_recycled_pct} />
+              <Input name="impact_grade_floor" label="Impact Grade floor (0-100)" type="number" step="0.1" value={t?.impact_grade_floor} />
+              <TextArea name="excluded_materials" label="Never use (one per line or comma separated)" value={t?.excluded_materials.join("\n")} rows={2} className="sm:col-span-2" placeholder="PVC" />
+              <label className="flex items-center gap-2 text-sm"><input type="checkbox" name="require_fsc" defaultChecked={t?.require_fsc} /> FSC certified material required</label>
+              <label className="flex items-center gap-2 text-sm"><input type="checkbox" name="recyclable_required" defaultChecked={t?.recyclable_required} /> Recyclable at end of life</label>
+              <label className="flex items-center gap-2 text-sm"><input type="checkbox" name="reuse_expected" defaultChecked={t?.reuse_expected} /> Designed for reuse</label>
+              <span />
+              <TextArea name="reporting_obligations" label="Reporting obligations" value={t?.reporting_obligations} rows={2} className="sm:col-span-2" placeholder="e.g. quarterly CO2e by campaign, CSRD scope 3" />
+              <Select name="source_contract_id" label="Written into contract" options={contracts} value={t?.source_contract_id} empty="Not in a contract" className="sm:col-span-2" />
+              <Input name="reason" label="Why (e.g. contract clause or client policy)" required className="sm:col-span-2 lg:col-span-4" />
+            </ActionForm>
+          </details>
+        </div>
+      </Panel>
+      {fromContracts.length > 0 && (
+        <Panel title="Sustainability commitments in contracts" sub="As written in each contract. Copy what applies into the targets above.">
+          <ul className="divide-y divide-line">{fromContracts.map((k) => <li key={k.value} className="px-5 py-2.5 text-sm"><span className="font-semibold">{k.label}</span><p className="text-muted">{k.commitments}</p></li>)}</ul>
+        </Panel>
+      )}
+      <Card className="flex items-center gap-2 px-5 py-3 text-xs text-muted">
+        <MSymbol name="link" size={16} /> The Impact Grade floor is on the 0-100 Impact Grade scale from the <Link className="text-accent hover:underline" href="/impact-grade/watchtower">Impact Grade Watchtower</Link> (System X: client commitments and grade floor).
+      </Card>
     </>
   );
 }

@@ -5,7 +5,8 @@ import type { ModuleKey } from "./registry";
 // Every module has its own Watchtower group; the master Watchtower governs all of them.
 
 export type NavItem = { label: string; href: string; icon: string; exact?: boolean; badge?: "myTickets"; adminOnly?: boolean };
-export type NavGroup = { label: string; items: NavItem[] };
+// open: shown expanded until the person closes it. Other groups stay folded unless they hold the page being viewed.
+export type NavGroup = { label: string; items: NavItem[]; open?: boolean };
 
 const about = (key: string, name: string): NavGroup => ({ label: "About", items: [{ label: `About ${name}`, href: `/${key}/about`, icon: "info" }] });
 const overview = (key: string): NavGroup => ({ label: "Overview", items: [{ label: "Overview", href: `/${key}`, icon: "space_dashboard", exact: true }] });
@@ -32,6 +33,7 @@ const SECTION_NAV: Record<Exclude<ModuleKey, "rfq" | "logistics" | "execution">,
         { label: "Balanced scorecard", href: "/watchtower/scorecard", icon: "analytics" },
         { label: "End-to-end journey", href: "/watchtower/journey", icon: "route" },
         { label: "How modules connect", href: "/watchtower/flow", icon: "account_tree" },
+        { label: "Process map", href: "/watchtower/process", icon: "schema" },
         { label: "Change requests", href: "/watchtower/change-requests", icon: "rule" },
         { label: "Core principles", href: "/watchtower/libraries/core_principles", icon: "verified" },
         { label: "Delegation of authority", href: "/watchtower/libraries/doa_levels", icon: "approval_delegation" },
@@ -41,7 +43,7 @@ const SECTION_NAV: Record<Exclude<ModuleKey, "rfq" | "logistics" | "execution">,
         { label: "Product taxonomy & AAC", href: "/watchtower/taxonomy", icon: "category" },
         { label: "Substrates", href: "/watchtower/libraries/substrates", icon: "layers" },
         { label: "Emission factors", href: "/watchtower/libraries/material_emission_factors", icon: "eco" },
-        { label: "Impact Grade", href: "/watchtower/libraries/impact_grade_dimensions", icon: "grade" },
+        { label: "Impact Grade (PEF)", href: "/impact-grade/watchtower", icon: "grade" },
       ] },
       { label: "Layers & platform", items: [
         { label: "Data management", href: "/watchtower/data", icon: "database" },
@@ -87,7 +89,8 @@ const SECTION_NAV: Record<Exclude<ModuleKey, "rfq" | "logistics" | "execution">,
       ] },
       { label: "Relationship health", items: [
         { label: "Client health", href: "/crm/health", icon: "monitor_heart" },
-        { label: "Feedback", href: "/crm/feedback", icon: "reviews" },
+        { label: "Feedback", href: "/crm/feedback", icon: "reviews", exact: true },
+        { label: "Feedback cases", href: "/crm/feedback/cases", icon: "support_agent" },
       ] },
       // CRM's external half: what the client sees and does (the Client Portal), as the vendor portal is for SRM.
       { label: "External view", items: [
@@ -124,7 +127,11 @@ const SECTION_NAV: Record<Exclude<ModuleKey, "rfq" | "logistics" | "execution">,
         { label: "Insights for briefing", href: "/shopper-iq/insights", icon: "tips_and_updates" },
       ] },
       { label: "Assets", items: [{ label: "Asset library", href: "/shopper-iq/assets", icon: "photo_library" }] },
-      watchtower("shopper-iq"),
+      watchtower("shopper-iq", [
+        { label: "Design methodology", href: "/shopper-iq/watchtower/methodology", icon: "functions" },
+        { label: "Design calculator", href: "/shopper-iq/watchtower/calculator", icon: "calculate" },
+        { label: "Design open items", href: "/shopper-iq/watchtower/open-items", icon: "report" },
+      ]),
     ],
   },
   // Sourcing: jobs, specs and triage, then RFQs (one section; RFQ pages keep their /rfq URLs).
@@ -137,6 +144,11 @@ const SECTION_NAV: Record<Exclude<ModuleKey, "rfq" | "logistics" | "execution">,
         { label: "Jobs", href: "/sourcing/jobs", icon: "work" },
         { label: "Specs", href: "/sourcing/specs", icon: "layers" },
         { label: "Triage basket", href: "/sourcing/triage", icon: "alt_route" },
+        { label: "Rate cards", href: "/sourcing/rate-cards", icon: "sell", exact: true },
+        { label: "Rate card requests", href: "/sourcing/rate-cards/requests", icon: "playlist_add" },
+        { label: "Rate card opportunities", href: "/sourcing/rate-cards/opportunities", icon: "query_stats" },
+        { label: "Rate card programmes", href: "/sourcing/rate-cards/programmes", icon: "table_chart" },
+        { label: "Reorder from a rate card", href: "/sourcing/rate-cards/reorder", icon: "replay" },
         { label: "Technical & packaging data", href: "/sourcing/tech-sheets", icon: "inventory" },
       ] },
       { label: "RFQs", items: [
@@ -199,38 +211,51 @@ const SECTION_NAV: Record<Exclude<ModuleKey, "rfq" | "logistics" | "execution">,
   },
   assure: {
     portal: "SRM portal",
+    // Grouped by the vendor journey: bring vendors on, work with them, keep them performing, keep them compliant, talk to them, then set-up.
     groups: [
-      { label: "About", items: [{ label: "About SRM", href: "/assure/about", icon: "auto_awesome" }] },
-      { label: "Overview", items: [{ label: "Dashboard", href: "/assure", icon: "space_dashboard", exact: true }] },
+      { label: "Home", open: true, items: [
+        { label: "Dashboard", href: "/assure", icon: "space_dashboard", exact: true },
+        { label: "Vendor overview", href: "/assure/overview", icon: "monitoring" },
+        { label: "About SRM", href: "/assure/about", icon: "auto_awesome" },
+      ] },
       // Onboarding follows the nine-stage global standard (docs/SRM_ONBOARDING.md); the SRT desk runs it.
-      { label: "Onboarding", items: [
+      { label: "1 · Bring vendors on", items: [
         { label: "Onboarding control", href: "/assure/srt", icon: "speed", exact: true },
         { label: "Onboarding requests", href: "/assure/srt/requests", icon: "assignment_add" },
         { label: "Applications & plans", href: "/assure/applications", icon: "how_to_reg" },
         { label: "Pre-assessments", href: "/assure/pre-assessments", icon: "assignment" },
-        { label: "Tickets", href: "/assure/srt/tickets", icon: "inbox", badge: "myTickets" },
         { label: "Gate register", href: "/assure/srt/register", icon: "checklist" },
-        { label: "Outbox", href: "/assure/srt/outbox", icon: "outgoing_mail" },
       ] },
-      { label: "Suppliers", items: [{ label: "Supplier directory", href: "/assure/suppliers", icon: "storefront" }] },
-      { label: "Performance", items: [
-        { label: "Scorecard & PSL", href: "/assure/scorecard", icon: "leaderboard" },
-        { label: "Performance", href: "/assure/performance", icon: "monitoring" },
+      { label: "2 · Work with vendors", items: [
+        { label: "Supplier directory", href: "/assure/suppliers", icon: "storefront" },
+        { label: "Vendor jobs & payments", href: "/assure/jobs", icon: "local_shipping" },
+        { label: "Contracts", href: "/assure/contracts", icon: "contract" },
         { label: "Business reviews", href: "/assure/reviews", icon: "groups" },
       ] },
-      { label: "Compliance & quality", items: [
+      { label: "3 · Performance & quality", items: [
+        { label: "Scorecard & PSL", href: "/assure/scorecard", icon: "leaderboard" },
+        { label: "Performance", href: "/assure/performance", icon: "monitoring" },
+        { label: "Quality", href: "/assure/quality", icon: "rule" },
+        { label: "Action plans", href: "/assure/tasks", icon: "task_alt" },
+      ] },
+      { label: "4 · Compliance & risk", items: [
         { label: "Compliance", href: "/assure/compliance", icon: "verified", exact: true },
         { label: "Document review", href: "/assure/compliance/review", icon: "fact_check" },
-        { label: "Quality", href: "/assure/quality", icon: "rule" },
+        { label: "ESG & joint approvals", href: "/assure/esg", icon: "eco" },
         { label: "Audit calendar", href: "/assure/audit-calendar", icon: "event" },
       ] },
-      { label: "Commercial", items: [{ label: "Contracts", href: "/assure/contracts", icon: "contract" }] },
-      { label: "Engagement", items: [
-        { label: "Action plans", href: "/assure/tasks", icon: "task_alt" },
-        { label: "Workflows", href: "/assure/workflows", icon: "account_tree" },
-        { label: "Surveys", href: "/assure/surveys", icon: "quiz" },
+      { label: "5 · Talk to vendors", items: [
+        { label: "Tickets", href: "/assure/srt/tickets", icon: "inbox", badge: "myTickets" },
         { label: "Messages", href: "/assure/messages", icon: "forum" },
+        { label: "Surveys", href: "/assure/surveys", icon: "quiz" },
+        { label: "Outbox", href: "/assure/srt/outbox", icon: "outgoing_mail" },
+      ] },
+      { label: "Set-up", items: [
+        { label: "Vendor forms", href: "/assure/forms", icon: "edit_note" },
+        { label: "Workflows", href: "/assure/workflows", icon: "account_tree" },
         { label: "Training", href: "/assure/training", icon: "school" },
+        { label: "Roles and access", href: "/assure/watchtower/roles", icon: "badge" },
+        { label: "User access", href: "/assure/admin/users", icon: "group", adminOnly: true },
       ] },
       // SRM's external half: the vendor's own portal (onboarding, quotes, POs, shipping, installs, invoices).
       { label: "External view", items: [
@@ -238,7 +263,26 @@ const SECTION_NAV: Record<Exclude<ModuleKey, "rfq" | "logistics" | "execution">,
         { label: "Public vendor page", href: "/vendor-portal", icon: "public" },
       ] },
       watchtower("assure"),
-      { label: "Administration", items: [{ label: "User access", href: "/assure/admin/users", icon: "group", adminOnly: true }] },
+    ],
+  },
+  // Step 1: the Watchtower over the PEF model. Step 2 adds the journey screens (spec grades, targets, reporting).
+  "impact-grade": {
+    portal: "Impact Grade",
+    groups: [
+      about("impact-grade", "Impact Grade"),
+      overview("impact-grade"),
+      { label: "Jobs", items: [{ label: "Impact Grade by job", href: "/impact-grade/jobs", icon: "work" }] },
+      watchtower("impact-grade", [
+        { label: "Methodology", href: "/impact-grade/watchtower/methodology", icon: "functions" },
+        { label: "Impact Grade calculator", href: "/impact-grade/watchtower/grade", icon: "calculate" },
+        { label: "Open issues", href: "/impact-grade/watchtower/issues", icon: "report" },
+      ]),
+      { label: "Key libraries", items: [
+        { label: "Impact categories", href: "/impact-grade/watchtower/libraries/pef_impact_categories", icon: "category" },
+        { label: "Grade letters", href: "/impact-grade/watchtower/libraries/pef_grade_bands", icon: "grade" },
+        { label: "Parameters", href: "/impact-grade/watchtower/libraries/pef_parameters", icon: "tune" },
+        { label: "ecoinvent factors", href: "/impact-grade/watchtower/libraries/pef_ecoinvent", icon: "eco" },
+      ] },
     ],
   },
 };
@@ -250,3 +294,4 @@ export const NAV: Record<ModuleKey, { portal: string; groups: NavGroup[] }> = {
   logistics: SECTION_NAV.orders,
   execution: SECTION_NAV.orders,
 };
+

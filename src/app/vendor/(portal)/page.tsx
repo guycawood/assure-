@@ -9,6 +9,8 @@ import { daysUntil, human, money, statusTone, tierName } from "@/lib/vendor";
 import { ButtonLink, Card, Empty, Panel, Pill, Stat } from "@/components/ui";
 import { MSymbol } from "@/components/symbol";
 import { Stepper, type Step } from "@/components/stepper";
+import { GradeStat } from "@/components/impact-grade/grade-stat";
+import { getSupplierGrade } from "@/lib/impact-grade-data";
 import { SubscriptionInsights, type InsightData } from "@/components/vendor/subscription-insights";
 
 export const metadata = { title: "Dashboard" };
@@ -16,7 +18,7 @@ export const metadata = { title: "Dashboard" };
 const VENDOR_STEPS: Step[] = [
   { label: "Registered", icon: UserPlus },
   { label: "Your information", icon: FileText },
-  { label: "adm Indicia review", icon: Search },
+  { label: "Our review", icon: Search },
   { label: "Approved", icon: BadgeCheck },
 ];
 
@@ -28,7 +30,7 @@ export default async function VendorDashboard() {
     return (
       <Card className="max-w-2xl p-6">
         <h1 className="mb-1 font-display text-xl font-bold">Your account isn&apos;t linked to a vendor yet</h1>
-        <p className="text-sm text-muted">We couldn&apos;t match {ctx.profile.email} to a vendor. Ask your adm Indicia contact, or your company&apos;s portal admin, to invite this email address.</p>
+        <p className="text-sm text-muted">We couldn&apos;t match {ctx.profile.email} to a vendor. Ask your contact, or your company&apos;s portal admin, to invite this email address.</p>
       </Card>
     );
   }
@@ -51,6 +53,7 @@ export default async function VendorDashboard() {
     rows<InsightData["reviews"][number]>(supabase.from("vendor_business_reviews").select("title, meeting_date, next_review_date")),
   ]);
 
+  const grade = await getSupplierGrade(supabase, c.id);
   const { data: trData } = await supabase.rpc("vendor_onboarding_tracker", {});
   const tracker = trData as VendorTracker | null;
   const openRfqs = rfqs.filter((r) => r.open && r.invitation_status !== "declined" && r.quote_status !== "submitted");
@@ -70,9 +73,9 @@ export default async function VendorDashboard() {
     issues.map((i) => ({ icon: "monitoring", title: "Performance issue", detail: i.title, href: "/vendor/performance", tone: i.severity === "critical" ? "bad" as const : "warn" as const })),
     surveys.map((v) => ({ icon: "quiz", title: `Survey: ${v.template_name}`, detail: "Waiting for your answers", href: `/vendor/surveys/${v.id}`, due: v.due_date, tone: "info" as const })),
     tasks.map((k) => ({ icon: "checklist", title: k.title, detail: `Action plan · ${human(k.status)} · ${human(k.priority)} priority`, href: "/vendor/action-plans", due: k.due_date })),
-    rejected.map((x) => ({ icon: "verified", title: `Re-upload ${x.cert_type_name}`, detail: "adm Indicia couldn't accept this certificate", href: "/vendor/compliance", tone: "bad" as const })),
+    rejected.map((x) => ({ icon: "verified", title: `Re-upload ${x.cert_type_name}`, detail: "We couldn't accept this certificate", href: "/vendor/compliance", tone: "bad" as const })),
     deliveries.filter((d) => d.remaining > 0 && ["planned", "booked", "dispatched", "in_transit"].includes(d.status)).map((d) => ({ icon: "local_shipping", title: `Ship ${d.delivery_number}`, detail: `${d.remaining} still to ship`, href: "/vendor/shipping", due: d.planned_delivery_date, tone: "info" as const })),
-    deliveries.flatMap((d) => d.shipments.filter((s) => s.pod_status === "not_received" || s.pod_status === "rejected").map((s) => ({ icon: "receipt_long", title: `Upload POD for ${s.shipment_number}`, detail: s.pod_status === "rejected" ? "adm Indicia rejected the POD" : d.delivery_number, href: "/vendor/shipping", tone: s.pod_status === "rejected" ? "bad" as const : "warn" as const }))),
+    deliveries.flatMap((d) => d.shipments.filter((s) => s.pod_status === "not_received" || s.pod_status === "rejected").map((s) => ({ icon: "receipt_long", title: `Upload POD for ${s.shipment_number}`, detail: s.pod_status === "rejected" ? "We rejected the POD" : d.delivery_number, href: "/vendor/shipping", tone: s.pod_status === "rejected" ? "bad" as const : "warn" as const }))),
     deployments.filter((d) => d.stage === "delivered").map((d) => ({ icon: "construction", title: `Install at ${d.outlet_name}`, detail: d.deployment_code, href: "/vendor/installations", due: d.planned_date, tone: "info" as const })),
   ).sort((a, b) => (a.due ?? "9999").localeCompare(b.due ?? "9999"));
   const openTasks = tasks.length + ncrs.filter((n) => n.acknowledgement_status === "pending").length + issues.length + surveys.length + contracts.length;
@@ -133,12 +136,13 @@ export default async function VendorDashboard() {
             {(rfi.status === "sent" || rfi.status === "returned") && <ButtonLink href="/vendor/information-request" variant="primary">Complete your information</ButtonLink>}
           </div>
           <Stepper steps={VENDOR_STEPS} current={rfi.status === "submitted" ? 2 : rfi.status === "approved" ? 3 : 1} failedAt={rfi.status === "rejected" ? 2 : undefined} />
-          {rfi.status === "returned" && rfi.review_note && <p className="mt-3 rounded-lg bg-warn-soft p-3 text-sm"><b>adm Indicia asked for changes:</b> {rfi.review_note}</p>}
+          {rfi.status === "returned" && rfi.review_note && <p className="mt-3 rounded-lg bg-warn-soft p-3 text-sm"><b>We asked for changes:</b> {rfi.review_note}</p>}
           {(rfi.status === "sent" || rfi.status === "returned") && <p className="mt-2 text-xs text-muted">Please complete by {formatDate(rfi.expires_at)}.</p>}
         </Card>
       )}
 
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
+        <GradeStat avg={grade.avg} specs={grade.specs} graded={grade.graded} of="the orders you have supplied" icon={<MSymbol name="eco" />} />
         <Stat label="Open tasks" value={openTasks} hint="Actions, NCRs, issues, surveys and signatures" icon={<MSymbol name="task_alt" />} tone={openTasks ? "warn" : undefined} />
         <Stat label="Open quote requests" value={openRfqs.length} hint={openRfqs[0] ? `Next due ${formatDate(openRfqs.map((r) => r.due_at).sort()[0])}` : "Nothing to price"} icon={<MSymbol name="request_quote" />} />
         <Stat label="POs to accept" value={poWaiting.length} hint={pendingPush.length ? `${pendingPush.length} pushed price${pendingPush.length > 1 ? "s" : ""} to confirm` : "Purchase orders waiting for you"} icon={<MSymbol name="inventory_2" />} tone={poWaiting.length ? "warn" : undefined} />

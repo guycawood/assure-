@@ -3,7 +3,7 @@ import { clsx } from "clsx";
 import { MSymbol } from "@/components/symbol";
 import { fmtDate, orderSteps, type OrderRow } from "@/lib/client-portal";
 
-/** Shown on every page while adm Indicia staff preview a client's view. */
+/** Shown on every page while staff preview a client's view. */
 export function PreviewBanner({ name }: { name: string }) {
   return (
     <div className="flex flex-wrap items-center gap-2 rounded-xl border border-info/30 bg-info-soft px-4 py-2.5 text-sm text-info" role="status">

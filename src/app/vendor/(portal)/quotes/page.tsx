@@ -45,10 +45,10 @@ export default async function QuotesPage() {
 
   return (
     <>
-      <PageHead title="Quote requests" sub="Price each quantity break before the due date. Quotes are sealed: adm Indicia sees yours, and nobody else does. You can change a quote until the due date." />
+      <PageHead title="Quote requests" sub="Price each quantity break before the due date. Quotes are sealed: we see yours, and nobody else does. You can change a quote until the due date." />
       <Card className="overflow-x-auto">
         <p className="border-b border-line px-5 py-3 font-display text-[0.95rem] font-bold">Open ({open.length})</p>
-        {open.length ? table(open) : <Empty title="No open quote requests">When adm Indicia invites you to quote, it appears here and we&apos;ll notify you.</Empty>}
+        {open.length ? table(open) : <Empty title="No open quote requests">When we invite you to quote, it appears here and we&apos;ll notify you.</Empty>}
       </Card>
       {past.length > 0 && (
         <Card className="overflow-x-auto">

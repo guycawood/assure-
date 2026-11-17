@@ -185,7 +185,7 @@ export function ReviewForm({ supplierId, suppliers, review }: { supplierId?: str
       <Field label="Description"><textarea name="description" rows={2} defaultValue={r?.description ?? ""} className="input" /></Field>
       <div className="grid gap-3 sm:grid-cols-3">
         <Field label="Agenda (one item per line)"><textarea name="agenda_items" rows={3} required defaultValue={r?.agenda_items.join("\n")} className="input" /></Field>
-        <Field label="adm Indicia attendees (emails)"><textarea name="internal_attendees" rows={3} defaultValue={r?.internal_attendees.join("\n")} className="input" /></Field>
+        <Field label="Internal attendees (emails)"><textarea name="internal_attendees" rows={3} defaultValue={r?.internal_attendees.join("\n")} className="input" /></Field>
         <Field label="Vendor attendees"><textarea name="vendor_attendees" rows={3} defaultValue={r?.vendor_attendees.join("\n")} className="input" /></Field>
       </div>
       <fieldset className="rounded-lg border border-line p-3">

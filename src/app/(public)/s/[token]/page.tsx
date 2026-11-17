@@ -14,7 +14,7 @@ export default async function PublicSurvey({ params }: { params: Promise<{ token
     return (
       <section className="rounded-2xl border border-line bg-surface p-6 shadow-card">
         <h1 className="font-display text-xl font-bold">This survey link doesn&apos;t work</h1>
-        <p className="mt-1 text-sm text-muted">{error ? error.message : "Check you used the whole link from the email, or ask your adm Indicia contact for a new one."}</p>
+        <p className="mt-1 text-sm text-muted">{error ? error.message : "Check you used the whole link from the email, or ask your contact for a new one."}</p>
       </section>
     );
   }

@@ -43,6 +43,7 @@ function request(overrides = {}) {
 async function submitAndTriage(name, extra = {}, route = "standard") {
   const caseId = await val("plain", "select public.onboarding_request_submit($1::jsonb)", [request({ proposed_name: name, duplicate_confirmed: true, ...extra })]);
   const sup = await val("head", "select public.onboarding_triage($1, 'approve', $2, 'tactical', 'ok')", [caseId, route]);
+  await as("head", "select public.onboarding_category_interest($1, true, 'Fits the panel')", [sup]);
   return { caseId, sup };
 }
 async function completeDueDiligence(sup) {
@@ -66,7 +67,7 @@ test("stage model: nine stages, every gate belongs to one, a new supplier starts
   const st = (await as("plain", "select stage_no, owner_label from public.onboarding_stages order by stage_no")).rows;
   assert.deepEqual(st.map((r) => r.stage_no), [1, 2, 3, 4, 5, 6, 7, 8, 9]);
   assert.equal((await one("select count(*)::int n from public.gate_definitions where active and stage_key is null")).n, 0);
-  assert.equal((await one("select count(*)::int n from public.gate_definitions where active")).n, 29);
+  assert.equal((await one("select count(*)::int n from public.gate_definitions where active")).n, 30);
   const s = (await as("plain", "insert into public.suppliers (name, market) values ('Direct Ltd', 'Germany') returning id")).rows[0].id;
   const row = await supplierRow(s);
   assert.deepEqual([row.onboarding_stage, row.onboarding_released, row.purchasing_blocked, row.onboarding_baseline], [1, false, true, "standard"]);
@@ -101,7 +102,7 @@ test("request validation: complete request; urgent needs reason, client need and
   await rejects(as("plain", "select public.onboarding_request_submit($1::jsonb)", [request({ supplier_type: "" })]), /supplier type/);
   await rejects(as("plain", "select public.onboarding_request_submit($1::jsonb)", [request({ estimated_spend: "" })]), /estimated annual spend/);
   await rejects(as("plain", "select public.onboarding_request_submit($1::jsonb)", [request({ proposed_name: "Urgent Co", urgency: "urgent" })]), /urgency reason/);
-  await rejects(as("vendorA", "select public.onboarding_request_submit($1::jsonb)", [request()]), /Only adm Indicia staff/);
+  await rejects(as("vendorA", "select public.onboarding_request_submit($1::jsonb)", [request()]), /Only staff/);
 });
 
 test("stage 3: no RFI before triage; triage by Procurement only and never the requester", async () => {
@@ -117,9 +118,17 @@ test("stage 3: no RFI before triage; triage by Procurement only and never the re
   const g = await gates(sup);
   assert.deepEqual([g.request, g.intake, g.triage], ["verified", "verified", "verified"]);
   assert.equal(g.psa, "not_required", "global minimum evidence set: PSA only when a client or type set requires it");
+  assert.equal(g.category_interest, "missing", "category management has not decided yet");
   const row = await supplierRow(sup);
-  assert.equal(row.onboarding_stage, 4);
+  assert.equal(row.onboarding_stage, 3, "the supplier waits at triage for category management");
   assert.match(row.supplier_code, /^SRM-\d{5}$/);
+  // The RFI waits for category management (process step i3), and only a Category Manager who is not the requester decides.
+  await rejects(as("agent", "select public.send_vendor_rfi($1, 'a@nordwerk.example', null, 'http://x')", [ticket]), /confirm the supplier is of interest/);
+  await rejects(as("agent", "select public.onboarding_category_interest($1, true, null)", [sup]), /Only a Category Manager/);
+  await rejects(as("head", "select public.onboarding_category_interest($1, false, '')", [sup]), /why the supplier is not of interest/);
+  await as("head", "select public.onboarding_category_interest($1, true, 'Fits the print panel')", [sup]);
+  await rejects(as("head", "select public.onboarding_category_interest($1, true, null)", [sup]), /already been decided/);
+  assert.equal((await supplierRow(sup)).onboarding_stage, 4);
   // The RFI can now go out.
   const sent = await val("agent", "select public.send_vendor_rfi($1, 'a@nordwerk.example', null, 'http://x')", [ticket]);
   assert.equal(sent.supplier_id, sup);
@@ -378,8 +387,8 @@ test("RLS: vendors see only their own case parts, in plain words; nothing intern
   assert.equal(JSON.stringify(tr).includes("Launch date fixed"), false, "urgency reasons and approvals stay internal");
   const trB = await val("vendorB", "select public.vendor_onboarding_tracker()");
   assert.equal(trB.released, true);
-  await rejects(as("vendorA", "select public.srm_supplier_record($1)", [ft]), /Only adm Indicia staff/);
-  await rejects(as("vendorA", "select public.srm_onboarding_dashboard()"), /Only adm Indicia staff/);
+  await rejects(as("vendorA", "select public.srm_supplier_record($1)", [ft]), /Only staff/);
+  await rejects(as("vendorA", "select public.srm_onboarding_dashboard()"), /Only staff/);
   await rejects(as("plain", "select public.vendor_onboarding_tracker()"), /Only vendor users/);
 });
 
@@ -432,4 +441,32 @@ test("carry-over: a supplier approved before the standard keeps working; one in 
   assert.deepEqual([ra.onboarding_baseline, ra.purchasing_blocked, ra.onboarding_released], ["legacy", false, true]);
   assert.deepEqual([rb.onboarding_baseline, rb.purchasing_blocked], ["standard", true]);
   assert.equal((await gates(b)).triage, "verified", "in-flight suppliers keep their triage so the RFI can continue");
+});
+
+test("category management can decline a supplier at triage: the request closes with the reason", async () => {
+  const caseId = await val("plain", "select public.onboarding_request_submit($1::jsonb)", [request({ proposed_name: "Declined Category Co", duplicate_confirmed: true })]);
+  const sup = await val("head", "select public.onboarding_triage($1, 'approve', 'standard', 'tactical', 'ok')", [caseId]);
+  await as("head", "select public.onboarding_category_interest($1, false, 'We already have three print suppliers in this market')", [sup]);
+  const c = await one("select status, decline_reason from public.onboarding_cases where id = $1", [caseId]);
+  assert.equal(c.status, "declined");
+  assert.match(c.decline_reason, /three print suppliers/);
+  assert.equal((await gates(sup)).category_interest, "rejected");
+  assert.equal((await supplierRow(sup)).onboarding_state, "declined");
+});
+
+test("Sedex and FSC database checks are recorded and feed the scorecard inputs", async () => {
+  const { sup } = await submitAndTriage("Checked Print Co", { proposed_registration: "HRB 777", proposed_vat: "DE 777 000 111" });
+  await rejects(as("vendorA", "select public.onboarding_external_check($1, 'sedex', 'active', 'ZC1', null)", [sup]), /Only staff/);
+  await rejects(as("agent", "select public.onboarding_external_check($1, 'sedex', 'active', '', null)", [sup]), /membership or certificate number/);
+  await rejects(as("agent", "select public.onboarding_external_check($1, 'sedex', 'not_applicable', null, null)", [sup]), /For Sedex choose/);
+  await as("agent", "select public.onboarding_external_check($1, 'sedex', 'active', 'ZC1234567', 'Found on the Sedex database')", [sup]);
+  await as("agent", "select public.onboarding_external_check($1, 'fsc', 'expired', 'FSC-C012345', null)", [sup]);
+  const inputs = Object.fromEntries((await asSuper("select key, value_text, source from public.scorecard_inputs where supplier_id = $1", [sup])).rows.map((r) => [r.key, r.value_text]));
+  assert.equal(inputs.sedex, "active");
+  assert.equal(inputs.fsc, "expired");
+  const ev = (await asSuper("select kind from public.onboarding_events where supplier_id = $1 and kind = 'external_check'", [sup])).rows;
+  assert.equal(ev.length, 2);
+  // a later check replaces the earlier one
+  await as("agent", "select public.onboarding_external_check($1, 'fsc', 'active', 'FSC-C999', 'Renewed')", [sup]);
+  assert.equal((await one("select value_text from public.scorecard_inputs where supplier_id = $1 and key = 'fsc'", [sup])).value_text, "active");
 });

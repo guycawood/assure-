@@ -8,6 +8,7 @@ import {
 } from "@/lib/briefing";
 import type { LibraryRecord } from "@/lib/briefing-data";
 import type { WhatWorked } from "@/lib/shopper-iq";
+import { targetLines, type ClientTargets } from "@/lib/client-targets";
 
 export const DEMO_MODEL = "demo-offline";
 
@@ -128,10 +129,13 @@ export function normaliseConcepts(raw: unknown[], substrates: LibraryRecord[], c
 export async function ideateBrief(opts: {
   brief: Brief; substrates: LibraryRecord[]; whatWorked: WhatWorked[]; params: CreativeParams;
   history: MessageRow[]; allConcepts: ConceptRow[]; direction: string;
+  /** The client's standing targets from CRM (already folded into the brief); recorded so each turn is traceable. */
+  clientTargets?: ClientTargets | null;
 }): Promise<BriefIdeationResult> {
   const { brief, substrates, whatWorked, params } = opts;
   const snapshot = {
     brief: { id: brief.id, code: brief.brief_code, title: brief.title, updated_at: brief.updated_at, revision: brief.revision_count },
+    client_targets: opts.clientTargets ? { ...opts.clientTargets } : null,
     substrate_ids: substrates.slice(0, 60).map((s) => s.id),
     what_worked: whatWorked.map((w) => ({ touchpoint: w.touchpoint, score: Math.round(w.avgScore), scope: w.scope })),
     creative_params: params,
@@ -161,10 +165,11 @@ export async function ideateBrief(opts: {
 
 export async function ideateCampaign(opts: {
   objective: string; context: { client?: string; brand?: string; division?: string; market?: string };
-  touchpoints: LibraryRecord[]; usedTouchpointIds: Set<string>;
+  touchpoints: LibraryRecord[]; usedTouchpointIds: Set<string>; clientTargets?: ClientTargets | null;
 }): Promise<CampaignIdeationResult> {
   const { objective, context, touchpoints, usedTouchpointIds } = opts;
-  const snapshot = { objective, context, touchpoint_ids: touchpoints.map((t) => t.id), used_touchpoint_ids: [...usedTouchpointIds] };
+  const snapshot = { objective, context, touchpoint_ids: touchpoints.map((t) => t.id), used_touchpoint_ids: [...usedTouchpointIds], client_targets: opts.clientTargets ?? null };
+  const targets = opts.clientTargets ? targetLines(opts.clientTargets) : [];
   const finish = (raw: unknown[]): ProductTypeSuggestion[] => {
     const byId = new Map(touchpoints.map((t) => [t.id, t]));
     return raw.slice(0, 6).map((x) => {
@@ -191,6 +196,7 @@ export async function ideateCampaign(opts: {
   const user = [
     `<campaign_objective>\n${tagSafe(objective)}\n</campaign_objective>`,
     ctx ? `<context>\n${ctx}\n</context>` : "",
+    targets.length ? `<client_sustainability_targets>\nThe client's standing commitments (CRM). Only suggest product types that can meet them:\n${targets.map((l) => `- ${tagSafe(l)}`).join("\n")}\n</client_sustainability_targets>` : "",
     `<history>\n${context.client ? (used.length ? `Product types this client has REAL history with (Shopper IQ records):\n${used.map((t) => `- ${tagSafe(t.name)} (id:${t.id})`).join("\n")}` : "This client has no recorded history yet — ideate fresh.") : "No client selected — suggest product types that fit the objective broadly."}\n</history>`,
     `<product_types>\n${touchpoints.map((t) => `- ${tagSafe(t.name)} (id:${t.id})`).join("\n") || "(none configured)"}\n</product_types>`,
   ].filter(Boolean).join("\n\n");

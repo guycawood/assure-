@@ -839,7 +839,7 @@ begin
   else
     select * into r from public.recces where id = v_id for update;
     if r.id is null or r.supplier_id is distinct from v_sup then raise exception 'Recce not found' using errcode = '42501'; end if;
-    if r.status <> 'draft' then raise exception 'This recce is already confirmed; ask adm Indicia to reopen it'; end if;
+    if r.status <> 'draft' then raise exception 'This recce is already confirmed; ask the team to reopen it'; end if;
   end if;
   perform public._recce_fields(v_id, p_data);
   if p_confirm then

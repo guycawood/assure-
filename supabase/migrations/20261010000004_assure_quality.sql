@@ -259,15 +259,15 @@ begin
   end if;
   if p_status = 'done' then
     if a.status <> 'open' then raise exception 'Only an open action can be marked done'; end if;
-    if not v_internal and a.owner_side <> 'supplier' then raise exception 'adm Indicia completes this action' using errcode = '42501'; end if;
+    if not v_internal and a.owner_side <> 'supplier' then raise exception 'The team completes this action' using errcode = '42501'; end if;
     update public.ncr_corrective_actions set status = 'done', done_by = auth.uid(), done_at = now(), done_note = nullif(trim(p_note), '') where id = p_id;
   elsif p_status = 'verified' then
-    if not v_internal then raise exception 'Only adm Indicia staff can verify a corrective action' using errcode = '42501'; end if;
+    if not v_internal then raise exception 'Only staff can verify a corrective action' using errcode = '42501'; end if;
     if a.status <> 'done' then raise exception 'Only a completed action can be verified'; end if;
     if a.done_by = auth.uid() then raise exception 'You completed this action, so someone else must verify it' using errcode = '42501'; end if;
     update public.ncr_corrective_actions set status = 'verified', verified_by = auth.uid(), verified_at = now() where id = p_id;
   elsif p_status = 'open' then
-    if not v_internal then raise exception 'Only adm Indicia staff can reopen an action' using errcode = '42501'; end if;
+    if not v_internal then raise exception 'Only staff can reopen an action' using errcode = '42501'; end if;
     if nullif(trim(coalesce(p_note, '')), '') is null then raise exception 'Say why the action is being reopened'; end if;
     update public.ncr_corrective_actions set status = 'open', done_by = null, done_at = null, verified_by = null, verified_at = null where id = p_id;
   else

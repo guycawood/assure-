@@ -3,7 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getFiles } from "@/components/file-list";
 import { human, type PaData } from "@/lib/vendor";
 import { Card, PageHead } from "@/components/ui";
-import { VendorPaForm } from "@/components/vendor/vendor-pa-form";
+import { VendorPaForm, type ExtraQuestion } from "@/components/vendor/vendor-pa-form";
 
 export const metadata = { title: "Pre-assessment" };
 
@@ -23,15 +23,17 @@ export default async function PreAssessmentPage() {
         head_office_country: c.market ?? undefined };
   const editable = (!pa || ["draft", "under_review"].includes(pa.status)) && canAct(ctx.permission);
   const photos = pa ? await getFiles("pre_assessment", pa.id) : [];
+  const { data: fq } = await supabase.rpc("vendor_form_questions", { p_form: "onboarding" });
+  const extra = ((fq as { questions?: ExtraQuestion[] } | null)?.questions ?? []);
 
   return (
     <>
       <PageHead title="Pre-assessment" crumbs={[{ label: "Company profile", href: "/vendor/profile" }, { label: "Pre-assessment" }]}
-        sub={editable ? "Work through the five sections. Save a draft any time; submit when you're done. You can still edit while adm Indicia's review is open." : `Status: ${human(pa?.status ?? "")}. These answers are with adm Indicia and can't be changed now.`} />
-      {pa?.feedback_to_vendor && <Card className="bg-warn-soft p-4 text-sm"><b>adm Indicia asked:</b> {pa.feedback_to_vendor}</Card>}
+        sub={editable ? "Work through the five sections. Save a draft any time; submit when you're done. You can still edit while our review is open." : `Status: ${human(pa?.status ?? "")}. These answers are with us and can't be changed now.`} />
+      {pa?.feedback_to_vendor && <Card className="bg-warn-soft p-4 text-sm"><b>We asked:</b> {pa.feedback_to_vendor}</Card>}
       {!canAct(ctx.permission) && <p className="text-sm text-muted">Your account is view-only.</p>}
       <Card className="p-5">
-        <VendorPaForm id={pa?.id ?? null} initial={initial} readOnly={!editable} supplierId={c.id} photoLabels={photos.map((f) => f.label ?? "")} />
+        <VendorPaForm id={pa?.id ?? null} initial={initial} readOnly={!editable} supplierId={c.id} photoLabels={photos.map((f) => f.label ?? "")} extra={extra} />
       </Card>
     </>
   );

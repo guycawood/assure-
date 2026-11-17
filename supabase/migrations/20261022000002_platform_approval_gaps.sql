@@ -130,7 +130,7 @@ begin
   if not public.is_admin() then raise exception 'Only admins can change client access' using errcode = '42501'; end if;
   select * into p from public.profiles where id = p_user;
   if p.id is null then raise exception 'Person not found'; end if;
-  if p.is_admin or p.user_type = 'internal' then raise exception 'adm Indicia staff can preview the Client Portal; they can''t be given client access'; end if;
+  if p.is_admin or p.user_type = 'internal' then raise exception 'Staff can preview the Client Portal; they can''t be given client access'; end if;
   if p.supplier_id is not null then raise exception 'This person is linked to a vendor company; unlink them in User access first'; end if;
   select * into c from public.sourcing_clients where id = p_client;
   if c.id is null or not c.active then raise exception 'Choose an active client'; end if;
@@ -469,7 +469,7 @@ create or replace function public.psa_line_manager_options(p_id uuid default nul
 language plpgsql stable security definer set search_path = public as $$
 declare v public.psa_exceptions; pol record;
 begin
-  if not public.is_internal() then raise exception 'Only adm Indicia staff can do this' using errcode = '42501'; end if;
+  if not public.is_internal() then raise exception 'Only staff can do this' using errcode = '42501'; end if;
   if p_id is not null then select * into v from public.psa_exceptions where id = p_id; end if;
   select * into pol from public._approval_policy('PSA_LINE_MANAGER', (select client_id from public.jobs where id = v.job_id), public._market_code(v.market), v.fee);
   return query select p.id, coalesce(nullif(p.full_name, ''), p.email) from public.profiles p
@@ -698,7 +698,7 @@ begin
   return public._core_update_supplier_gate(p_supplier, p_gate, p_status, p_expiry, p_clear_expiry, p_note, p_rejection_reason, p_ticket);
 end $$;
 
--- Fast-track: request (anyone at adm Indicia) -> SRT lead approves, never for a supplier they created (FAST_TRACK policy).
+-- Fast-track: request (Anyone on the team) -> SRT lead approves, never for a supplier they created (FAST_TRACK policy).
 alter function public.approve_fast_track(uuid, text, date) rename to _core_approve_fast_track;
 create function public.approve_fast_track(p_supplier uuid, p_justification text, p_close_by date) returns void
 language plpgsql security definer set search_path = public as $$
@@ -710,7 +710,7 @@ begin
   if s.id is null or pol.record_id is null or not pol.maker_checker then
     perform public._core_approve_fast_track(p_supplier, p_justification, p_close_by); return;
   end if;
-  if not public.is_internal() then raise exception 'Only adm Indicia staff can ask for a fast-track' using errcode = '42501'; end if;
+  if not public.is_internal() then raise exception 'Only staff can ask for a fast-track' using errcode = '42501'; end if;
   if nullif(trim(coalesce(p_justification, '')), '') is null then raise exception 'A justification is required'; end if;
   if p_close_by is null or p_close_by < current_date then raise exception 'Choose a close-by date in the future'; end if;
   if s.fast_track_approved_at is not null and s.onboarding_route = 'fast_track' then raise exception 'This supplier is already on the fast track'; end if;

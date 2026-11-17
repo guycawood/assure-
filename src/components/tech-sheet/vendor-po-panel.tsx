@@ -7,7 +7,7 @@ import { sheetStatus, type MaterialOptions, type VendorPoLine } from "@/lib/tech
 
 const d = (s: string | null | undefined) => (s ? new Date(s.length === 10 ? s + "T00:00:00" : s).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" }) : "–");
 
-/** Vendor PO page: one technical & packaging data sheet per order line, with what adm Indicia needs and when. */
+/** Vendor PO page: one technical & packaging data sheet per order line, with what we need and when. */
 export function VendorTechSheetPanel({ poId, lines, options, canAct, supplierId }: {
   poId: string; lines: VendorPoLine[]; options: MaterialOptions; canAct: boolean; supplierId: string;
 }) {
@@ -26,7 +26,7 @@ export function VendorTechSheetPanel({ poId, lines, options, canAct, supplierId 
             </div>
             {l.required_pre.length > 0 ? (
               <div className="rounded-lg bg-surface-2 p-3 text-sm">
-                <p className="font-semibold">What adm Indicia needs</p>
+                <p className="font-semibold">What we need</p>
                 <p className="mt-1 text-xs text-muted">At PO acceptance: {l.required_po.map((r) => r.label.toLowerCase()).join("; ") || "nothing"}.
                   {l.required_pre.length > l.required_po.length ? ` Before the pre-shipment check also: ${l.required_pre.filter((r) => !l.required_po.some((p) => p.code === r.code)).map((r) => r.label.toLowerCase()).join("; ")}.` : ""}
                   {" "}The pre-shipment QA/QC check can&apos;t be submitted until the sheet is complete and declared.</p>

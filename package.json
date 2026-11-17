@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "test:db": "node --test \"tests/db/*.test.mjs\"",
+    "test:db": "node --experimental-strip-types --test \"tests/db/*.test.mjs\"",
     "demo": "next dev"
   },
   "dependencies": {
@@ -17,11 +17,12 @@
     "@supabase/supabase-js": "^2.117.3",
     "clsx": "^2.1.1",
     "lucide-react": "^1.52.0",
-    "next": "^15.5.27",
+    "next": "^15.5.29",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
+    "read-excel-file": "^9.3.17",
     "tailwind-merge": "^3.7.0",
-    "zod": "^4.6.5"
+    "zod": "^4.6.7"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
@@ -29,7 +30,7 @@
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^9",
-    "eslint-config-next": "^15.5.27",
+    "eslint-config-next": "^15.5.29",
     "postcss": "^8.5.29",
     "tailwindcss": "^3.4.1",
     "typescript": "^5"

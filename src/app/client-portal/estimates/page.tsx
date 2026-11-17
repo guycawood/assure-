@@ -14,7 +14,7 @@ export default async function ClientEstimates({ searchParams }: { searchParams: 
   return (
     <>
       {ctx.preview && <PreviewBanner name={ctx.accounts.map((a) => a.name).join(", ")} />}
-      <PageHead title="Estimates" sub={canDecide ? "Prices from adm Indicia for your jobs. Open one to approve or decline it." : "Prices from adm Indicia for your jobs. Your approver can approve or decline them."} />
+      <PageHead title="Estimates" sub={canDecide ? "Prices from us for your jobs. Open one to approve or decline it." : "Prices from us for your jobs. Your approver can approve or decline them."} />
       <Card className="min-w-0 overflow-x-auto">
         {estimates.length === 0 ? <Empty title="No estimates yet" /> : (
           <table className="w-full text-sm">

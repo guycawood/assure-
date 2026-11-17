@@ -10,7 +10,7 @@
 create or replace function public._assure_require_internal() returns void
 language plpgsql stable security definer set search_path = public as $$
 begin
-  if not public.is_internal() then raise exception 'Only adm Indicia staff can do this' using errcode = '42501'; end if;
+  if not public.is_internal() then raise exception 'Only staff can do this' using errcode = '42501'; end if;
 end $$;
 
 -- Vendor managers (SRT agents and leads), procurement (procurement and head) and admins.

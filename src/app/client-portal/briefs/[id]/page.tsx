@@ -6,8 +6,15 @@ import { Card, PageHead, Panel, Pill } from "@/components/ui";
 import { MSymbol } from "@/components/symbol";
 import { Field, PreviewBanner } from "@/components/client/bits";
 import { ClientActionForm } from "@/components/client/forms";
-import { commentOnBrief } from "../../actions";
-import { decideConcept } from "./actions";
+import { commentOnBrief, resubmitBrief } from "../../actions";
+import { decideConcept, decideCreativeQuote } from "./actions";
+import type { ClientDelivery } from "@/lib/creative-rfi";
+
+type CreativeQuote = {
+  basis: "fixed" | "hourly" | "daily"; rate: number | null; units: number | null; amount: number; currency: string; scope_note: string | null;
+  status: "sent" | "approved" | "rejected"; reject_reason: string | null; client_po_number: string | null; can_decide: boolean;
+};
+const QUOTE_BASIS = { fixed: "Fixed fee", hourly: "Hourly rate", daily: "Daily rate" } as const;
 
 export const metadata: Metadata = { title: "Brief" };
 
@@ -31,6 +38,8 @@ export default async function ClientBrief({ params, searchParams }: { params: Pr
   if (!b) notFound();
   const st = BRIEF_STATUS[b.status] ?? { label: b.status, tone: "neutral" as const };
   const concepts = (await rpc<ClientConcept[]>(ctx.supabase, "client_portal_concepts", { p_brief: id, ...scope(ctx) })) ?? [];
+  const quote = ctx.preview ? null : await rpc<CreativeQuote>(ctx.supabase, "client_creative_quote", { p_brief: id });
+  const deliveries = ctx.preview ? [] : (await rpc<ClientDelivery[]>(ctx.supabase, "client_creative_deliveries", { p_brief: id })) ?? [];
 
   return (
     <>
@@ -38,6 +47,20 @@ export default async function ClientBrief({ params, searchParams }: { params: Pr
       <PageHead title={b.title} crumbs={[{ label: "Briefs", href: ctx.link("/client-portal/briefs") }, { label: b.brief_code }]}>
         <Pill tone={st.tone}>{st.label}</Pill>
       </PageHead>
+
+      {b.status === "with_client" && (
+        <Card className="space-y-3 border-warn/40 bg-warn-soft p-5">
+          <p className="flex items-center gap-2 font-semibold text-warn"><MSymbol name="reply" size={20} /> We need more from you before this brief can go ahead</p>
+          {b.returned_reason && <p className="whitespace-pre-line text-sm">{b.returned_reason}</p>}
+          {b.meeting_requested && <p className="text-sm font-semibold">The team would also like to set up a meeting with you. They will be in touch to arrange it.</p>}
+          {ctx.preview ? <p className="text-sm text-muted">Resubmitting is turned off in preview.</p> : (
+            <ClientActionForm action={resubmitBrief} hidden={{ brief_id: b.id }} submit="Resubmit the brief">
+              <label className="label" htmlFor="resubmit-note">What has changed? <span className="font-normal text-muted">(optional)</span></label>
+              <textarea id="resubmit-note" name="note" rows={3} maxLength={4000} className="input" placeholder="Answer the points above, or tell us what you added." />
+            </ClientActionForm>
+          )}
+        </Card>
+      )}
 
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)]">
         <div className="flex min-w-0 flex-col gap-6">
@@ -60,9 +83,57 @@ export default async function ClientBrief({ params, searchParams }: { params: Pr
           </dl>
         </Card>
 
+        {quote && (
+          <Panel title="Creative quote" sub="Our quote for the creative work on this brief. Creative work starts once an approver on your team approves it.">
+            <div className="space-y-3 p-5 text-sm">
+              <p className="flex flex-wrap items-center gap-2 text-base font-semibold">
+                {fmtMoney(quote.amount, quote.currency)}
+                <Pill tone={quote.status === "approved" ? "ok" : quote.status === "rejected" ? "bad" : "warn"}>
+                  {{ sent: "Waiting for your approval", approved: "Approved", rejected: "Not accepted" }[quote.status]}
+                </Pill>
+              </p>
+              <p className="text-muted">{QUOTE_BASIS[quote.basis]}{quote.basis !== "fixed" && quote.rate != null ? ` · ${quote.units} ${quote.basis === "hourly" ? "hours" : "days"} at ${fmtMoney(quote.rate, quote.currency)}` : ""}</p>
+              {quote.scope_note && <p>{quote.scope_note}</p>}
+              {quote.status === "approved" && quote.client_po_number && <p className="text-muted">Your PO: {quote.client_po_number}</p>}
+              {quote.status === "rejected" && quote.reject_reason && <p className="text-muted">Your reason: {quote.reject_reason}</p>}
+              {quote.status === "sent" && (quote.can_decide ? (
+                <div className="space-y-3">
+                  <ClientActionForm action={decideCreativeQuote} hidden={{ brief_id: b.id, decision: "approve" }} submit="Approve the quote">
+                    <label className="label" htmlFor="quote-po">Your PO number <span className="font-normal text-muted">(if you have one)</span></label>
+                    <input id="quote-po" name="po" maxLength={80} className="input" />
+                  </ClientActionForm>
+                  <ClientActionForm action={decideCreativeQuote} hidden={{ brief_id: b.id, decision: "reject" }} submit="Do not accept" variant="secondary">
+                    <label className="label" htmlFor="quote-why">Why is the quote not accepted?</label>
+                    <textarea id="quote-why" name="reason" rows={2} maxLength={4000} required className="input" />
+                  </ClientActionForm>
+                </div>
+              ) : <p className="text-muted">Waiting for an approver on your team to decide.</p>)}
+            </div>
+          </Panel>
+        )}
+
+        {deliveries.length > 0 && (
+          <Panel title="Final creative files" sub="The final files from us. If a file is corrected, the newest delivery is listed first.">
+            <ul className="divide-y divide-line">
+              {deliveries.map((d) => (
+                <li key={d.id} className="space-y-1 px-5 py-3 text-sm">
+                  <p className="font-semibold">Delivery {d.round} <span className="font-normal text-muted">· {fmtDate(d.sent_at)}</span></p>
+                  {d.note && <p className="text-muted">{d.note}</p>}
+                  <ul className="space-y-0.5">
+                    {d.files.map((f) => (
+                      <li key={f.id} className="flex items-center gap-1.5"><MSymbol name="description" size={16} className="text-muted" />
+                        <a href={`/api/files/${f.id}`} target="_blank" rel="noreferrer" className="font-semibold text-accent hover:underline">{f.file_name}</a></li>
+                    ))}
+                  </ul>
+                </li>
+              ))}
+            </ul>
+          </Panel>
+        )}
+
         {concepts.length > 0 && (
           <Panel title="Concepts for your approval"
-            sub="adm Indicia has approved these concepts internally. An approver on your team signs them off before production sourcing starts.">
+            sub="We have approved these concepts internally. An approver on your team signs them off before production sourcing starts.">
             <ul className="divide-y divide-line">
               {concepts.map((c) => {
                 const cs = CONCEPT_CLIENT[c.client_status] ?? { label: c.client_status, tone: "neutral" as const };
@@ -122,7 +193,7 @@ export default async function ClientBrief({ params, searchParams }: { params: Pr
             )}
           </Panel>
 
-          <Panel title="Comments" sub="Your comments go straight to the adm Indicia team working on this brief">
+          <Panel title="Comments" sub="Your comments go straight to our team working on this brief">
             {b.comments.length > 0 && (
               <ul className="divide-y divide-line">
                 {b.comments.map((c) => (

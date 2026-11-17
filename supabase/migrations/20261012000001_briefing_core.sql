@@ -143,7 +143,7 @@ create or replace function public._briefing_require_internal() returns void
 language plpgsql stable security definer set search_path = public as $$
 begin
   if auth.uid() is null or not public.is_internal() then
-    raise exception 'Briefing+ is for adm Indicia staff only' using errcode = '42501';
+    raise exception 'Briefing+ is for staff only' using errcode = '42501';
   end if;
 end $$;
 

@@ -10,7 +10,7 @@ import { MSymbol } from "@/components/symbol";
 import { SuggestChange } from "@/components/watchtower/suggest-change";
 import { NotificationsBell, type Notice } from "@/components/notifications-bell";
 
-// Platform shell, Base44 pattern in adm Indicia dress:
+// Platform shell, Base44 pattern in the house style:
 // left sidebar per module (wordmark block, grouped nav, collapse), white top bar with breadcrumb,
 // and a floating module dock on the right for moving between modules.
 
@@ -24,6 +24,7 @@ type Props = {
 };
 
 const STORE_KEY = "adm.sidebar.collapsed";
+const GROUPS_KEY = "adm.nav.groups";
 const THEME_KEY = "adm.theme";
 
 // Two looks (Shopper IQ pattern): "navy" = the dark look, teal #5DA4A8 with Tech-orange accents (key kept for saved
@@ -108,6 +109,8 @@ export function Shell({ user, isAdmin, demo, badges, notices, children }: Props)
   const nav = isHome ? HOME_NAV : NAV[m.key];
   const [collapsed, setCollapsed] = useState(false);
   const [theme, setTheme] = useState<ThemeName>("navy");
+  // Which sidebar groups the person has opened or folded, kept per module. Without a choice a group is open only if it holds the current page.
+  const [openMap, setOpenMap] = useState<Record<string, boolean>>({});
   const T = THEMES[theme];
   const switchTheme = () => setTheme((x) => { const n = x === "navy" ? "light" : "navy"; try { localStorage.setItem(THEME_KEY, n); } catch { /* ignore */ } return n; });
 
@@ -117,6 +120,8 @@ export function Shell({ user, isAdmin, demo, badges, notices, children }: Props)
       setCollapsed(saved === null ? window.innerWidth < 900 : saved === "1");
       const th = localStorage.getItem(THEME_KEY);
       if (th === "light" || th === "navy") setTheme(th);
+      const g = localStorage.getItem(GROUPS_KEY);
+      if (g) setOpenMap(JSON.parse(g) as Record<string, boolean>);
     } catch { /* storage unavailable: keep default */ }
   }, []);
   const toggle = () => {
@@ -128,6 +133,20 @@ export function Shell({ user, isAdmin, demo, badges, notices, children }: Props)
 
   const items = nav.groups.flatMap((g) => g.items);
   const page = [...items].sort((a, b) => b.href.length - a.href.length).find((i) => isActive(path, i));
+  const gKey = (label: string) => `${m.key}:${label}`;
+  const holdsPage = (g: { items: NavItem[] }) => !!page && g.items.some((i) => i.href === page.href);
+  const isOpen = (g: { label: string; open?: boolean; items: NavItem[] }) => openMap[gKey(g.label)] ?? (g.open || holdsPage(g));
+  const setGroup = (label: string, open: boolean) => setOpenMap((o) => {
+    const next = { ...o, [gKey(label)]: open };
+    try { localStorage.setItem(GROUPS_KEY, JSON.stringify(next)); } catch { /* ignore */ }
+    return next;
+  });
+  // Going to a page inside a folded group opens that group, so the current page is never hidden.
+  const pageGroup = nav.groups.find(holdsPage)?.label;
+  useEffect(() => {
+    if (pageGroup && openMap[gKey(pageGroup)] === false) setOpenMap((o) => ({ ...o, [gKey(pageGroup)]: true }));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [path]);
   const accent = m.colour === "#9DC5ED" ? "#4896F7" : m.colour; // Riverblue is too light for text
 
   return (
@@ -160,9 +179,16 @@ export function Shell({ user, isAdmin, demo, badges, notices, children }: Props)
             if (!visible.length) return null;
             return (
               <div key={g.label} className={gi > 0 ? "mt-3" : ""}>
-                {collapsed ? <div className={clsx("mx-2 my-3 border-t", T.divider)} /> : <p className={clsx("mb-1 px-3 text-[0.62rem] font-bold uppercase tracking-[0.12em]", T.group)}>{g.label}</p>}
+                {collapsed ? <div className={clsx("mx-2 my-3 border-t", T.divider)} /> : (
+                  <button type="button" onClick={() => setGroup(g.label, !isOpen(g))} aria-expanded={isOpen(g)}
+                    className={clsx("mb-1 flex w-full items-center gap-1 rounded-lg px-3 py-1 text-left text-[0.62rem] font-bold uppercase tracking-[0.12em]", T.group)}>
+                    <MSymbol name={isOpen(g) ? "expand_more" : "chevron_right"} size={14} />
+                    <span className="truncate">{g.label}</span>
+                    {!isOpen(g) && visible.some((i) => i.badge && badges[i.badge] > 0) && <span className={clsx("ml-auto h-2 w-2 rounded-full", T.badge)} aria-label="Needs attention" />}
+                  </button>
+                )}
                 <div className="space-y-0.5">
-                  {visible.map((i) => {
+                  {(collapsed || isOpen(g) ? visible : []).map((i) => {
                     const active = page?.href === i.href;
                     const badge = i.badge ? badges[i.badge] : 0;
                     return (
@@ -205,7 +231,7 @@ export function Shell({ user, isAdmin, demo, badges, notices, children }: Props)
           <div className="flex h-14 items-center gap-4 px-5">
             <div className="hidden min-w-0 leading-tight md:block">
               <p className="truncate text-[0.95rem] font-extrabold uppercase tracking-[0.02em]">{isHome ? "System Guy" : <>{m.name.replace(/\+$/, "")}{m.name.endsWith("+") && <span className={T.plus}>+</span>} <span className={clsx("font-semibold normal-case tracking-normal", T.headMuted)}>· {nav.portal}</span></>}</p>
-              <p className={clsx("text-[0.62rem] font-bold uppercase tracking-[0.16em]", T.headSub)}>Powered by adm Indicia</p>
+              <p className={clsx("text-[0.62rem] font-bold uppercase tracking-[0.16em]", T.headSub)}>Powered by System Guy</p>
             </div>
             <form action="/search" className={clsx("mx-auto flex w-full max-w-xl items-center gap-2 rounded-full border px-4 py-1.5", T.search)}>
               <MSymbol name="search" size={18} className={T.searchIcon} />

@@ -6,7 +6,7 @@ import { DEMO_COOKIE, isDemoMode } from "@/lib/demo/config";
 // /s/<token>, /f/<token> and /u/<token> are CRM's survey, form and unsubscribe pages: reachable without signing in, but they
 // only do anything with a valid token (checked in the database functions public_*). Note the trailing slash: /sourcing etc.
 // stay protected.
-const PUBLIC_PATHS = ["/login", "/auth", "/vendor/register", "/vendor-portal", "/apply", "/s/", "/f/", "/u/"];
+const PUBLIC_PATHS = ["/login", "/auth", "/vendor/register", "/vendor-portal", "/apply", "/s/", "/f/", "/u/", "/api/messaging/", "/api/jobs/"];
 
 export async function updateSession(request: NextRequest) {
   const path = request.nextUrl.pathname;

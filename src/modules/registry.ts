@@ -1,4 +1,4 @@
-export type ModuleKey = "watchtower" | "crm" | "briefing" | "shopper-iq" | "rfq" | "sourcing" | "orders" | "logistics" | "execution" | "finance" | "assure";
+export type ModuleKey = "watchtower" | "crm" | "briefing" | "shopper-iq" | "rfq" | "sourcing" | "orders" | "logistics" | "execution" | "finance" | "assure" | "impact-grade";
 
 export type ModuleDef = {
   key: ModuleKey;
@@ -6,7 +6,7 @@ export type ModuleDef = {
   tagline: string;
   /** Google Material Symbols name (brand iconography). */
   icon: string;
-  /** Brand service colour (adm Indicia guidelines, July 2025). */
+  /** Brand service colour (brand guidelines, July 2025). */
   colour: string;
   basePath: string;
   status: "live" | "planned";
@@ -203,19 +203,39 @@ const ALL: ModuleDef[] = [
     ],
     flow: "Works hand in hand with Briefing+: insight shapes what gets briefed, and measured results from every stage feed the next brief.",
   },
+  {
+    key: "impact-grade",
+    name: "Impact Grade",
+    tagline: "Product environmental footprint and grade",
+    icon: "eco",
+    colour: "#78C7AE",
+    basePath: "/impact-grade",
+    status: "live",
+    phase: "Step 1: Watchtower",
+    // Step 1 (Nov 2026): the Watchtower over the Anthesis PEF model (libraries, maths, methodology, open issues).
+    // Step 2 wires it into the journey (brief targets, spec grades, quote evaluation, delivery and reporting).
+    scope: [
+      "The Anthesis PEF model: material, manufacturing, distribution, use and end of life across 16 EF 3.1 impact categories",
+      "Governed mapping tables, ecoinvent factors, normalisation and weighting, parameters and grade bands",
+      "A PEF calculator that shows every activity behind the PEF score, checked against the workbook's worked examples",
+      "The Impact Grade (0-100, A-E): circular design, resource use and the PEF score, shown as a scoring wheel",
+    ],
+    flow: "Runs under the journey like the Sustainability layer: the brief sets the target, Sourcing grades every spec, Order Management adds the real delivery, and reporting rolls it up.",
+  },
 ];
 
 // Sections in tab order. CRM opens the flow (the client relationship and the won opportunity start every job).
 // Shopper IQ sits next to Briefing+ (insight decides what to brief).
 // Sourcing includes RFQs; Order Management includes Logistics and Execution (areas with partOf set, no tab of their own).
 // SRM goes last: it manages the supply base; vendors engage at set points (see LAYERS supplier touches).
-const TAB_ORDER: ModuleKey[] = ["watchtower", "crm", "briefing", "shopper-iq", "sourcing", "rfq", "orders", "logistics", "execution", "assure", "finance"];
+const TAB_ORDER: ModuleKey[] = ["watchtower", "crm", "briefing", "shopper-iq", "sourcing", "rfq", "orders", "logistics", "execution", "assure", "finance", "impact-grade"];
 /**
  * Sections that run across the whole workflow rather than being a step in it. They keep a tab (their team's
  * workspace) but the architecture draws them as layers: Watchtower over everything, Finance+ under everything
  * (like Sustainability and Supplier Engagement).
  */
-export const HORIZONTALS: ModuleKey[] = ["watchtower", "finance"];
+// Impact Grade is the engine of the Sustainability layer, so it is drawn as that layer, not as a step.
+export const HORIZONTALS: ModuleKey[] = ["watchtower", "finance", "impact-grade"];
 ALL.sort((a, b) => TAB_ORDER.indexOf(a.key) - TAB_ORDER.indexOf(b.key));
 
 /** The sections people see: one tab, one sidebar, one About and one Watchtower each. */
@@ -260,7 +280,7 @@ export const LAYERS: LayerDef[] = [
   },
   {
     key: "sustainability", name: "Sustainability", colour: "#78C7AE", href: "/watchtower/sustainability",
-    summary: "Shared emission factors, substrates and Impact Grade from the Watchtower, applied the same way in every module.",
+    summary: "Shared emission factors and substrates from the Watchtower, and the Impact Grade (PEF) methodology from the Impact Grade Watchtower, applied the same way in every module.",
     touches: { crm: "Client sustainability commitments in the contract", briefing: "Targets on the brief", "shopper-iq": "Footprint beside effectiveness", sourcing: "CO2e and Impact Grade per spec; weighting in evaluation", orders: "Transport CO2e per delivery; reuse and maintenance", assure: "Audits and certificates in the score" },
   },
   {

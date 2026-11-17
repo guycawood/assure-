@@ -31,7 +31,7 @@ function CertFields({ types, preset }: { types: { id: string; name: string }[]; 
       <div><label className="label" htmlFor="issue_date">Issue date</label><input id="issue_date" name="issue_date" type="date" className="input" /></div>
       <div><label className="label" htmlFor="expiry_date">Expiry date</label><input id="expiry_date" name="expiry_date" type="date" className="input" /></div>
       <div className="sm:col-span-2"><label className="label" htmlFor="file">Certificate document</label><input id="file" name="file" type="file" required accept=".pdf,image/*" className="input" />
-        <p className="mt-1 text-xs text-muted">PDF or image, up to 15 MB. adm Indicia checks every upload before it counts.</p></div>
+        <p className="mt-1 text-xs text-muted">PDF or image, up to 15 MB. We check every upload before it counts.</p></div>
     </div>
   );
 }
@@ -54,7 +54,7 @@ export default async function CompliancePage() {
 
   return (
     <>
-      <PageHead title="Certificates & documents" sub="Keep your certificates current: anything expired or expiring within 90 days is flagged. Upload a renewal to replace a certificate; adm Indicia checks it before it counts.">
+      <PageHead title="Certificates & documents" sub="Keep your certificates current: anything expired or expiring within 90 days is flagged. Upload a renewal to replace a certificate; we check it before it counts.">
         {act && (
           <ActionDialog label="Upload certificate" variant="primary" title="Upload a certificate" action={addCertificate} submit="Upload" wide>
             <CertFields types={types} />
@@ -73,7 +73,7 @@ export default async function CompliancePage() {
         {current.length === 0 ? <Empty title="No certificates yet">Upload your quality, environmental and social certificates.</Empty> : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
-              <thead><tr><th className="th">Certificate</th><th className="th">Number / issuer</th><th className="th">Expiry</th><th className="th">Check by adm Indicia</th><th className="th" /></tr></thead>
+              <thead><tr><th className="th">Certificate</th><th className="th">Number / issuer</th><th className="th">Expiry</th><th className="th">Check by us</th><th className="th" /></tr></thead>
               <tbody>
                 {current.map((c) => {
                   const href = fileHref(c.document_path);
@@ -109,7 +109,7 @@ export default async function CompliancePage() {
         )}
       </Panel>
 
-      <Panel title="Documents" sub="Insurance, policies and other documents adm Indicia has asked for"
+      <Panel title="Documents" sub="Insurance, policies and other documents we have asked for"
         actions={act && (
           <ActionDialog label="Upload document" title="Upload a document" action={addDocument} submit="Upload">
             <div className="grid gap-3">
@@ -130,7 +130,7 @@ export default async function CompliancePage() {
                   <MSymbol name="description" size={20} className="text-muted" />
                   <span className="min-w-0 flex-1">
                     {href ? <a href={href} target="_blank" rel="noreferrer" className="font-semibold hover:underline">{d.title}</a> : <span className="font-semibold">{d.title}</span>}
-                    <span className="block text-xs text-muted">{human(d.doc_type)}{d.po_reference ? ` · ${d.po_reference}` : ""} · {formatDate(d.created_at)} · {d.uploaded_by_role === "vendor" ? "uploaded by you" : "from adm Indicia"}</span>
+                    <span className="block text-xs text-muted">{human(d.doc_type)}{d.po_reference ? ` · ${d.po_reference}` : ""} · {formatDate(d.created_at)} · {d.uploaded_by_role === "vendor" ? "uploaded by you" : "From us"}</span>
                     {d.status === "rejected" && d.review_note && <span className="block text-xs text-bad">{d.review_note}</span>}
                   </span>
                   <Pill tone={statusTone(d.status)}>{human(d.status)}</Pill>

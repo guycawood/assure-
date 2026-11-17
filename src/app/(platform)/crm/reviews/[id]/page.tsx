@@ -34,7 +34,7 @@ export default async function CrmReview({ params }: { params: Promise<{ id: stri
 
       <Panel title="Details">
         <Facts items={[
-          ["adm Indicia", (r.internal_attendee_names ?? []).join(", ") || "—"], ["Client", (r.contact_attendee_names ?? []).join(", ") || "—"],
+          ["Team", (r.internal_attendee_names ?? []).join(", ") || "—"], ["Client", (r.contact_attendee_names ?? []).join(", ") || "—"],
           ["Shown in the Client Portal", r.client_visible ? "Yes" : "No"],
           ["Confirmed in the portal", responses.length ? responses.map((x) => `${name.get(x.user_id) ?? "Client user"}: ${x.response}`).join("; ") : "No replies yet"],
           ["Agenda", <ol key="a" className="list-decimal pl-4">{r.agenda.map((a, i) => <li key={i}>{a}</li>)}</ol>],

@@ -22,7 +22,7 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
           <svg width="30" height="30" viewBox="0 0 26 26" aria-hidden>
             <circle cx="13" cy="13" r="9.5" fill="none" stroke="#97DBD9" strokeWidth="3.5" strokeDasharray="48 12" strokeLinecap="round" transform="rotate(-50 13 13)" />
           </svg>
-          <span className="leading-tight"><span className="block text-xl font-bold">System Guy</span><span className="block text-xs font-semibold text-white/60">by adm Indicia</span></span>
+          <span className="leading-tight"><span className="block text-xl font-bold">System Guy</span></span>
         </div>
         <div className="relative mt-auto max-w-md">
           <h1 className="text-[2.4rem] font-bold leading-[1.1] tracking-[-0.02em]">One platform from brief to shelf.</h1>
@@ -37,7 +37,7 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
       <section className="flex items-center justify-center bg-surface px-5 py-12">
         <div className="w-full max-w-md">
           <div className="mb-8 lg:hidden">
-            <span className="text-xl font-bold text-brand-navy">System Guy</span> <span className="text-xs font-semibold text-muted">by adm Indicia</span>
+            <span className="text-xl font-bold text-brand-navy">System Guy</span>
           </div>
           <h2 className="text-[1.6rem] font-bold tracking-[-0.01em]">Sign in to System Guy</h2>
           {demo ? (

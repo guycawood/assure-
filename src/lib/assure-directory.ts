@@ -8,9 +8,11 @@ import type { Certificate, PerformanceRecord, SupplierProfile } from "@/lib/assu
 type Client = Awaited<ReturnType<typeof createClient>>;
 
 export type DirectoryFilters = {
-  q?: string; region?: string; market?: string; category?: string; client?: string; status?: string; tier?: string; risk?: string; compliance?: string;
+  q?: string; region?: string; market?: string; category?: string; client?: string; status?: string; tier?: string; risk?: string; compliance?: string; capability?: string;
 };
-export const FILTER_KEYS = ["q", "region", "market", "category", "client", "status", "tier", "risk", "compliance"] as const;
+export const FILTER_KEYS = ["q", "region", "market", "category", "client", "status", "tier", "risk", "compliance", "capability"] as const;
+
+export type CapabilityTag = { process_id: string; name: string; verified: boolean };
 
 export type DirectoryRow = {
   s: Supplier;
@@ -19,15 +21,28 @@ export type DirectoryRow = {
   issues: number;       // certificate issues + open critical onboarding gates
   score: number | null; // latest composite performance score (0-100)
   period: string | null;
+  caps: CapabilityTag[]; // the kinds of work the supplier says it does (processes), verified or declared
 };
 
 export async function loadDirectory(supabase: Client) {
-  const [suppliers, profiles, certs, perf] = await Promise.all([
+  const [suppliers, profiles, certs, perf, capRes, procRes] = await Promise.all([
     getSuppliers(supabase),
     getProfiles(supabase),
     rows<Certificate>(supabase, "supplier_certificates_v", { cols: "supplier_id, status" }),
     rows<PerformanceRecord>(supabase, "performance_records", { cols: "supplier_id, period, composite_score" }),
+    supabase.from("supplier_capabilities").select("supplier_id, process_id, evidence_status"),
+    supabase.from("library_records").select("id, name").eq("library_key", "srm_processes").eq("status", "active"),
   ]);
+  const procName = new Map(((procRes.data ?? []) as { id: string; name: string }[]).map((r) => [r.id, r.name]));
+  const capsBy = new Map<string, Map<string, CapabilityTag>>();
+  for (const c of (capRes.data ?? []) as { supplier_id: string; process_id: string; evidence_status: string }[]) {
+    const name = procName.get(c.process_id);
+    if (!name || c.evidence_status === "rejected") continue;
+    const m = capsBy.get(c.supplier_id) ?? new Map<string, CapabilityTag>();
+    const cur = m.get(c.process_id);
+    m.set(c.process_id, { process_id: c.process_id, name, verified: c.evidence_status === "verified" || !!cur?.verified });
+    capsBy.set(c.supplier_id, m);
+  }
   const certIssues = new Map<string, number>();
   for (const c of certs) if (["expired", "expiring_soon", "rejected"].includes(c.status)) certIssues.set(c.supplier_id, (certIssues.get(c.supplier_id) ?? 0) + 1);
   const latest = new Map<string, PerformanceRecord>();
@@ -35,14 +50,16 @@ export async function loadDirectory(supabase: Client) {
   const all: DirectoryRow[] = suppliers.map((s) => {
     const ci = certIssues.get(s.id) ?? 0;
     const l = latest.get(s.id);
-    return { s, p: profiles.get(s.id), certIssues: ci, issues: ci + s.critical_open, score: l?.composite_score == null ? null : Number(l.composite_score), period: l?.period ?? null };
+    return { s, p: profiles.get(s.id), certIssues: ci, issues: ci + s.critical_open, score: l?.composite_score == null ? null : Number(l.composite_score), period: l?.period ?? null,
+      caps: [...(capsBy.get(s.id)?.values() ?? [])].sort((a, b) => a.name.localeCompare(b.name)) };
   });
   return all;
 }
 
 export function filterDirectory(all: DirectoryRow[], f: DirectoryFilters) {
   const q = f.q?.toLowerCase().trim();
-  return all.filter(({ s, p, issues }) =>
+  return all.filter(({ s, p, issues, caps }) =>
+    (!f.capability || caps.some((c) => c.process_id === f.capability)) &&
     (!q || [s.name, s.supplier_code, p?.vendor_code, p?.uen_number, p?.legal_entity].some((v) => v?.toLowerCase().includes(q))) &&
     (!f.region || s.region === f.region) && (!f.market || s.market === f.market) && (!f.category || s.category === f.category) &&
     (!f.client || s.client === f.client) && (!f.status || s.status === f.status) && (!f.tier || s.tier === f.tier) &&

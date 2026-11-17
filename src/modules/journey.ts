@@ -28,7 +28,7 @@ const U = {
 
 export const LANES: Record<Lane, { label: string; colour: string }> = {
   client: { label: "Client", colour: "#B776BC" },
-  internal: { label: "adm Indicia", colour: "#4896F7" },
+  internal: { label: "Team", colour: "#4896F7" },
   vendor: { label: "Vendor", colour: "#FFB05B" },
   system: { label: "System", colour: "#78C7AE" },
 };

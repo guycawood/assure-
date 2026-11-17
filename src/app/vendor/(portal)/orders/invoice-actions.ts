@@ -39,5 +39,5 @@ export async function submitInvoice(_prev: ActionResult, fd: FormData): Promise<
     return { ok: false, message: error.message };
   }
   revalidatePath("/vendor", "layout");
-  return { ok: true, message: "Invoice sent. adm Indicia will match it to the order and delivery.", id: data as string };
+  return { ok: true, message: "Invoice sent. We will match it to the order and delivery.", id: data as string };
 }

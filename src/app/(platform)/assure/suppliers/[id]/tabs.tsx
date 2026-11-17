@@ -228,6 +228,8 @@ export async function ComplianceTab({ supplier: s, me }: Props) {
 }
 
 /* ---------------- Performance ---------------- */
+import { VendorTrends } from "@/components/assure/period-chart";
+
 export async function PerformanceTab({ supplier: s }: Props) {
   const supabase = await createClient();
   const [perf, issues, m, inputs] = await Promise.all([
@@ -258,6 +260,7 @@ export async function PerformanceTab({ supplier: s }: Props) {
           </details>
         </Panel>
       )}
+      <VendorTrends records={perf as never} />
       <Panel title="Period scores" sub="0-100 per dimension; composite is the average of the scores entered.">
         {perf.length === 0 ? <Empty title="No performance scores yet" /> : (
           <div className="overflow-x-auto">
@@ -316,20 +319,25 @@ export function IssueList({ issues, supplierId, names }: { issues: PerformanceIs
 /* ---------------- Commercial ---------------- */
 export async function CommercialTab({ supplier: s, profile: p }: Props) {
   const nti = ntiValue(s.ytd_spend, p?.nti_rate);
+  // The SRT level sees vendor performance and payment status only, so spend and commercial terms are not shown to it.
+  const canSeeMoney = ((await (await createClient()).rpc("division_can", { p_module: "assure", p_capability: "see_money" })).data as boolean | null) === true;
   return (
     <>
-      <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+      {!canSeeMoney && <Card className="px-5 py-3 text-sm text-muted">Spend and commercial terms are shown to procurement, finance and SRM leads. Your level sees vendor performance and payment status.</Card>}
+      {canSeeMoney && <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <Stat label="YTD spend" value={formatEur(s.ytd_spend)} hint={p?.annual_spend_forecast ? `Forecast ${formatEur(p.annual_spend_forecast)}` : undefined} />
         <Stat label="NTI rate" value={p?.nti_rate != null ? `${p.nti_rate}%` : "—"} />
         <Stat label="NTI value" value={formatEur(nti)} hint="Spend × NTI rate" />
         <Stat label="Payment terms" value={paymentTermLabel(p?.payment_terms, p?.payment_terms_days)} />
-      </section>
+      </section>}
       <Panel title="Risk" sub={p?.risk_reason ? `Current reason: ${p.risk_reason}` : "Set by vendor managers or procurement, always with a reason."}>
         <div className="p-5"><RiskForm supplierId={s.id} current={p?.risk_level ?? "low"} /></div>
       </Panel>
-      <Panel title="Commercial terms and classification" sub="Internal only. Vendors never see NTI, payment-term notes or risk.">
-        <div className="p-5"><ProfileForm supplierId={s.id} p={p} /></div>
-      </Panel>
+      {canSeeMoney && (
+        <Panel title="Commercial terms and classification" sub="Internal only. Vendors never see NTI, payment-term notes or risk.">
+          <div className="p-5"><ProfileForm supplierId={s.id} p={p} /></div>
+        </Panel>
+      )}
     </>
   );
 }

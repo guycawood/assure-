@@ -82,7 +82,7 @@ export function VendorCheckpointForm({ checkpoint, bodies }: { checkpoint: QaqcC
         <label className="text-xs">This checkpoint is a
           <select name="result" className="input" defaultValue="pass"><option value="pass">Pass</option><option value="fail">Fail</option></select>
         </label>
-        <label className="text-xs">Notes for adm Indicia (optional)<input name="notes" className="input" maxLength={2000} /></label>
+        <label className="text-xs">Notes for us (optional)<input name="notes" className="input" maxLength={2000} /></label>
       </div>
     </ActionForm>
   );

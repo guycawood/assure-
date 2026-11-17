@@ -10,7 +10,7 @@ export async function sendVendorSignInLink(_prev: RegisterState, fd: FormData): 
   const supabase = await createClient();
   const { data } = await supabase.rpc("lookup_vendor_invite", { p_token: invite });
   const info = data as { valid: boolean; email?: string } | null;
-  if (!info?.valid || !info.email) return { status: "error", message: "This link is no longer valid. Ask your adm Indicia contact for a new one." };
+  if (!info?.valid || !info.email) return { status: "error", message: "This link is no longer valid. Ask your contact for a new one." };
   const site = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
   const { error } = await supabase.auth.signInWithOtp({
     email: info.email,

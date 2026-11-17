@@ -10,7 +10,13 @@ import {
 } from "@/lib/briefing-data";
 import { getWhatWorked } from "@/lib/shopper-iq-data";
 import { isAiConfigured } from "@/lib/ai/claude";
-import { budgetRange, canIdeate, marketName, type Brief } from "@/lib/briefing";
+import { budgetRange, canIdeate, marketName, type Brief, type BriefProcess } from "@/lib/briefing";
+import { ProcessPanel } from "./process-panel";
+import { CommercialsPanel, type QuoteView } from "./commercials-panel";
+import { RfiPanel } from "./rfi-panel";
+import { SamplesPanel } from "./samples-panel";
+import { FinalFilesPanel } from "./final-files-panel";
+import type { BriefDelivery, BriefSample, CreativeRfi } from "@/lib/creative-rfi";
 import { ROLE_LABEL } from "@/components/approvals/labels";
 import { ConceptActions } from "../concept-actions";
 import { formatDate, personName } from "@/lib/srt";
@@ -25,6 +31,8 @@ import { duplicateBrief, updateBrief } from "../actions";
 import { DuplicateDialog } from "@/components/repeat/duplicate-dialog";
 import { ApprovalPanel, BriefActions } from "./brief-controls";
 import { IdeationPanel } from "./ideation-panel";
+import { getClientTargets, listClientTargets } from "@/lib/client-targets-data";
+import { briefGaps, targetLines } from "@/lib/client-targets";
 
 export const metadata: Metadata = { title: "Brief" };
 
@@ -50,6 +58,8 @@ export default async function BriefDetail({ params, searchParams }: { params: Pr
     getWhatWorked(supabase, { client: brief.client, brand: brief.brand, market: brief.market }),
   ]);
   const transcript = session ? await getSessionTranscript(supabase, session.id) : { messages: [], concepts: [], allConcepts: [] };
+  const clientTargets = await getClientTargets(supabase, (brief as Brief & { client_id?: string | null }).client_id, brief.client);
+  const gaps = briefGaps(brief, clientTargets);
   const [inApproval, policy] = await Promise.all([
     getBriefConceptsInApproval(supabase, id),
     conceptPolicy(supabase, { client_id: (brief as Brief & { client_id?: string | null }).client_id ?? null, market: brief.market, budget_high: brief.budget_high }),
@@ -65,17 +75,57 @@ export default async function BriefDetail({ params, searchParams }: { params: Pr
   const editable = ["draft", "submitted", "in_ideation"].includes(brief.status) && mayChange;
 
   if (sp.edit && editable) {
-    const [campaigns, touchpoints] = await Promise.all([getCampaigns(supabase), getLibrary(supabase, "touchpoint_types")]);
+    const [campaigns, touchpoints, allTargets] = await Promise.all([getCampaigns(supabase), getLibrary(supabase, "touchpoint_types"), listClientTargets(supabase)]);
     return (
       <>
         <PageHead crumbs={[{ label: "Briefing+", href: "/briefing" }, { label: brief.brief_code, href: `/briefing/${id}` }, { label: "Edit" }]} title={`Edit: ${brief.title}`} />
         <div className="max-w-4xl">
-          <BriefForm action={updateBrief.bind(null, id)} brief={brief} campaigns={campaigns} categories={touchpoints.map((t) => t.name)} cancelHref={`/briefing/${id}`} />
+          <BriefForm action={updateBrief.bind(null, id)} brief={brief} campaigns={campaigns} categories={touchpoints.map((t) => t.name)} cancelHref={`/briefing/${id}`} clientTargets={allTargets} />
         </div>
       </>
     );
   }
 
+  // The intake-process fields are read from the table: the briefs_v view predates them.
+  const { data: processRow } = await supabase.from("briefs").select("brief_types, creative_needed, creative_route, creative_decided_at, creative_reviewed_by, creative_reviewed_at, creative_review_note, returned_reason, returned_by, returned_at, meeting_requested").eq("id", id).maybeSingle();
+  const process = (processRow ?? { brief_types: [], creative_needed: null, creative_route: null, creative_decided_at: null, creative_reviewed_by: null, creative_reviewed_at: null, creative_review_note: null, returned_reason: null, returned_by: null, returned_at: null, meeting_requested: false }) as BriefProcess;
+  // Creative commercials: only for briefs that need creative input (retainer flag, kick-off, quote).
+  let commercials: { onRetainer: boolean; kickoffAt: string | null; kickoffNote: string | null; quote: QuoteView | null } | null = null;
+  if (process.creative_needed) {
+    const { data: cb } = await supabase.from("briefs").select("client_id, campaign_id, creative_kickoff_at, creative_kickoff_note").eq("id", id).maybeSingle();
+    let clientId = (cb?.client_id as string | null) ?? null;
+    if (!clientId && cb?.campaign_id) clientId = ((await supabase.from("campaigns").select("client_id").eq("id", cb.campaign_id as string).maybeSingle()).data?.client_id as string | null) ?? null;
+    const [{ data: cl }, { data: q }] = await Promise.all([
+      clientId ? supabase.from("sourcing_clients").select("on_retainer").eq("id", clientId).maybeSingle() : Promise.resolve({ data: null }),
+      supabase.from("brief_creative_quotes").select("basis, rate, units, amount, currency, scope_note, status, version, reject_reason, client_po_number, po_confirmed_at").eq("brief_id", id).maybeSingle(),
+    ]);
+    commercials = {
+      onRetainer: !!(cl as { on_retainer?: boolean } | null)?.on_retainer, kickoffAt: (cb?.creative_kickoff_at as string | null) ?? null,
+      kickoffNote: (cb?.creative_kickoff_note as string | null) ?? null,
+      quote: q ? ({ ...q, rate: q.rate != null ? Number(q.rate) : null, units: q.units != null ? Number(q.units) : null, amount: Number(q.amount) } as QuoteView) : null,
+    };
+  }
+  // Supplier route: the creative RFI to panel suppliers. Samples apply to any creative brief.
+  let rfis: CreativeRfi[] = [];
+  let samples: BriefSample[] = [];
+  let deliveries: BriefDelivery[] = [];
+  let samplesInfo: { needed: boolean | null; note: string | null } = { needed: null, note: null };
+  let panelSuppliers: { id: string; name: string; detail: string }[] = [];
+  if (process.creative_needed) {
+    const [{ data: rf }, { data: sp }, { data: sm }, { data: sb }, { data: dl }] = await Promise.all([
+      process.creative_route === "supplier" ? supabase.rpc("creative_rfis_internal", { p_brief: id }) : Promise.resolve({ data: [] }),
+      supabase.from("v_eligible_suppliers").select("id, name, market, category").order("name").limit(500),
+      supabase.rpc("samples_internal", { p_brief: id }),
+      supabase.from("briefs").select("samples_needed, samples_note").eq("id", id).maybeSingle(),
+      supabase.rpc("creative_deliveries_internal", { p_brief: id }),
+    ]);
+    deliveries = (dl ?? []) as BriefDelivery[];
+    rfis = (rf ?? []) as CreativeRfi[];
+    samples = (sm ?? []) as BriefSample[];
+    samplesInfo = { needed: (sb?.samples_needed as boolean | null) ?? null, note: (sb?.samples_note as string | null) ?? null };
+    panelSuppliers = ((sp ?? []) as { id: string; name: string; market: string | null; category: string | null }[])
+      .map((s) => ({ id: s.id, name: s.name, detail: [s.category, s.market].filter(Boolean).join(" · ") }));
+  }
   const pendingHandoffs = history.handoffs.filter((h) => h.status === "pending");
   // briefs_v predates the repeat link, so read it from the table.
   const { data: link } = await supabase.from("briefs").select("repeat_of_brief_id").eq("id", id).maybeSingle();
@@ -146,8 +196,41 @@ export default async function BriefDetail({ params, searchParams }: { params: Pr
                 {brief.min_recycled_pct != null && <span>Minimum recycled content {brief.min_recycled_pct}%</span>}
                 {brief.require_fsc && <span>FSC certified material required</span>}
               </p>
+              {clientTargets && (
+                <div className="mt-2 border-t border-[#78C7AE66] pt-2">
+                  <p className="text-xs font-semibold">
+                    Client&apos;s standing targets (CRM){(brief as Brief & { client_id?: string | null }).client_id
+                      ? <> · <Link className="text-accent hover:underline" href={`/crm/clients/${(brief as Brief & { client_id?: string | null }).client_id}?tab=sustainability`}>view</Link></> : null}
+                  </p>
+                  <ul className="mt-0.5 list-disc pl-5 text-sm text-muted">{targetLines(clientTargets).map((l) => <li key={l}>{l}</li>)}</ul>
+                  {gaps.length > 0 && <p className="mt-1 text-xs text-warn">{gaps.join(" ")} Ideation applies the client&apos;s targets anyway.</p>}
+                  <p className="mt-1 text-xs text-muted">Ideation always applies these: the stricter of client and brief wins, and excluded materials are never suggested.</p>
+                </div>
+              )}
             </div>
           </Card>
+
+          <ProcessPanel id={id} status={brief.status} p={process} gaps={gaps} canChange={mayChange} reviewerName={process.creative_reviewed_by ? name(process.creative_reviewed_by) : null} />
+
+          {commercials && (
+            <CommercialsPanel id={id} open={["draft", "submitted", "with_client", "in_ideation"].includes(brief.status)} onRetainer={commercials.onRetainer}
+              kickoffAt={commercials.kickoffAt} kickoffNote={commercials.kickoffNote} quote={commercials.quote} />
+          )}
+
+          {commercials && process.creative_route === "supplier" && (
+            <RfiPanel id={id} briefTitle={brief.title} started={!!commercials.kickoffAt || !!commercials.quote?.po_confirmed_at}
+              open={["draft", "submitted", "with_client", "in_ideation"].includes(brief.status)} rfis={rfis} suppliers={panelSuppliers} />
+          )}
+
+          {process.creative_needed && (
+            <SamplesPanel id={id} needed={samplesInfo.needed} decidedNote={samplesInfo.note} open={["draft", "submitted", "with_client", "in_ideation"].includes(brief.status)}
+              samples={samples} suppliers={panelSuppliers} />
+          )}
+
+          {commercials && (
+            <FinalFilesPanel id={id} started={!!commercials.kickoffAt || !!commercials.quote?.po_confirmed_at}
+              open={["draft", "submitted", "with_client", "in_ideation"].includes(brief.status)} deliveries={deliveries} />
+          )}
 
           <IdeationPanel briefId={id} open={canIdeate(brief)} demo={!isAiConfigured()} messages={transcript.messages} concepts={transcript.concepts}
             sentConceptIds={history.handoffs.map((h) => h.concept_id)} initialParams={session?.creative_params}

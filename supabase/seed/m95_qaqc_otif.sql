@@ -10,7 +10,7 @@ select set_config('sourcing.system_write', 'on', false);
 insert into public.library_records (library_key, code, name, data, status, effective_from, notes)
 select 'qaqc_approved_bodies', x.code, x.name, x.data::jsonb, 'active', date '2026-01-01', 'Demo (fictional body)'
   from (values
-    ('ADM-QC', 'adm Indicia QC team', '{"body_type":"inspection_agency","accreditation":"Internal QC (ISO 9001 system)","markets":["GB","NL","DE","US","SG"],"accredited_until":"2027-12-31"}'),
+    ('ADM-QC', 'Our QC team', '{"body_type":"inspection_agency","accreditation":"Internal QC (ISO 9001 system)","markets":["GB","NL","DE","US","SG"],"accredited_until":"2027-12-31"}'),
     ('NBTL', 'Northbridge Testing Labs', '{"body_type":"lab","accreditation":"ISO/IEC 17025","scopes":["food contact migration","toy safety","electrical safety"],"accredited_until":"2027-06-30"}'),
     ('MERIDIAN', 'Meridian Inspection Services', '{"body_type":"inspection_agency","accreditation":"ISO/IEC 17020","markets":["CN","VN","US","GB","DE"],"accredited_until":"2027-03-31"}'),
     ('CASTELLAN', 'Castellan Certification', '{"body_type":"certification_body","accreditation":"ISO/IEC 17065 / 17021","scopes":["FSC chain of custody","recycled content","factory audit"],"accredited_until":"2028-01-31"}'),
@@ -220,7 +220,7 @@ select public._m95_signoff('f9000000-0000-4000-8000-000000000001', 'mockup', 32,
 select public._m95_signoff('f9000000-0000-4000-8000-000000000001', 'production', 21, null);
 select public._m95_signoff('f9000000-0000-4000-8000-000000000001', 'pre_shipment', 14, 'Within AQL 2.5; one major (scuffed header) reworked before shipping');
 
--- L5 passed: clinic leaflet dispensers (Carewell), factory audit and certificate from Castellan, final inspection by adm Indicia QC.
+-- L5 passed: clinic leaflet dispensers (Carewell), factory audit and certificate from Castellan, final inspection by our QC.
 select public._m95_submit('65200000-0000-4000-8000-000000000002', 'mockup', '[{"type":"SAMPLE_APPROVAL","file":"dispenser-sample-approval","issued_ago":76}]', 'pass', 76);
 select public._m95_submit('65200000-0000-4000-8000-000000000002', 'production', '[{"type":"AUDIT_REPORT","file":"castellan-factory-audit","issued_ago":120,"body":"CASTELLAN","result":"pass"}]', 'pass', 70);
 select public._m95_submit('65200000-0000-4000-8000-000000000002', 'pre_shipment', '[{"type":"INSPECTION_REPORT","file":"admqc-final-inspection","inspected_ago":60,"body":"ADM-QC","sample":50,"critical":0,"major":1,"minor":2,"result":"pass"},{"type":"CERTIFICATE","file":"castellan-recycled-content-cert","body":"CASTELLAN","cert":"CC-RC-2026-0412","issued_ago":200,"expires_in":300}]', 'pass', 60);

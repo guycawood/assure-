@@ -8,6 +8,8 @@ import { ButtonLink, Card, Empty, PageHead, Panel } from "@/components/ui";
 import { JobStatusPill, Td, Th, fmtDate } from "@/components/sourcing/bits";
 import { ActionForm } from "@/components/sourcing/action-form";
 import { acceptHandoff } from "../actions";
+import { ImpactGradeBadge } from "@/components/impact-grade/grade-badge";
+import { getJobGrades } from "@/lib/impact-grade-data";
 
 export const metadata: Metadata = { title: "Jobs" };
 
@@ -23,6 +25,7 @@ export default async function JobsPage({ searchParams }: { searchParams: Promise
   ]);
   type Pending = { id: string; brief_id: string; created_at: string; payload: { brief?: { code?: string; title?: string; client?: string; market?: string }; concept?: { name?: string; suggested_spec_type?: string }; substrate?: { name?: string } | null } };
   const pending = (pendingRows ?? []) as Pending[];
+  const grades = await getJobGrades(supabase, jobs.map((j) => j.id));
   const clientFor = (name?: string) => clients.find((c) => name && c.name.toLowerCase().startsWith(name.trim().toLowerCase()))?.id ?? "";
   const markets = [...new Set(jobs.map((j) => j.market))].sort();
 
@@ -93,7 +96,7 @@ export default async function JobsPage({ searchParams }: { searchParams: Promise
           <p className="px-4 py-6 text-sm text-muted">No jobs match these filters.</p>
         ) : (
           <table className="w-full text-sm">
-            <thead><tr><Th>Job</Th><Th>Client</Th><Th>Region</Th><Th>Market</Th><Th>Status</Th><Th>Specs</Th><Th>RFQs</Th><Th>Budget</Th><Th>Delivery</Th></tr></thead>
+            <thead><tr><Th>Job</Th><Th>Client</Th><Th>Region</Th><Th>Market</Th><Th>Status</Th><Th>Specs</Th><Th>Impact Grade</Th><Th>RFQs</Th><Th>Budget</Th><Th>Delivery</Th></tr></thead>
             <tbody>
               {list.map((j) => (
                 <tr key={j.id} className="hover:bg-surface-2/50">
@@ -103,6 +106,7 @@ export default async function JobsPage({ searchParams }: { searchParams: Promise
                   <Td>{j.market}</Td>
                   <Td><JobStatusPill status={j.status} /></Td>
                   <Td className="tabular-nums">{j.spec_count}</Td>
+                  <Td>{(() => { const g = grades.get(j.id); return <Link href={`/sourcing/jobs/${j.id}?tab=impact-grade`} title={g ? `Average of ${g.graded} graded of ${g.specs} specs. Open for the spec-by-spec breakdown.` : "No specs yet"}><ImpactGradeBadge score={g?.avg} href={null} /></Link>; })()}</Td>
                   <Td className="tabular-nums">{j.rfq_count}</Td>
                   <Td className="tabular-nums">{money(j.budget, j.currency)}</Td>
                   <Td>{fmtDate(j.target_delivery_date)}</Td>

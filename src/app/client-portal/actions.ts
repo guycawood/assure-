@@ -16,7 +16,7 @@ const decideSchema = z.object({
   client_order_ref: z.string().max(80).optional(),
 });
 
-/** Client approver's decision on an estimate. Recorded and sent to adm Indicia, who confirm it in Order Management. */
+/** Client approver's decision on an estimate. Recorded and sent to the team, who confirm it in Order Management. */
 export async function decideEstimate(_prev: ClientFormResult, fd: FormData): Promise<ClientFormResult> {
   const me = await requireClient();
   if (me.is_admin || me.user_type === "internal") return { error: PREVIEW_MSG };
@@ -32,7 +32,7 @@ export async function decideEstimate(_prev: ClientFormResult, fd: FormData): Pro
   });
   if (error) return { error: error.message };
   revalidatePath("/client-portal", "layout");
-  return { ok: true, message: parsed.data.decision === "approve" ? "Thanks. Your approval is with adm Indicia." : "Thanks. adm Indicia will follow up." };
+  return { ok: true, message: parsed.data.decision === "approve" ? "Thanks. Your approval is with us." : "Thanks. We will follow up." };
 }
 
 const feedbackSchema = z.object({
@@ -42,7 +42,7 @@ const feedbackSchema = z.object({
   market: z.string().max(2).optional(),
 });
 
-/** Client user (approver or viewer) rates adm Indicia 0-10 for one of their own accounts. Recorded in CRM. */
+/** Client user (approver or viewer) rates us 0-10 for one of their own accounts. Recorded in CRM. */
 export async function sendFeedback(_prev: ClientFormResult, fd: FormData): Promise<ClientFormResult> {
   const me = await requireClient();
   if (me.is_admin || me.user_type === "internal") return { error: PREVIEW_MSG };
@@ -71,7 +71,40 @@ export async function commentOnBrief(_prev: ClientFormResult, fd: FormData): Pro
   const { error } = await supabase.rpc("client_brief_comment", { p_brief: parsed.data.brief_id, p_body: parsed.data.body });
   if (error) return { error: error.message };
   revalidatePath(`/client-portal/briefs/${parsed.data.brief_id}`);
-  return { ok: true, message: "Comment sent to adm Indicia." };
+  return { ok: true, message: "Comment sent to us." };
+}
+
+/** The client's approver approves a proof or asks for changes (step g of the QA/QC process). */
+export async function decideProof(_prev: ClientFormResult, fd: FormData): Promise<ClientFormResult> {
+  const me = await requireClient();
+  if (me.is_admin || me.user_type === "internal") return { error: PREVIEW_MSG };
+  const id = uuid.safeParse(fd.get("proof_id"));
+  const decision = fd.get("decision");
+  if (!id.success || (decision !== "approve" && decision !== "changes")) return { error: "Choose approve or request changes." };
+  const comment = String(fd.get("comment") ?? "").trim();
+  if (decision === "changes" && comment.length < 3) return { error: "Tell us what needs to change." };
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("client_proof_decide", { p_proof: id.data, p_approve: decision === "approve", p_comment: comment || null });
+  if (error) return { error: error.message };
+  revalidatePath("/client-portal/proofs");
+  revalidatePath("/client-portal");
+  return { ok: true, message: decision === "approve" ? "Proof approved. The supplier can start production." : "Changes sent to the supplier." };
+}
+
+/** The client answers a brief that was sent back and resubmits it (it goes through the completeness check and approval again). */
+export async function resubmitBrief(_prev: ClientFormResult, fd: FormData): Promise<ClientFormResult> {
+  const me = await requireClient();
+  if (me.is_admin || me.user_type === "internal") return { error: PREVIEW_MSG };
+  const id = uuid.safeParse(fd.get("brief_id"));
+  if (!id.success) return { error: "Brief not found." };
+  const note = String(fd.get("note") ?? "").trim();
+  if (note.length > 4000) return { error: "Keep the note under 4,000 characters." };
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("client_brief_resubmit", { p_brief: id.data, p_note: note || null });
+  if (error) return { error: error.message };
+  revalidatePath(`/client-portal/briefs/${id.data}`);
+  revalidatePath("/client-portal/briefs");
+  return { ok: true, message: "Resubmitted. Our team will check it again." };
 }
 
 /** Client user confirms whether they will attend an upcoming business review. */
@@ -86,4 +119,19 @@ export async function respondReview(_prev: ClientFormResult, fd: FormData): Prom
   if (error) return { error: error.message };
   revalidatePath("/client-portal");
   return { ok: true, message: response === "attending" ? "Thanks, see you there." : "Thanks for letting us know." };
+}
+const poSchema = z.object({ estimate_id: uuid, po_number: z.string().trim().min(2).max(80) });
+
+/** Client approver gives its purchase order number for an estimate it approved. The database refuses viewers and other clients. */
+export async function provideClientPo(_prev: ClientFormResult, fd: FormData): Promise<ClientFormResult> {
+  const me = await requireClient();
+  if (me.is_admin || me.user_type === "internal") return { error: PREVIEW_MSG };
+  const parsed = poSchema.safeParse({ estimate_id: fd.get("estimate_id"), po_number: fd.get("po_number") });
+  if (!parsed.success) return { error: "Enter your purchase order number." };
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("client_estimate_provide_po", { p_estimate: parsed.data.estimate_id, p_po_number: parsed.data.po_number, p_amount: null });
+  if (error) return { error: error.message };
+  revalidatePath(`/client-portal/estimates/${parsed.data.estimate_id}`);
+  revalidatePath("/client-portal/estimates");
+  return { ok: true, message: "Thanks. We have your purchase order and can place the order." };
 }

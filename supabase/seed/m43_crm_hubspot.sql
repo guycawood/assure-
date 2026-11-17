@@ -197,13 +197,13 @@ values ('43e00000-0000-4000-8000-000000000001', 'Innovation workshop registratio
     {"key":"company","label":"Company","type":"text","required":true},{"key":"job_title","label":"Job title","type":"text"},
     {"key":"session","label":"Session","type":"select","options":["Morning (10:00)","Afternoon (14:00)"],"required":true},
     {"key":"dietary","label":"Dietary needs","type":"textarea"}]'::jsonb,
-  'I agree that adm Indicia may email me about future workshops and events.', null, true, now() - interval '25 days')
+  'I agree that we may email me about future workshops and events.', null, true, now() - interval '25 days')
 on conflict do nothing;
 
 insert into public.crm_form_submissions (id, form_id, data, email, full_name, contact_id, contact_created, consent, consent_text, created_at)
 select x.id::uuid, '43e00000-0000-4000-8000-000000000001', x.data::jsonb, x.email, x.name,
        (select id from public.crm_contacts where lower(email) = x.email limit 1), false, x.consent,
-       case when x.consent then 'I agree that adm Indicia may email me about future workshops and events.' end, now() - make_interval(days => x.d)
+       case when x.consent then 'I agree that we may email me about future workshops and events.' end, now() - make_interval(days => x.d)
   from (values
     ('43f00000-0000-4000-8000-000000000001', 'elena.rossi@foodco.example', 'Elena Rossi', '{"full_name":"Elena Rossi","email":"elena.rossi@foodco.example","company":"FoodCo (demo)","job_title":"Shopper marketing lead","session":"Morning (10:00)"}', true, 20),
     ('43f00000-0000-4000-8000-000000000002', 'marc.dubois@foodco.example', 'Marc Dubois', '{"full_name":"Marc Dubois","email":"marc.dubois@foodco.example","company":"FoodCo (demo)","session":"Afternoon (14:00)","dietary":"Vegetarian"}', false, 18),
@@ -230,7 +230,7 @@ on conflict do nothing;
 
 insert into public.crm_emails (id, name, list_id, template_id, subject, body, link, status, recipient_count, excluded_count, created_at, sent_at)
 select '43f20000-0000-4000-8000-000000000001', 'Sustainability report 2026', '43f10000-0000-4000-8000-000000000001', t.id,
-       'Our 2026 sustainability report', E'Dear {{first_name}},\n\nOur 2026 sustainability report is out: what we cut, what we measured and what comes next.\n\n{{link}}\n\nBest regards,\n{{owner_name}}\nadm Indicia\n\nNo longer want these emails? {{unsubscribe}}',
+       'Our 2026 sustainability report', E'Dear {{first_name}},\n\nOur 2026 sustainability report is out: what we cut, what we measured and what comes next.\n\n{{link}}\n\nBest regards,\n{{owner_name}}\n\nNo longer want these emails? {{unsubscribe}}',
        'https://example.com/adm-indicia-sustainability-2026', 'sent', 6, 2, now() - interval '15 days', now() - interval '14 days'
   from public.library_records t where t.library_key = 'crm_email_templates' and t.code = 'NEWSLETTER' and t.status = 'active'
 on conflict do nothing;

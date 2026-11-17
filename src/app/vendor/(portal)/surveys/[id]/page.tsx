@@ -60,7 +60,7 @@ export default async function SurveyDetail({ params }: { params: Promise<{ id: s
       <PageHead title={s.template_name} crumbs={[{ label: "Surveys", href: "/vendor/surveys" }, { label: s.template_name }]} sub={s.due_date ? `Please answer by ${formatDate(s.due_date)}.` : undefined}>
         <Pill tone={statusTone(s.status)}>{s.status === "draft" ? "To answer" : human(s.status)}</Pill>
       </PageHead>
-      {s.status === "rejected" && s.feedback_to_vendor && <Card className="bg-warn-soft p-4 text-sm"><b>adm Indicia asked for changes:</b> {s.feedback_to_vendor}</Card>}
+      {s.status === "rejected" && s.feedback_to_vendor && <Card className="bg-warn-soft p-4 text-sm"><b>We asked for changes:</b> {s.feedback_to_vendor}</Card>}
       {!editable && s.submitted_at && <p className="text-sm text-muted">Submitted {formatDate(s.submitted_at)}.</p>}
       <Card className="p-5">
         <ActionForm action={saveSurvey} hidden={{ id: s.id }} submit={editable ? "Submit survey" : undefined} secondary={editable ? [{ label: "Save answers", intent: "draft" }] : undefined} className="flex flex-col gap-5">

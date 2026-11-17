@@ -39,7 +39,7 @@ export function RecceFields({ r, internal = true }: { r?: Partial<Record<string,
       <fieldset className="grid gap-3 sm:grid-cols-3"><legend className="eyebrow mb-1">Unit size (cm)</legend>
         {num("unit_width_cm", "Width")}{num("unit_height_cm", "Height")}{num("unit_depth_cm", "Depth")}</fieldset>
       {internal && (
-        <fieldset className="grid gap-3 sm:grid-cols-3"><legend className="eyebrow mb-1">Recommended finished size (cm), set by adm Indicia</legend>
+        <fieldset className="grid gap-3 sm:grid-cols-3"><legend className="eyebrow mb-1">Recommended finished size (cm), set by the team</legend>
           {num("recommended_width_cm", "Width")}{num("recommended_height_cm", "Height")}{num("recommended_depth_cm", "Depth")}
           <div className="sm:col-span-3"><label className="label" htmlFor="rf-rn">Recommendation notes</label><input id="rf-rn" name="recommended_notes" defaultValue={v("recommended_notes")} className="input" /></div>
         </fieldset>

@@ -80,15 +80,15 @@ begin
   if k.status = p_status then return; end if;
   if p_status = 'in_progress' then
     if k.status = 'verified' then raise exception 'A verified task is closed'; end if;
-    if k.status = 'completed' and not v_internal then raise exception 'Ask adm Indicia to reopen a completed task' using errcode = '42501'; end if;
+    if k.status = 'completed' and not v_internal then raise exception 'Ask the team to reopen a completed task' using errcode = '42501'; end if;
   elsif p_status = 'completed' then
     if k.status not in ('open','in_progress') then raise exception 'Only an open task can be completed'; end if;
   elsif p_status = 'verified' then
-    if not v_internal then raise exception 'Only adm Indicia staff can verify a task' using errcode = '42501'; end if;
+    if not v_internal then raise exception 'Only staff can verify a task' using errcode = '42501'; end if;
     if k.status <> 'completed' then raise exception 'Only a completed task can be verified'; end if;
     if k.completed_by = auth.uid() then raise exception 'You completed this task, so someone else must verify it' using errcode = '42501'; end if;
   elsif p_status = 'open' then
-    if not v_internal then raise exception 'Only adm Indicia staff can reopen a task' using errcode = '42501'; end if;
+    if not v_internal then raise exception 'Only staff can reopen a task' using errcode = '42501'; end if;
   else
     raise exception 'Unknown status %', p_status;
   end if;

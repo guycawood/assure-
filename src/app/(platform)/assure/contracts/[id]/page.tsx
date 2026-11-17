@@ -108,7 +108,7 @@ export default async function ContractPage({ params }: { params: Promise<{ id: s
                   {parties.map((p) => (
                     <tr key={p.id} className="align-top">
                       <td className="td tabular-nums">{p.signing_order}</td>
-                      <td className="td"><b>{p.name}</b><div className="text-xs text-muted">{p.email}{p.is_internal ? " · adm Indicia" : ""}</div></td>
+                      <td className="td"><b>{p.name}</b><div className="text-xs text-muted">{p.email}{p.is_internal ? " · Staff" : ""}</div></td>
                       <td className="td capitalize">{p.role}</td>
                       <td className="td"><Pill tone={p.status === "signed" ? "ok" : p.status === "declined" ? "bad" : "info"}>{p.status}</Pill>
                         {p.signed_at && <div className="text-xs text-muted">{formatDate(p.signed_at)}{p.signature_evidence ? ` · ${p.signature_evidence}` : ""}</div>}</td>
@@ -132,7 +132,7 @@ export default async function ContractPage({ params }: { params: Promise<{ id: s
                   <Field label="Email" className="min-w-[200px] flex-1"><input name="email" type="email" required defaultValue={!parties.length ? supplier?.primary_contact_email ?? "" : ""} className="input" /></Field>
                   <Field label="Role" className="w-32"><Select name="role" options={[{ value: "signer", label: "Signer" }, { value: "reviewer", label: "Reviewer" }, { value: "cc", label: "Copy" }]} /></Field>
                   <Field label="Order" className="w-20"><input name="signing_order" type="number" min={1} defaultValue={parties.length + 1} className="input" /></Field>
-                  <label className="flex items-center gap-1.5 pb-2 text-sm"><input type="checkbox" name="is_internal" /> adm Indicia</label>
+                  <label className="flex items-center gap-1.5 pb-2 text-sm"><input type="checkbox" name="is_internal" /> Staff</label>
                 </ActionForm>
               </div>
             )}

@@ -9,6 +9,8 @@ import { DELIVERY_STATUS, LEG_MODES, NEXT_STATUS, POD_STATUS, cap, kg, type Ship
 import { getFiles, FileList } from "@/components/file-list";
 import { FileUpload } from "@/components/file-upload";
 import { PageHead, Panel, Pill } from "@/components/ui";
+import { ImpactGradeBadge } from "@/components/impact-grade/grade-badge";
+import { getSpecGrades } from "@/lib/impact-grade-data";
 import { ActionForm, Field } from "@/components/sourcing/action-form";
 import { Facts, StatusPill, Td, Th, fmtDate, fmtDateTime } from "@/components/sourcing/bits";
 import { Milestones } from "@/components/logistics/milestones";
@@ -30,6 +32,7 @@ export default async function DeliveryPage({ params }: { params: Promise<{ id: s
     getPeople(supabase), getActiveLibrary(supabase, "carriers"), getActiveLibrary(supabase, "pod_checklist"), getMarkets(supabase),
     rows<{ id: string; name: string; outlet_code: string; market: string }>(supabase, "outlets", { order: [["name"]] }),
   ]);
+  const grades = await getSpecGrades(supabase, [(d as typeof d & { spec_id?: string }).spec_id]);
   const podFiles = new Map(await Promise.all(ships.map(async (s) => [s.id, await getFiles("shipment", s.id)] as const)));
   const open = !["delivered", "cancelled", "failed"].includes(d.status);
   const today = new Date().toISOString().slice(0, 10);
@@ -47,7 +50,7 @@ export default async function DeliveryPage({ params }: { params: Promise<{ id: s
             <Facts items={[
               ["Purchase order", <Link key="po" className="hover:underline" href={`/orders/purchase-orders/${d.po_id}`}>{d.po_number}</Link>],
               ["Job", <Link key="j" className="hover:underline" href={`/execution/jobs/${d.job_id}`}>{d.job_number}</Link>],
-              ["Spec", `#${d.spec_no} ${d.spec_title}${d.spec_version_name ? ` · ${d.spec_version_name}` : ""}`],
+              ["Spec", <span key="s">{`#${d.spec_no} ${d.spec_title}${d.spec_version_name ? ` · ${d.spec_version_name}` : ""}`} <ImpactGradeBadge score={grades.get((d as typeof d & { spec_id?: string }).spec_id ?? "")} /></span>],
               ["Quantity", `${d.quantity} ${d.uom}`], ["Shipped", `${d.quantity_shipped} (${d.quantity_remaining} left to ship)`],
               ["Method", `${cap(d.delivery_method)}${d.incoterm ? ` · ${d.incoterm}` : ""}`],
               ["Planned dispatch", fmtDate(d.planned_dispatch_date)], ["Planned delivery", fmtDate(d.planned_delivery_date)],

@@ -50,7 +50,7 @@ $$;
 create or replace function public.approval_role_label(p_role text) returns text
 language sql immutable as $$
   select case p_role
-    when 'admin' then 'Admin' when 'internal' then 'Anyone at adm Indicia' when 'named_person' then 'The named person'
+    when 'admin' then 'Admin' when 'internal' then 'Anyone on the team' when 'named_person' then 'The named person'
     when 'srt_agent' then 'SRT agent or lead' when 'srt_lead' then 'SRT lead' when 'finance' then 'Finance'
     when 'procurement' then 'Procurement or Procurement head' when 'procurement_head' then 'Procurement head'
     when 'sourcing_lead' then 'Sourcing lead' when 'doa' then 'Delegated authority (DOA level)' when 'module_owner' then 'Admin or module owner'
@@ -96,7 +96,7 @@ returns table (record_id uuid, code text, version int, module text, approval_typ
   client_approval_required boolean, sla_days int)
 language plpgsql stable security definer set search_path = public as $$
 begin
-  if not public.is_internal() then raise exception 'Approval policies are for adm Indicia staff' using errcode = '42501'; end if;
+  if not public.is_internal() then raise exception 'Approval policies are for staff' using errcode = '42501'; end if;
   return query select * from public._approval_policy(p_type, p_client, p_market, p_value);
 end $$;
 

@@ -10,7 +10,7 @@ export function UnsubscribeButton({ token }: { token: string }) {
   if (result) {
     return result.ok
       ? <p className="text-sm font-semibold text-ok" role="status">{result.internal ? "Noted. Internal messages are part of your work, so they will still come through." : `Done. ${result.email ?? "You"} will no longer get these emails.`}</p>
-      : <p className="text-sm text-bad" role="alert">This link doesn&apos;t work. Ask your adm Indicia contact to remove you.</p>;
+      : <p className="text-sm text-bad" role="alert">This link doesn&apos;t work. Ask your contact to remove you.</p>;
   }
   return <button type="button" disabled={pending} className={btn.primary} onClick={() => start(async () => setResult(await unsubscribe(token)))}>{pending ? "Working…" : "Unsubscribe"}</button>;
 }

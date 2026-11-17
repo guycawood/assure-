@@ -50,7 +50,7 @@ export default async function CrmLists({ searchParams }: { searchParams: Promise
         <ActionForm action={saveList} submit="Create list" className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           <Input name="name" label="Name" required className="sm:col-span-2" />
           <Select name="kind" label="Type" options={[{ value: "dynamic", label: "Dynamic (filters)" }, { value: "static", label: "Static (pick people)" }]} value="dynamic" />
-          <Select name="audience" label="Audience" options={[{ value: "external", label: "Client contacts" }, { value: "internal", label: "adm Indicia staff" }]} value="external" />
+          <Select name="audience" label="Audience" options={[{ value: "external", label: "Client contacts" }, { value: "internal", label: "Staff" }]} value="external" />
           <Input name="description" label="Description" className="sm:col-span-2 lg:col-span-4" />
           <p className="text-xs font-semibold text-muted sm:col-span-2 lg:col-span-4">Filters for a dynamic client list (leave empty for any):</p>
           <Select name="client_id" label="Client" options={clientOptions(clients)} empty="Any" />

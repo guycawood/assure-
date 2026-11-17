@@ -35,7 +35,7 @@ export const CHECKPOINT_STATUS: Record<string, { label: string; tone: Tone }> = 
   verified: { label: "Verified", tone: "ok" }, rejected: { label: "Rejected", tone: "bad" }, withdrawn: { label: "Not needed", tone: "neutral" },
 };
 export const VERIFIER_LABEL: Record<string, string> = {
-  auto: "Checked automatically at upload", quality: "Verified by an adm Indicia quality role", third_party: "Third-party report, verified by a quality role",
+  auto: "Checked automatically at upload", quality: "Verified by a quality role", third_party: "Third-party report, verified by a quality role",
 };
 export const NEED_LABEL: Record<string, string> = {
   issued_on: "issue date", expires_on: "expiry date", inspection_date: "inspection date", body: "lab or inspection body", certificate_number: "certificate number",

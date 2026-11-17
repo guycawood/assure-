@@ -69,7 +69,7 @@ end $$;
 create or replace function public.approval_role_label(p_role text) returns text
 language sql immutable as $$
   select case p_role
-    when 'admin' then 'Admin' when 'internal' then 'Anyone at adm Indicia' when 'named_person' then 'The named person'
+    when 'admin' then 'Admin' when 'internal' then 'Anyone on the team' when 'named_person' then 'The named person'
     when 'srt_agent' then 'SRT agent or lead' when 'srt_lead' then 'SRT lead' when 'finance' then 'Finance'
     when 'procurement' then 'Procurement or Procurement head' when 'procurement_head' then 'Procurement head'
     when 'sourcing_lead' then 'Sourcing lead' when 'doa' then 'Delegated authority (DOA level)' when 'module_owner' then 'Admin or module owner'
@@ -86,7 +86,7 @@ create or replace function public.approval_role_people(p_role text, p_module tex
 returns table (id uuid, name text, email text)
 language plpgsql stable security definer set search_path = public as $$
 begin
-  if not public.is_internal() then raise exception 'Only adm Indicia staff can do this' using errcode = '42501'; end if;
+  if not public.is_internal() then raise exception 'Only staff can do this' using errcode = '42501'; end if;
   return query select p.id, coalesce(nullif(p.full_name, ''), p.email), p.email from public.profiles p
     where (p.is_admin or p.user_type = 'internal') and public.approval_user_has_role(p.id, p_role, p_module)
     order by 2;
@@ -197,7 +197,7 @@ create or replace function public._approval_request_open(
 returns uuid language plpgsql security definer set search_path = public as $$
 declare pol record; v_id uuid; v_role text; v_lvl int; v_market text := public._market_code(p_market); v_no bigint;
 begin
-  if auth.uid() is null or not public.is_internal() then raise exception 'Only adm Indicia staff can ask for approval' using errcode = '42501'; end if;
+  if auth.uid() is null or not public.is_internal() then raise exception 'Only staff can ask for approval' using errcode = '42501'; end if;
   select request_no into v_no from public.approval_requests where approval_type = p_type and entity_id = p_entity and status in ('pending','applying');
   if v_no is not null then raise exception 'This is already waiting for approval (request #%)', v_no; end if;
   select * into pol from public._approval_policy(p_type, p_client, v_market, p_amount);
@@ -275,7 +275,7 @@ create or replace function public.approval_request_decide(p_id uuid, p_approve b
 language plpgsql security definer set search_path = public as $$
 declare r public.approval_requests;
 begin
-  if auth.uid() is null or not public.is_internal() then raise exception 'Only adm Indicia staff can decide approvals' using errcode = '42501'; end if;
+  if auth.uid() is null or not public.is_internal() then raise exception 'Only staff can decide approvals' using errcode = '42501'; end if;
   select * into r from public.approval_requests where id = p_id for update;
   if r.id is null then raise exception 'Approval request not found'; end if;
   if r.status <> 'pending' then raise exception 'This request is already %', r.status; end if;

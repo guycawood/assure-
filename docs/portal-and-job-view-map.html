@@ -1,0 +1,258 @@
+<title>Portal and Job View Map</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;700&display=swap">
+<style>
+/* Layout: one reading column. Principle first, then the access model, the portal-by-portal split, the job workspace stages, the build order. */
+:root{--bg:#f6f7f8;--card:#fff;--fg:#14202b;--muted:#5d6b78;--line:#dde3e8;--accent:#0d6b6e;--accent-fg:#fff;--ok:#1f7a4d;--warn:#a15c00;--chip:#eaf0f3;
+--display:"Space Grotesk","Inter",system-ui,sans-serif;--body:"Inter",system-ui,-apple-system,"Segoe UI",sans-serif}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0f1a22;--card:#16232d;--fg:#e8eef2;--muted:#9aaab6;--line:#2a3a46;--accent:#4fc3c6;--accent-fg:#06282a;--ok:#5fd09a;--warn:#f0b35a;--chip:#1f2f3a;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#0f1a22;--card:#16232d;--fg:#e8eef2;--muted:#9aaab6;--line:#2a3a46;--accent:#4fc3c6;--accent-fg:#06282a;--ok:#5fd09a;--warn:#f0b35a;--chip:#1f2f3a;color-scheme:dark}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);padding-block:24px 64px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));line-height:1.55}
+main{max-width:980px;margin:0 auto;display:flex;flex-direction:column;gap:28px}
+h1{font-family:var(--display);font-size:2rem;margin:0;text-wrap:balance}
+h2{font-family:var(--display);font-size:1.3rem;margin:0 0 4px;text-wrap:balance}
+h3{font-family:var(--display);font-size:1.05rem;margin:0}
+p{margin:0}.sub{color:var(--muted);max-width:68ch}
+section{display:flex;flex-direction:column;gap:12px;min-width:0}
+.grid{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(260px,1fr))}
+.card{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:16px;display:flex;flex-direction:column;gap:8px;min-width:0}
+.card ul{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:4px}
+.muted{color:var(--muted)}
+.tag{display:inline-block;font-size:.72rem;font-weight:600;padding:2px 8px;border-radius:10px;background:var(--chip)}
+.tag.ok{color:var(--ok)}.tag.warn{color:var(--warn)}
+.scroll{overflow-x:auto;border:1px solid var(--line);border-radius:8px;background:var(--card)}
+table{border-collapse:collapse;width:100%;min-width:720px;font-size:.9rem}
+th,td{text-align:left;vertical-align:top;padding:10px 12px;border-bottom:1px solid var(--line)}
+th{font-size:.74rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:600;white-space:nowrap}
+tr:last-child td{border-bottom:0}
+td:first-child{font-weight:600}
+.two{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(300px,1fr))}
+.portal{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:16px;display:flex;flex-direction:column;gap:10px;min-width:0}
+.portal .row{display:grid;grid-template-columns:8.5rem 1fr;gap:4px 12px;font-size:.92rem}
+.portal .row>span:first-child{color:var(--muted)}
+.portal .row>*{min-width:0}
+ol.steps{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:6px}
+@media (max-width:560px){.portal .row{grid-template-columns:1fr}}
+</style>
+
+<main>
+  <header style="display:flex;flex-direction:column;gap:10px">
+    <h1>Portal and Job View Map</h1>
+    <p class="sub">How System Guy is organised for the people who use it: one job system that carries a job from brief to cash, and six internal portals that look over the parts of that job. This page sets what a buyer sees, what stays inside a division, and who gets access to what. Items marked <span class="tag warn">to confirm</span> are my assumptions.</p>
+  </header>
+
+  <section>
+    <h2>Three pillars</h2>
+    <div class="grid">
+      <div class="card"><h3>Client</h3><p class="muted">Gives the brief, then mainly receives status and reporting. Approves what needs a decision.</p><ul><li>Client portal</li><li>Approvers decide, viewers look</li></ul></div>
+      <div class="card"><h3>Internal team</h3><p class="muted">Buyers move jobs from brief to cash. Divisions step in along the way and manage their own area.</p><ul><li>Job system for buyers</li><li>Six internal portals for divisions</li></ul></div>
+      <div class="card"><h3>Vendor</h3><p class="muted">Onboards once through SRM, keeps the profile current, is invited to RFQs, prices, wins, produces and gets paid.</p><ul><li>Vendor portal</li><li>Mostly SRM</li></ul></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Two layers inside the internal team</h2>
+    <div class="two">
+      <div class="card"><h3>Job system (the buyer's view)</h3><ul>
+        <li>One workspace per job, from brief to cash.</li>
+        <li>Shows each stage, which division owns it, its status, what blocks it and the buyer's next action.</li>
+        <li>Shows only the outcome of a division's step. The buyer opens a portal screen only when they must act.</li>
+        <li>A buyer works for one client. Several buyers can share a client.</li></ul></div>
+      <div class="card"><h3>Portals (the division's view)</h3><ul>
+        <li>Each division manages its own area: queue, workload, exceptions, approvals.</li>
+        <li>Divisional owners and their teams see all clients and all jobs in their division.</li>
+        <li>Buyers don't see how a division runs. They engage with it as the job moves.</li>
+        <li>Each portal has operators (do the work) and managers (oversee it).</li></ul></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Access model</h2>
+    <div class="scroll"><table>
+      <thead><tr><th>What</th><th>Rule</th><th>Managed in</th></tr></thead>
+      <tbody>
+        <tr><td>Which client a buyer works on</td><td>A buyer has one client. A client has one or more buyers. Visibility is <b>work</b> (create and move jobs) or <b>view</b> (read only). Changes need a second person's approval.</td><td>CRM Watchtower, Client teams</td></tr>
+        <tr><td>What a buyer sees for that client</td><td>The client's jobs and briefs. Reports stay shared at client level. Enforced in the database, not only hidden on screen.</td><td>CRM Watchtower</td></tr>
+        <tr><td>A division's own user hierarchy</td><td>Each division has its own hierarchy of roles, with different visibility at each level. Example for procurement and supply chain: procurement director, procurement manager, supply chain manager, supplier relationship team. The division's owners set who sees what inside their division.</td><td>Each module's Watchtower</td></tr>
+        <tr><td>Vendors</td><td>A vendor sees <b>their own company only</b>: their profile and every job they hold, across all clients, because any client's buyer can choose them. They never see other vendors. Enforced in the database by vendor company.</td><td>SRM Watchtower (vendor users and roles)</td></tr>
+        <tr><td>Divisional owners and their teams</td><td>See <b>all clients and all jobs</b> that come through their division, so they have the breadth of the business: for example Sourcing and procurement see everything flowing through. They are not tied to a client team. Only buyers are.</td><td>Each module's Watchtower</td></tr>
+        <tr><td>Cover for absence</td><td>Not built. Enough buyers sit on each client to cover absence outside the system.</td><td>Decided: not in scope now</td></tr>
+        <tr><td>Bulk changes</td><td>CSV import and moving a whole client team at once, because the workforce is 1,000+.</td><td>CRM Watchtower <span class="tag warn">to confirm</span></td></tr>
+      </tbody>
+    </table></div>
+  </section>
+
+  <section>
+    <h2>The six portals</h2>
+    <p class="sub">For each: what the buyer sees on the job, what stays inside the division, and what exists in System Guy today.</p>
+    <div class="two">
+
+      <div class="portal"><h3>1. Briefing and Shopper IQ</h3>
+        <div class="row"><span>Purpose</span><span>Take in and shape the brief; use shopper insight to improve it.</span>
+          <span>Buyer sees</span><span>Brief status and approvals, ideation concepts, insights for the brief, asset library with grades.</span>
+          <span>Stays inside</span><span>Campaign performance analysis, ideation model settings, library curation.</span>
+          <span>Breadth view</span><span>Brief queue and age, approval backlog, campaign performance. <span class="tag warn">to confirm</span></span>
+          <span>Today</span><span>Two separate modules. To be merged into one portal.</span></div></div>
+
+      <div class="portal"><h3>2. Sourcing</h3>
+        <div class="row"><span>Purpose</span><span>Spec, triage, RFQs, awards.</span>
+          <span>Buyer sees</span><span>Their jobs and specs, triage route per line, rate cards and the chooser, RFQ and quote status, award.</span>
+          <span>Stays inside</span><span>Rate card management and requests, triage rules, control matrix, DOA, settings, lead approvals.</span>
+          <span>Breadth view</span><span>Triage basket, RFQs in flight, rate card requests, approvals waiting. <span class="tag warn">to confirm</span></span>
+          <span>Today</span><span>Built, including rate cards and the request flow.</span></div></div>
+
+      <div class="portal"><h3>3. Order Management</h3>
+        <div class="row"><span>Purpose</span><span>Estimates, POs, production follow-up, delivery, installation.</span>
+          <span>Buyer sees</span><span>Estimate and client PO status (and the chase), order and production status, QA/QC result, delivery and proof of delivery.</span>
+          <span>Stays inside</span><span>PSA exceptions, Stocktool hand-off, carrier set-up, OTIF analysis, execution scheduling.</span>
+          <span>Breadth view</span><span>Orders at risk, late deliveries, QA exceptions, logistics workload. <span class="tag warn">to confirm</span></span>
+          <span>Today</span><span>Built, with logistics and execution inside. Stocktool is outside.</span></div></div>
+
+      <div class="portal"><h3>4. SRM</h3>
+        <div class="row"><span>Purpose</span><span>Onboard vendors, keep them compliant, review performance.</span>
+          <span>Buyer sees</span><span>Whether a vendor is eligible or blocked, their score, and whether a vendor can be invited or chosen. Not payments.</span>
+          <span>Stays inside</span><span>Due-diligence evidence, gaps and risk gates, contracts, audits, NCR handling, reviews.</span>
+          <span>Breadth view</span><span>Onboarding pipeline, expiring evidence, risk decisions waiting. <span class="tag warn">to confirm</span></span>
+          <span>Today</span><span>Built. Demo onboarding data currently fails to load on a fresh demo. <span class="tag warn">to confirm</span> The vendor payment timeline for SRM owners (invoice received, approved, scheduled, paid) is not checked.</span></div></div>
+
+      <div class="portal"><h3>5. Finance</h3>
+        <div class="row"><span>Purpose</span><span>Bill clients, pay vendors, approve spend.</span>
+          <span>Buyer sees</span><span>Ready-to-invoice status, client invoice status, whether a vendor invoice is matched.</span>
+          <span>Stays inside</span><span>Payment runs, approval queues, bank and tax set-up, spend and savings reports. SRM owners still see each vendor's payment status and expected date.</span>
+          <span>Breadth view</span><span>Billing waiting, invoices to approve, payments due, cash position. <span class="tag warn">to confirm</span></span>
+          <span>Today</span><span>Built: billing with the ready-to-invoice gate, invoices, payments. Cash reconciliation not assessed.</span></div></div>
+
+      <div class="portal"><h3>6. Impact Grade</h3>
+        <div class="row"><span>Purpose</span><span>Calculate and review the sustainability grade of specs and rate cards.</span>
+          <span>Buyer sees</span><span>The grade, confidence and review status on the spec, rate card and job. Whether the grade gate blocks an RFQ.</span>
+          <span>Stays inside</span><span>Methodology, evidence tiers, formula parameters, reviewer workload.</span>
+          <span>Breadth view</span><span>Grades awaiting review, low-confidence grades, coverage. <span class="tag warn">to confirm</span></span>
+          <span>Today</span><span>Built for specs and rate cards.</span></div></div>
+    </div>
+    <p class="muted">CRM and Watchtower are not on this list. CRM keeps the sales and account side and now also holds client teams. Watchtower stays the home for governance.</p>
+  </section>
+
+  <section>
+    <h2>Each division's Watchtower</h2>
+    <p class="sub">The Watchtower is where a division governs itself. It is separate from the portal screens that operators use, and buyers never see it.</p>
+    <div class="two">
+      <div class="card"><h3>What a division manages there</h3><ul>
+        <li><b>People:</b> its own users and role hierarchy, and what each level can see and do.</li>
+        <li><b>Libraries:</b> its governed reference lists, versioned and audited.</li>
+        <li><b>Methodologies:</b> how it scores, grades and decides, for example the scorecard and Impact Grade methodology.</li>
+        <li><b>Taxonomies:</b> its classifications, for example product taxonomy and categories.</li>
+        <li><b>Change requests and audit:</b> every change recorded, with a second person approving where it matters.</li></ul>
+        <p class="muted">The Watchtower already has libraries, change requests and audit, and the product taxonomy. Division-level user hierarchies are not built as described here. <span class="tag warn">to confirm</span></p></div>
+      <div class="card"><h3>Strategic tools for Sourcing and SRM</h3><ul>
+        <li><b>Scenarios:</b> run what-ifs across the whole spend and supplier base, for example moving volume between vendors, markets or rate cards, or changing a tolerance band.</li>
+        <li><b>Strategic sourcing:</b> category strategy, spend analysis, consolidation and savings opportunities across all clients.</li>
+        <li><b>Strategic vendor management:</b> segment vendors, plan development, concentration and risk, and review performance across the whole base.</li>
+        <li>Available to the senior levels of each division, across all clients.</li></ul>
+        <p class="muted">Not built as scenario tools. Parts exist to build on: the balanced scorecard, spend and savings reports, supplier scores, and the strategic route on onboarding. <span class="tag warn">to confirm</span> What scenarios must answer first.</p></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Procurement and supply chain roles</h2>
+    <p class="sub">The role levels in procurement, which run Sourcing and SRM. <b>Every level sees all clients and the whole business.</b> The hierarchy changes what a person can see by type of data, and what they can do, not which clients they see. The rights below are my proposal from the levels you gave. Please correct them <span class="tag warn">to confirm</span>.</p>
+    <div class="scroll"><table>
+      <thead><tr><th>Role</th><th>Clients</th><th>Sees (by type of data)</th><th>Can do</th></tr></thead>
+      <tbody>
+        <tr><td>CPO (Chief Procurement Officer)</td><td>All</td><td>Everything: jobs, prices, vendors, spend, payments and reports</td><td>Owns the procurement Watchtowers. Sets policy, libraries and methodologies. Top-level approvals. All strategic tools and scenarios.</td></tr>
+        <tr><td>Regional Procurement Director</td><td>All</td><td>Everything, with their region's performance and spend in focus</td><td>Regional strategy and scenarios. Approvals above manager limits for their region <span class="tag warn">to confirm</span>. Manages the region's users.</td></tr>
+        <tr><td>Procurement Manager</td><td>All</td><td>Jobs, specs, prices, RFQs, awards, rate cards, vendor scores</td><td>Approves exceptions and routes within their limit. Chooses rate cards as a sourcing lead. Manages their buyers.</td></tr>
+        <tr><td>Supply Chain Manager</td><td>All</td><td>Orders, production, delivery, QA/QC and logistics, and the vendors involved</td><td>Manages delays, quality issues and delivery performance. Works with SRT on vendor performance.</td></tr>
+        <tr><td>SRT (Supplier Relationship Team)</td><td>All</td><td><b>Vendor performance and vendor payment status only.</b> Not job prices.</td><td>Onboards vendors, verifies evidence, runs reviews and action plans, keeps vendor profiles current.</td></tr>
+      </tbody>
+    </table></div>
+    <p class="muted">Buyers sit below this hierarchy and are the only people tied to one client. The same all-clients rule applies in every division: Sourcing, SRM, Order Management, Finance and Impact Grade. Clients, regions and markets are reporting filters, not access limits. System today: SRM already has roles on the user profile (such as lead, agent, procurement, head and director) and Sourcing has a lead flag and approval limits. I haven't checked how these line up with the levels above.</p>
+  </section>
+
+  <section>
+    <h2>The vendor portal</h2>
+    <p class="sub">The vendor's own portal is organised around the vendor, not around any one client. One vendor company can hold jobs from several clients, depending on which buyer chooses them. They see all of their own jobs in one place, and they run their side of each job there.</p>
+    <div class="two">
+      <div class="card"><h3>What a vendor manages</h3><ul>
+        <li><b>Profile:</b> company details, team, sites, capabilities and tooling, subscription.</li>
+        <li><b>Compliance:</b> due diligence, certificates and documents, contracts, expiry dates.</li>
+        <li><b>Jobs:</b> quote requests, pushed prices, creative and sample jobs, orders.</li>
+        <li><b>Production:</b> proofs, technical and packaging data, shipping and proof of delivery, installations and recces.</li>
+        <li><b>Quality:</b> QA/QC plans and checkpoints, non-conformances, action plans.</li>
+        <li><b>Money:</b> invoices and payments.</li>
+        <li><b>Relationship:</b> performance and issues, business reviews, messages, surveys, training.</li></ul></div>
+      <div class="card"><h3>Who sees the vendor</h3><ul>
+        <li><b>The vendor:</b> only their own company's profile and jobs.</li>
+        <li><b>Buyers:</b> eligibility, score and the job they chose the vendor for. Not the vendor's diligence evidence.</li>
+        <li><b>SRM owners (procurement and supply chain):</b> every vendor and every job, filterable by vendor, client, region, market and status. They also see vendor payments: where each vendor is on the way to being paid, when they will be, and whether they have been.</li>
+        <li><b>Clients:</b> status of their own work only. Not the vendor's other clients.</li></ul>
+        <p class="muted">The vendor sees the <b>client's name on each job as a reference</b>, so they can tell their jobs apart across clients. Most of this portal exists today.</p></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Breadth view in every portal</h2>
+    <p class="sub">Each portal's admin panel shows everything coming through that division, across all clients, so owners and teams can run the business. The same filters apply to its reporting. Buyers do not get this view. They see their own client's jobs in the job workspace.</p>
+    <div class="scroll"><table>
+      <thead><tr><th>Portal</th><th>Who sees all clients and jobs</th><th>Filters for reporting</th></tr></thead>
+      <tbody>
+        <tr><td>Briefing and Shopper IQ</td><td>Briefing and Shopper IQ owners and team</td><td>Client, region, market, brand, campaign, brief status, date</td></tr>
+        <tr><td>Sourcing</td><td>Sourcing and procurement owners and team</td><td>Client, region, market, buyer, spec type, triage route, supplier, RFQ status, date</td></tr>
+        <tr><td>Order Management</td><td>Order, logistics and execution owners and team</td><td>Client, region, market, supplier, order and delivery status, carrier, date</td></tr>
+        <tr><td>SRM</td><td>SRM owners, generally the procurement and supply chain teams: every vendor and every job coming through the system</td><td>Vendor, client, region, market, category, vendor status, onboarding stage, job status, expiry, date</td></tr>
+        <tr><td>Finance</td><td>Finance owners and team</td><td>Client, region, market, billing entity, invoice and payment status, supplier, date</td></tr>
+        <tr><td>Impact Grade</td><td>Sustainability owners and team</td><td>Client, region, market, grade letter, confidence, review status, supplier, spec type, date</td></tr>
+      </tbody>
+    </table></div>
+    <p class="muted">Every filter set shares four common dimensions: client, region, market and date. <span class="tag warn">to confirm</span> I have not checked which of these filters the existing screens already offer.</p>
+  </section>
+
+  <section>
+    <h2>The job workspace</h2>
+    <p class="sub">The buyer's one view of a job. Each stage shows its owner, status and next action. The detail sits in the portal.</p>
+    <div class="scroll"><table>
+      <thead><tr><th>Stage</th><th>Owned by</th><th>Buyer sees</th><th>Buyer's next action</th></tr></thead>
+      <tbody>
+        <tr><td>Brief</td><td>Briefing and Shopper IQ</td><td>Brief approved or not</td><td>Enter or refine the brief</td></tr>
+        <tr><td>Ideation and concepts</td><td>Briefing and Shopper IQ</td><td>Concepts, client approvals</td><td>Choose a concept; hand off</td></tr>
+        <tr><td>Spec</td><td>Sourcing</td><td>Spec complete or draft</td><td>Finish the spec</td></tr>
+        <tr><td>Impact Grade</td><td>Impact Grade</td><td>Grade, confidence, review status</td><td>Calculate or request review</td></tr>
+        <tr><td>Triage</td><td>Sourcing</td><td>Adopt, Adapt, Push or Create, and the rate card</td><td>Choose a card or send to RFQ</td></tr>
+        <tr><td>RFQ and award</td><td>Sourcing and SRM</td><td>Eligible vendors, quotes, award</td><td>Invite, compare, award</td></tr>
+        <tr><td>Estimate and client PO</td><td>Order Management</td><td>Estimate sent, PO received or chased</td><td>Chase the PO</td></tr>
+        <tr><td>Order and production</td><td>Order Management</td><td>Order accepted, production status</td><td>Resolve delays</td></tr>
+        <tr><td>Proofs and QA/QC</td><td>Order Management</td><td>Proof and quality status</td><td>Approve proofs; clear issues</td></tr>
+        <tr><td>Delivery</td><td>Order Management</td><td>Shipped, delivered, proof of delivery</td><td>Confirm receipt</td></tr>
+        <tr><td>Invoice</td><td>Finance</td><td>Ready to invoice, invoiced</td><td>Clear the delivery gate</td></tr>
+        <tr><td>Cash</td><td>Finance</td><td>Paid or overdue</td><td>None, or chase</td></tr>
+      </tbody>
+    </table></div>
+  </section>
+
+  <section>
+    <h2>Build order</h2>
+    <ol class="steps">
+      <li><b>Agree this map.</b> Confirm the buyer-facing and division-internal split for each portal, and the manager views.</li>
+      <li><b>Client teams in the CRM Watchtower.</b> Buyer-to-client assignment, work or view, second-person approval, bulk import, enforced in the database.</li>
+      <li><b>Division hierarchies in each Watchtower.</b> Each division's role levels and what each can see, replacing the scattered access pages. Start with Sourcing and SRM.</li>
+      <li><b>Job workspace.</b> The brief-to-cash view for buyers, built on the existing job timeline.</li>
+      <li><b>Strategic tools for Sourcing and SRM.</b> Scenarios, strategic sourcing and strategic vendor management, once the breadth views give them the data.</li>
+      <li><b>Breadth views.</b> One per portal across all clients and jobs, with the shared filters (client, region, market, date) and portal-specific ones. Start with Sourcing and Finance, then merge Briefing and Shopper IQ.</li>
+    </ol>
+  </section>
+
+  <section>
+    <h2>To confirm</h2>
+    <ul style="margin:0;padding-left:18px;display:flex;flex-direction:column;gap:4px">
+      <li>The breadth view contents and filters for each portal.</li>
+      <li>That divisional teams, not just owners, see all clients and all jobs.</li>
+      <li>That SRM owners are the procurement and supply chain teams.</li>
+      <li>The scope and rights of each procurement level (table above), then the role levels in the other divisions.</li>
+      <li>The first scenarios and strategic questions Sourcing and SRM need answered.</li>
+      <li>That the vendor payment timeline for SRM owners shows invoice received, approved, scheduled and paid, with the expected date.</li>
+      <li>That Order Management should keep logistics and execution inside it.</li>
+      <li>That reports are shared at client level, and the buyer-facing split in each portal above.</li>
+      <li>Bulk import and team moves for client teams.</li>
+    </ul>
+  </section>
+</main>

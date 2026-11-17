@@ -1,0 +1,581 @@
+[
+  {
+    "label": "Worked example 1 (PEF Logic row 6)",
+    "input": {
+      "shipFrom": "GB",
+      "shipTo": "FR",
+      "factoryRenewable": false,
+      "supplierType": "Manufacturer",
+      "components": [
+        {
+          "name": "PET, Blow Molded",
+          "weightKg": 0.1,
+          "recycledPercent": 30,
+          "coating": null,
+          "coatingKg": null,
+          "coatingM2": 0,
+          "atLeastMinSize": true
+        },
+        {
+          "name": "Silicone",
+          "weightKg": 0.02,
+          "recycledPercent": 0,
+          "coating": null,
+          "coatingKg": null,
+          "coatingM2": null,
+          "atLeastMinSize": true
+        },
+        {
+          "name": "Folding Cardboard",
+          "weightKg": 0.025,
+          "recycledPercent": null,
+          "coating": null,
+          "coatingKg": null,
+          "coatingM2": null,
+          "atLeastMinSize": true
+        }
+      ],
+      "printing": null,
+      "branding": null,
+      "transport": {
+        "mode": "Sea",
+        "roadOriginKm": 250,
+        "roadDestinationKm": 300,
+        "seaKm": 35,
+        "airKm": 0,
+        "truckClass": ">32 metric ton"
+      },
+      "usageHours": null,
+      "electronics": {
+        "source": "No",
+        "kwhPerHour": 0
+      },
+      "lighting": {
+        "source": "No",
+        "kwhPerHour": 0
+      },
+      "easySeparation": true
+    },
+    "expected": {
+      "materialByComponent": [
+        0.3262482048298132,
+        0.05941435211921116,
+        0.0324449104764449
+      ],
+      "material": 0.4181074674254692,
+      "forming": 0,
+      "printing": 0,
+      "branding": 0,
+      "manufacturing": 0,
+      "distribution": 0.008179815209486808,
+      "electronics": 0,
+      "lighting": 0,
+      "use": 0,
+      "incineration": 0.13044077449650845,
+      "landfill": 0.006970311284380438,
+      "endOfLife": 0.1374110857808889,
+      "totalGwp": 0.563698368415845,
+      "categories": {
+        "AE": 0.0017781542104222331,
+        "GWP": 0.5636983684158449,
+        "CTUe": 4.96404216638106,
+        "Adpf": 8.736729142018294,
+        "Epf": 0.00015534832741880456,
+        "Epm": 0.0004613540382080189,
+        "Ept": 0.0034777252401386296,
+        "Ctuh-c": 2.12467362874743e-10,
+        "Ctuh-nc": 4.47404902894899e-9,
+        "IR": 0.0658325393374275,
+        "LU": 3.6542313156301978,
+        "ADPe": 0.000027206609426128435,
+        "ODP": 0.0000025060222448121564,
+        "PM": 1.8522762903513478e-8,
+        "POCP": 0.0016125681802640934,
+        "WU": 0.22946558437972095
+      },
+      "singleScorePt": 0.00007842024422773424,
+      "singleScoreMpt": 0.07842024422773423,
+      "gates": {
+        "mono": "N",
+        "easySeparation": "Y"
+      }
+    }
+  },
+  {
+    "label": "Worked example 2 (PEF Logic row 7)",
+    "input": {
+      "shipFrom": "ES",
+      "shipTo": "FR",
+      "factoryRenewable": true,
+      "supplierType": "Manufacturer",
+      "components": [
+        {
+          "name": "PET, Blow Molded",
+          "weightKg": 0.1,
+          "recycledPercent": 30,
+          "coating": null,
+          "coatingKg": 0,
+          "coatingM2": 0.2,
+          "atLeastMinSize": true
+        },
+        {
+          "name": "Silicone",
+          "weightKg": 0.02,
+          "recycledPercent": 0,
+          "coating": null,
+          "coatingKg": null,
+          "coatingM2": null,
+          "atLeastMinSize": true
+        },
+        {
+          "name": "Folding Cardboard",
+          "weightKg": 0.025,
+          "recycledPercent": null,
+          "coating": null,
+          "coatingKg": null,
+          "coatingM2": null,
+          "atLeastMinSize": true
+        }
+      ],
+      "printing": null,
+      "branding": null,
+      "transport": {
+        "mode": "Road",
+        "roadOriginKm": 150,
+        "roadDestinationKm": 775,
+        "seaKm": 0,
+        "airKm": 0,
+        "truckClass": ">32 metric ton"
+      },
+      "usageHours": null,
+      "electronics": {
+        "source": "No",
+        "kwhPerHour": 0
+      },
+      "lighting": {
+        "source": "No",
+        "kwhPerHour": 0
+      },
+      "easySeparation": true
+    },
+    "expected": {
+      "materialByComponent": [
+        0.2514954711892943,
+        0.05941435211921116,
+        0.0324449104764449
+      ],
+      "material": 0.3433547337849503,
+      "forming": 0.0021155662874640917,
+      "printing": 0,
+      "branding": 0,
+      "manufacturing": 0.0021155662874640917,
+      "distribution": 0.013674550545727172,
+      "electronics": 0,
+      "lighting": 0,
+      "use": 0,
+      "incineration": 0.13044077449650845,
+      "landfill": 0.006970311284380438,
+      "endOfLife": 0.1374110857808889,
+      "totalGwp": 0.49655593639903045,
+      "categories": {
+        "AE": 0.001449001117884711,
+        "GWP": 0.4965559363990304,
+        "CTUe": 4.7838076119513095,
+        "Adpf": 7.184838564188952,
+        "Epf": 0.00009532337932835327,
+        "Epm": 0.0003980143491016376,
+        "Ept": 0.002923536458934833,
+        "Ctuh-c": 1.9776866706156045e-10,
+        "Ctuh-nc": 4.017793810444622e-9,
+        "IR": 0.02824596975267517,
+        "LU": 1.651823614137385,
+        "ADPe": 0.00002708079528475459,
+        "ODP": 0.0000025045920454362812,
+        "PM": 1.731999310813645e-8,
+        "POCP": 0.0014205372882542086,
+        "WU": 0.2890689072042518
+      },
+      "singleScorePt": 0.00007203738481052882,
+      "singleScoreMpt": 0.07203738481052882,
+      "gates": {
+        "mono": "N",
+        "easySeparation": "Y"
+      }
+    }
+  },
+  {
+    "label": "Worked example 3 (PEF Logic row 8)",
+    "input": {
+      "shipFrom": "CN",
+      "shipTo": "FR",
+      "factoryRenewable": false,
+      "supplierType": "Manufacturer",
+      "components": [
+        {
+          "name": "Cotton Fabric",
+          "weightKg": 0.15,
+          "recycledPercent": 0,
+          "coating": null,
+          "coatingKg": null,
+          "coatingM2": 0,
+          "atLeastMinSize": true
+        },
+        {
+          "name": "Light, LED",
+          "weightKg": 0.018,
+          "recycledPercent": 0,
+          "coating": null,
+          "coatingKg": null,
+          "coatingM2": null,
+          "atLeastMinSize": true
+        },
+        {
+          "name": "Battery, Lithium-Ion",
+          "weightKg": 0.01,
+          "recycledPercent": null,
+          "coating": null,
+          "coatingKg": null,
+          "coatingM2": null,
+          "atLeastMinSize": true
+        }
+      ],
+      "printing": null,
+      "branding": {
+        "type": "Embroidery",
+        "areaM2": 0.0035
+      },
+      "transport": {
+        "mode": "Sea",
+        "roadOriginKm": 1305,
+        "roadDestinationKm": 775,
+        "seaKm": 11238,
+        "airKm": 0,
+        "truckClass": ">32 metric ton"
+      },
+      "usageHours": 1,
+      "electronics": {
+        "source": "No",
+        "kwhPerHour": 0
+      },
+      "lighting": {
+        "source": "Yes, Batteries",
+        "kwhPerHour": 0.03
+      },
+      "easySeparation": true
+    },
+    "expected": {
+      "materialByComponent": [
+        2.14072024782772,
+        4.510408646648788,
+        0.15073398175777158
+      ],
+      "material": 6.80186287623428,
+      "forming": 0,
+      "printing": 0,
+      "branding": 0.04043504566342698,
+      "manufacturing": 0.04043504566342698,
+      "distribution": 0.05826457817162502,
+      "electronics": 0,
+      "lighting": 0.00393010055458818,
+      "use": 0.00393010055458818,
+      "incineration": 0.061133717255925125,
+      "landfill": 0.11587276070268761,
+      "endOfLife": 0.17700647795861274,
+      "totalGwp": 7.0814990785825325,
+      "categories": {
+        "AE": 0.04113861314286616,
+        "GWP": 7.0814990785825325,
+        "CTUe": 46.07015401877972,
+        "Adpf": 88.84664043624922,
+        "Epf": 0.0029626504608631474,
+        "Epm": 0.008121572711328554,
+        "Ept": 0.08379172926826017,
+        "Ctuh-c": 2.6029128190041897e-9,
+        "Ctuh-nc": 1.6173631416524508e-7,
+        "IR": 0.6078488808699031,
+        "LU": 17.4451051501952,
+        "ADPe": 0.00009839066667332063,
+        "ODP": 1.3031411441381104e-7,
+        "PM": 4.3150391118687963e-7,
+        "POCP": 0.023556270720638508,
+        "WU": 3.327767476789345
+      },
+      "singleScorePt": 0.0007235168989863511,
+      "singleScoreMpt": 0.7235168989863511,
+      "gates": {
+        "mono": "N",
+        "easySeparation": "Y"
+      }
+    }
+  },
+  {
+    "label": "Worked example 4 (PEF Logic row 9)",
+    "input": {
+      "shipFrom": "GB",
+      "shipTo": "FR",
+      "factoryRenewable": true,
+      "supplierType": "Printer",
+      "components": [
+        {
+          "name": "Duplex Board",
+          "weightKg": 1.05,
+          "recycledPercent": 67,
+          "coating": "Gloss Lamination",
+          "coatingKg": 0.25,
+          "coatingM2": null,
+          "atLeastMinSize": true
+        }
+      ],
+      "printing": {
+        "type": "Flexo",
+        "areaM2": 3
+      },
+      "branding": {
+        "type": "0",
+        "areaM2": 0
+      },
+      "transport": {
+        "mode": "Road",
+        "roadOriginKm": 125,
+        "roadDestinationKm": 775,
+        "seaKm": 0,
+        "airKm": 0,
+        "truckClass": ">32 metric ton"
+      },
+      "usageHours": 84,
+      "electronics": {
+        "source": "0",
+        "kwhPerHour": 0
+      },
+      "lighting": {
+        "source": "0",
+        "kwhPerHour": 0
+      },
+      "easySeparation": false
+    },
+    "expected": {
+      "materialByComponent": [
+        1.772568576793058,
+        0,
+        0
+      ],
+      "material": 1.772568576793058,
+      "forming": 0,
+      "printing": 0.02260758474191876,
+      "branding": 0,
+      "manufacturing": 0.02260758474191876,
+      "distribution": 0.11928592088351009,
+      "electronics": 0,
+      "lighting": 0,
+      "use": 0,
+      "incineration": 0.3611878130784685,
+      "landfill": 0.5951587483876278,
+      "endOfLife": 0.9563465614660963,
+      "totalGwp": 2.870808643884583,
+      "categories": {
+        "AE": 0.007544208087566787,
+        "GWP": 2.5197303749127475,
+        "CTUe": 30.169574976639296,
+        "Adpf": 38.67556647757819,
+        "Epf": 0.0007551252614427246,
+        "Epm": 0.0027066862753025813,
+        "Ept": 0.01995780732557387,
+        "Ctuh-c": 6.097197468766863e-10,
+        "Ctuh-nc": 2.4938457463967867e-8,
+        "IR": 0.23465607903591557,
+        "LU": 47.68034954688453,
+        "ADPe": 0.000008163245480414304,
+        "ODP": 6.870787050959288e-8,
+        "PM": 1.1896412064519462e-7,
+        "POCP": 0.008012050583636937,
+        "WU": 1.232292065741308
+      },
+      "singleScorePt": 0.00021774819764495032,
+      "singleScoreMpt": 0.21774819764495032,
+      "gates": {
+        "mono": "Y",
+        "easySeparation": "N"
+      }
+    }
+  },
+  {
+    "label": "Worked example 5 (PEF Logic row 11)",
+    "input": {
+      "shipFrom": "AT",
+      "shipTo": "CN",
+      "factoryRenewable": true,
+      "supplierType": "Printer",
+      "components": [
+        {
+          "name": "CCNB (Clay Coat News Back)",
+          "weightKg": 1,
+          "recycledPercent": 30,
+          "coating": "Oil Painted",
+          "coatingKg": null,
+          "coatingM2": 0,
+          "atLeastMinSize": true
+        }
+      ],
+      "printing": {
+        "type": "Screen",
+        "areaM2": 1.5
+      },
+      "branding": {
+        "type": "Litho",
+        "areaM2": 1.5
+      },
+      "transport": {
+        "mode": "Sea",
+        "roadOriginKm": 185,
+        "roadDestinationKm": 1305,
+        "seaKm": 10635,
+        "airKm": 0,
+        "truckClass": ">32 metric ton"
+      },
+      "usageHours": 120,
+      "electronics": {
+        "source": "0",
+        "kwhPerHour": 0
+      },
+      "lighting": {
+        "source": "0",
+        "kwhPerHour": 0
+      },
+      "easySeparation": false
+    },
+    "expected": {
+      "materialByComponent": [
+        1.4046580172450491,
+        0,
+        0
+      ],
+      "material": 1.4046580172450491,
+      "forming": 0,
+      "printing": 0.01130379237095938,
+      "branding": 0.01130379237095938,
+      "manufacturing": 0.02260758474191876,
+      "distribution": 0.2613541295949273,
+      "electronics": 0,
+      "lighting": 0,
+      "use": 0,
+      "incineration": 0.010051308732637204,
+      "landfill": 0.9108473669426763,
+      "endOfLife": 0.9208986756753135,
+      "totalGwp": 2.609518407257209,
+      "categories": {
+        "AE": 0.009428654908357913,
+        "GWP": 2.609518407257209,
+        "CTUe": 36.94799846355817,
+        "Adpf": 25.311221773513555,
+        "Epf": 0.0007089095254975656,
+        "Epm": 0.0032503820494046726,
+        "Ept": 0.026445304759016776,
+        "Ctuh-c": 6.099644016259389e-10,
+        "Ctuh-nc": 2.3694206871264836e-8,
+        "IR": 0.2687177293692306,
+        "LU": 81.46199245665697,
+        "ADPe": 0.0000062444226117536855,
+        "ODP": 4.0471837298739935e-8,
+        "PM": 1.775731210300766e-7,
+        "POCP": 0.008066275661358062,
+        "WU": 0.9665673303898864
+      },
+      "singleScorePt": 0.00021702433526586942,
+      "singleScoreMpt": 0.21702433526586942,
+      "gates": {
+        "mono": "Y",
+        "easySeparation": "N"
+      }
+    }
+  },
+  {
+    "label": "Worked example 6 (PEF Logic row 12)",
+    "input": {
+      "shipFrom": "AT",
+      "shipTo": "CN",
+      "factoryRenewable": true,
+      "supplierType": "Manufacturer",
+      "components": [
+        {
+          "name": "CCNB (Clay Coat News Back)",
+          "weightKg": 1,
+          "recycledPercent": 30,
+          "coating": "Oil",
+          "coatingKg": null,
+          "coatingM2": 0,
+          "atLeastMinSize": true
+        }
+      ],
+      "printing": {
+        "type": "0",
+        "areaM2": 0
+      },
+      "branding": {
+        "type": "0",
+        "areaM2": 0
+      },
+      "transport": {
+        "mode": "Sea",
+        "roadOriginKm": 185,
+        "roadDestinationKm": 1305,
+        "seaKm": 10635,
+        "airKm": 0,
+        "truckClass": ">32 metric ton"
+      },
+      "usageHours": 240,
+      "electronics": {
+        "source": "0",
+        "kwhPerHour": 0
+      },
+      "lighting": {
+        "source": "0",
+        "kwhPerHour": 0
+      },
+      "easySeparation": false
+    },
+    "expected": {
+      "materialByComponent": [
+        1.4046580172450491,
+        0,
+        0
+      ],
+      "material": 1.4046580172450491,
+      "forming": 0,
+      "printing": 0,
+      "branding": 0,
+      "manufacturing": 0,
+      "distribution": 0.2613541295949273,
+      "electronics": 0,
+      "lighting": 0,
+      "use": 0,
+      "incineration": 0.010051308732637204,
+      "landfill": 0.9108473669426763,
+      "endOfLife": 0.9208986756753135,
+      "totalGwp": 2.58691082251529,
+      "categories": {
+        "AE": 0.009394039545108866,
+        "GWP": 2.58691082251529,
+        "CTUe": 36.9187117012219,
+        "Adpf": 24.958117962083673,
+        "Epf": 0.0007074463640615724,
+        "Epm": 0.0032409538199042647,
+        "Ept": 0.026341859459478346,
+        "Ctuh-c": 6.058909286917935e-10,
+        "Ctuh-nc": 2.3579351837784388e-8,
+        "IR": 0.2685061313558765,
+        "LU": 81.29787745842343,
+        "ADPe": 0.000006133803170987843,
+        "ODP": 3.945209866381528e-8,
+        "PM": 1.773026149078441e-7,
+        "POCP": 0.00802370058710294,
+        "WU": 0.8622387908291086
+      },
+      "singleScorePt": 0.00021479499750156177,
+      "singleScoreMpt": 0.21479499750156178,
+      "gates": {
+        "mono": "Y",
+        "easySeparation": "N"
+      }
+    }
+  }
+]

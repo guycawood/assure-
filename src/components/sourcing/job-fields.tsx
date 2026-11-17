@@ -14,7 +14,7 @@ export function JobFields({ job, clients, entities, briefId }: { job?: Partial<J
             {clients.filter((c) => c.active || c.id === job?.client_id).map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
           </select>
         </Field>
-        <Field label="Billing entity" htmlFor="billing_entity_id" hint="The adm Indicia entity that invoices this job">
+        <Field label="Billing entity" htmlFor="billing_entity_id" hint="The entity that invoices this job">
           <select id="billing_entity_id" name="billing_entity_id" defaultValue={job?.billing_entity_id ?? ""} className="input">
             <option value="">Not set yet</option>
             {entities.filter((b) => b.active || b.id === job?.billing_entity_id).map((b) => <option key={b.id} value={b.id}>{b.name} ({b.market})</option>)}

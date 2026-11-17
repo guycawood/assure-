@@ -2,7 +2,7 @@
 @tailwind components;
 @tailwind utilities;
 
-/* adm Indicia brand tokens (Brand Guidelines, July 2025).
+/* Our brand tokens (Brand Guidelines, July 2025).
    Base: New-blue #010062, Pale #F0F7F7, White. Status colours come from the service palette
    (Sustainability, Tech, Data, Indi-blue), darkened where needed for readable text. */
 :root {

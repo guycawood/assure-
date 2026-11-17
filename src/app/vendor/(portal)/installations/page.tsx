@@ -26,7 +26,7 @@ export default async function InstallationsPage() {
 
   return (
     <>
-      <PageHead title="Installations" sub={`Installs at outlets for your purchase orders. Take a before and an after photo, then record the install with the GPS position at the outlet. adm Indicia audits every install.${toDo ? ` ${toDo} to do.` : ""}`} />
+      <PageHead title="Installations" sub={`Installs at outlets for your purchase orders. Take a before and an after photo, then record the install with the GPS position at the outlet. We audit every install.${toDo ? ` ${toDo} to do.` : ""}`} />
       {deployments.length === 0 ? <Card><Empty title="No installations for you yet" /></Card> : (
         <div className="grid gap-4 lg:grid-cols-2">
           {deployments.map((d) => {
@@ -49,7 +49,7 @@ export default async function InstallationsPage() {
                   <div className="rounded-lg bg-surface-2 p-3 text-xs">
                     Installed {formatDate(d.installation_date)} by {d.installer_name} · {d.installed_quantity} of {d.quantity}
                     {d.gps_distance_m !== null && <> · {d.gps_distance_m} m from the outlet</>}
-                    {d.gps_flag && <span className="block text-warn">The GPS position needs a check by adm Indicia.</span>}
+                    {d.gps_flag && <span className="block text-warn">The GPS position needs a check by us.</span>}
                     <span className="mt-1 block">Audit: <Pill tone={statusTone(d.audit_status)}>{human(d.audit_status)}</Pill>{d.audit_score !== null && ` score ${d.audit_score}`}</span>
                   </div>
                 )}
@@ -68,7 +68,7 @@ export default async function InstallationsPage() {
                         <div><label className="label" htmlFor={`q-${d.id}`}>Installed quantity</label><input id={`q-${d.id}`} name="quantity" type="number" min={0} max={d.quantity} required defaultValue={d.quantity} className="input" /></div>
                         <div className="sm:col-span-2"><label className="label" htmlFor={`i-${d.id}`}>Installed by</label><input id={`i-${d.id}`} name="installer" required maxLength={200} className="input" placeholder="Installer or team name" /></div>
                         <GeoFields id={d.id} />
-                        <div className="sm:col-span-2"><label className="label" htmlFor={`n-${d.id}`}>Notes</label><textarea id={`n-${d.id}`} name="notes" rows={2} maxLength={2000} className="input" placeholder="Anything adm Indicia should know, e.g. a unit couldn't be fitted" /></div>
+                        <div className="sm:col-span-2"><label className="label" htmlFor={`n-${d.id}`}>Notes</label><textarea id={`n-${d.id}`} name="notes" rows={2} maxLength={2000} className="input" placeholder="Anything we should know, e.g. a unit couldn't be fitted" /></div>
                       </div>
                     </ActionDialog>
                   </div>

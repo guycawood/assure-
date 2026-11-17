@@ -1,6 +1,6 @@
 -- CRM stage 2 (3 of 3): lists, email sends with tracking, unsubscribes, the HubSpot import and the send approval.
 --   * Lists: static (picked contacts, or staff for internal comms) and dynamic (filters on contact fields). External lists are
---     client contacts; internal lists are adm Indicia staff.
+--     client contacts; internal lists are staff.
 --   * Email sends: a list + a template, queued into email_outbox. Every external recipient is checked on every send: no
 --     email, left, opted out, no legal basis or consent basis without consent -> excluded, with the reason kept.
 --     Each external email carries an unsubscribe link (/u/<token>) that opts the contact out.
@@ -82,7 +82,7 @@ begin
     insert into public.crm_list_members (list_id, contact_id, added_by) select p_list, x, auth.uid() from unnest(coalesce(p_contacts, '{}')) x
       where exists (select 1 from public.crm_contacts where id = x) on conflict do nothing;
   else
-    if coalesce(cardinality(p_contacts), 0) > 0 then raise exception 'This list is for adm Indicia staff'; end if;
+    if coalesce(cardinality(p_contacts), 0) > 0 then raise exception 'This list is for staff'; end if;
     insert into public.crm_list_members (list_id, profile_id, added_by) select p_list, x, auth.uid() from unnest(coalesce(p_profiles, '{}')) x
       where exists (select 1 from public.profiles where id = x and (is_admin or user_type = 'internal')) on conflict do nothing;
   end if;
@@ -108,7 +108,7 @@ begin
   if l.id is null then raise exception 'List not found'; end if;
   f := l.filters;
   if l.audience = 'internal' then
-    return query select null::uuid, p.id, p.email, coalesce(nullif(p.full_name, ''), p.email), 'adm Indicia'::text, null::uuid,
+    return query select null::uuid, p.id, p.email, coalesce(nullif(p.full_name, ''), p.email), 'Team'::text, null::uuid,
                         case when p.email is null then 'No email address' end
       from public.profiles p
      where (p.is_admin or p.user_type = 'internal')

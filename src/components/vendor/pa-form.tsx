@@ -251,7 +251,7 @@ export function PaForm({ initial, mode, readOnly, save, photos, intro }: {
             <label htmlFor="website_url">Website URL</label>
             <input id="website_url" name="website_url" tabIndex={-1} autoComplete="off" value={hp} onChange={(e) => setHp(e.target.value)} />
           </div>
-          <label className="flex items-start gap-2"><input type="checkbox" checked={declared} onChange={(e) => setDeclared(e.target.checked)} className="mt-1" /> I confirm the information is accurate and I am authorised to submit it for this company. adm Indicia will use it to assess the application.</label>
+          <label className="flex items-start gap-2"><input type="checkbox" checked={declared} onChange={(e) => setDeclared(e.target.checked)} className="mt-1" /> I confirm the information is accurate and I am authorised to submit it for this company. We will use it to assess the application.</label>
         </section>
       ))}
 
@@ -262,7 +262,7 @@ export function PaForm({ initial, mode, readOnly, save, photos, intro }: {
         {!readOnly && mode === "vendor" && <button type="button" className={btn.secondary} disabled={pending} onClick={() => go(false)}>{pending ? "Saving…" : "Save draft"}</button>}
         {!readOnly && step === last && (
           <button type="button" className={btn.primary} disabled={pending || !requiredOk || (mode === "public" && !declared)} onClick={() => go(true)}>
-            {pending ? "Submitting…" : mode === "vendor" ? "Submit to adm Indicia" : "Submit application"}
+            {pending ? "Submitting…" : mode === "vendor" ? "Submit to us" : "Submit application"}
           </button>
         )}
       </div>

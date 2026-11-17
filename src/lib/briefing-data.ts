@@ -1,5 +1,6 @@
-// Briefing+ reads (server side). Every query runs as the signed-in user under RLS.
+﻿// Briefing+ reads (server side). Every query runs as the signed-in user under RLS.
 import type { createClient } from "@/lib/supabase/server";
+import { withConceptGrades } from "@/lib/impact-grade-spec";
 import type { Brief, BriefApproval, BriefEvent, BriefRevision, Campaign, ConceptRow, MessageRow } from "@/lib/briefing";
 
 type Client = Awaited<ReturnType<typeof createClient>>;
@@ -75,7 +76,7 @@ export async function getSessionTranscript(supabase: Client, sessionId: string) 
     supabase.from("ideation_concepts").select("*").eq("session_id", sessionId).order("idx"),
   ]);
   const messages = (m.data as MessageRow[]) ?? [];
-  const all = (c.data as ConceptRow[]) ?? [];
+  const all = await withConceptGrades(supabase, (c.data as ConceptRow[]) ?? []);
   const lastMsg = Math.max(0, ...all.map((x) => x.message_id));
   return { messages, concepts: all.filter((x) => x.message_id === lastMsg).sort((a, b) => a.idx - b.idx), allConcepts: all };
 }
@@ -88,7 +89,7 @@ export async function getHandoffsForBrief(supabase: Client, briefId: string): Pr
 /** Every concept on a brief that has entered the approval flow (any session). */
 export async function getBriefConceptsInApproval(supabase: Client, briefId: string): Promise<ConceptRow[]> {
   const { data } = await supabase.from("ideation_concepts").select("*").eq("brief_id", briefId).neq("status", "proposed").order("submitted_at", { ascending: false });
-  return (data as ConceptRow[]) ?? [];
+  return withConceptGrades(supabase, (data as ConceptRow[]) ?? []);
 }
 
 /** Campaign ideation concepts in the approval flow (plus one picked concept, whatever its state). */
@@ -131,3 +132,4 @@ export async function getSessionsForBulk(supabase: Client, runId: string): Promi
   const { data } = await supabase.from("ideation_sessions").select("*").eq("bulk_run_id", runId);
   return (data as SessionRow[]) ?? [];
 }
+

@@ -12,6 +12,8 @@ import { FileList, getFiles } from "@/components/file-list";
 import { ActionButton, ActionDialog } from "@/components/vendor/action-form";
 import { InvoiceForm } from "@/components/vendor/invoice-form";
 import { respondPo } from "../../actions";
+import { VendorProofs } from "@/components/proofs/vendor-proofs";
+import type { PoProofs } from "@/lib/proofs";
 import { VendorQaqcPlans } from "@/components/qaqc/vendor-plan";
 import type { QaqcPlan } from "@/lib/qaqc";
 import { VendorTechSheetPanel } from "@/components/tech-sheet/vendor-po-panel";
@@ -52,6 +54,8 @@ export default async function OrderDetail({ params }: { params: Promise<{ id: st
     supabase.rpc("tech_sheet_materials"),
   ]);
   const materialOptions = (matData ?? { packaging: [], substrates: [] }) as MaterialOptions;
+  const { data: proofData } = await supabase.rpc("vendor_po_proofs", { p_po: id });
+  const proofs = (proofData ?? { proof_waived: false, production_started_at: null, rounds: [] }) as PoProofs;
   const allTypes = (types ?? []) as OrderDocType[];
   // The invoice is its own step (sent to Finance+); the rest are control documents.
   const invoiceType = allTypes.find((t) => t.code === "INVOICE") ?? allTypes.find((t) => /invoice/i.test(t.name));
@@ -70,7 +74,8 @@ export default async function OrderDetail({ params }: { params: Promise<{ id: st
     : [
         { label: "Issued", at: po.issued_at ?? po.po_date, done: true },
         { label: "Accepted", at: po.responded_at, done: accepted },
-        { label: "In production", at: null, done: accepted && ["in_production", "delivered", "closed"].includes(po.job_status) },
+        { label: "Proof approved", at: null, done: accepted && (!!proofs.production_started_at || proofs.proof_waived || proofs.rounds.some((r) => r.status === "client_approved")) },
+        { label: "In production", at: proofs.production_started_at, done: accepted && (!!proofs.production_started_at || ["in_production", "delivered", "closed"].includes(po.job_status)) },
         { label: "Delivered", at: po.delivery_date, done: allDelivered || ["delivered", "closed"].includes(po.job_status), planned: true },
         { label: "Invoiced", at: invoices[0]?.submitted_at ?? null, done: invoices.length > 0 },
         { label: "Paid", at: invoices.find((i) => i.paid_at)?.paid_at ?? null, done: paid },
@@ -82,7 +87,7 @@ export default async function OrderDetail({ params }: { params: Promise<{ id: st
         {po.status === "issued" && act && (
           <>
             <ActionButton action={respondPo} label="Accept purchase order" variant="primary" hidden={{ id: po.id, decision: "accept" }} />
-            <ActionDialog label="Decline" variant="danger" title={`Decline ${po.po_number}`} sub="adm Indicia will see your reason." action={respondPo} hidden={{ id: po.id, decision: "decline" }} submit="Decline purchase order">
+            <ActionDialog label="Decline" variant="danger" title={`Decline ${po.po_number}`} sub="We will see your reason." action={respondPo} hidden={{ id: po.id, decision: "decline" }} submit="Decline purchase order">
               <label className="label" htmlFor="reason">Reason</label>
               <textarea id="reason" name="reason" required rows={3} maxLength={1000} className="input" />
             </ActionDialog>
@@ -109,6 +114,14 @@ export default async function OrderDetail({ params }: { params: Promise<{ id: st
         {po.status === "declined" && po.decline_reason && <p className="mt-3 text-sm text-muted">You declined: {po.decline_reason}</p>}
       </Card>
 
+      {accepted && (
+        <div id="proof">
+          <Panel title="Proof" sub="Send a proof or sample for approval before production. We check it, the client approves it, then you launch production.">
+            <VendorProofs poId={po.id} supplierId={ctx.company.id} data={proofs} canAct={act} />
+          </Panel>
+        </div>
+      )}
+
       {techLines.length > 0 && (
         <div id="tech-sheet">
           <Panel title="Technical & packaging data sheet" sub="The item as you build it and how you pack it: carton, unit pack and pallet. Declare it once the order is accepted; QA/QC weighs and measures a packed carton at pre-shipment and compares it with what you declared.">
@@ -119,7 +132,7 @@ export default async function OrderDetail({ params }: { params: Promise<{ id: st
 
       {qaqcPlans.length > 0 && (
         <div id="qaqc">
-          <Panel title="QA/QC" sub="What adm Indicia needs from you to show the goods meet the spec. Your uploads are checked straight away.">
+          <Panel title="QA/QC" sub="What we need from you to show the goods meet the spec. Your uploads are checked straight away.">
             <VendorQaqcPlans plans={qaqcPlans} bodies={bodies} canAct={act} accepted={accepted} />
           </Panel>
         </div>
@@ -137,7 +150,7 @@ export default async function OrderDetail({ params }: { params: Promise<{ id: st
               <li className="flex gap-2.5"><MSymbol name={invoices.length ? "check_circle" : "radio_button_unchecked"} size={20} fill={invoices.length > 0} className={invoices.length ? "text-ok" : "text-muted"} />
                 <span><b>Send your invoice</b><span className="block text-xs text-muted">{invoices.length ? `${money(invoiced, po.currency)} of ${money(po.total_value, po.currency)} invoiced.` : `Quote ${po.po_number} on the invoice. Total ${money(po.total_value, po.currency)}.`}</span></span></li>
               <li className="flex gap-2.5"><MSymbol name={paid ? "check_circle" : "radio_button_unchecked"} size={20} fill={paid} className={paid ? "text-ok" : "text-muted"} />
-                <span><b>adm Indicia matches and pays it</b><span className="block text-xs text-muted">Matched to the order and proof of delivery, then paid on your terms. Status shows below.</span></span></li>
+                <span><b>We match and pay it</b><span className="block text-xs text-muted">Matched to the order and proof of delivery, then paid on your terms. Status shows below.</span></span></li>
             </ol>
             <div>
               {accepted && act ? <InvoiceForm poId={po.id} poNumber={po.po_number} currency={po.currency} remaining={Number(po.total_value) - invoiced} />
@@ -182,7 +195,7 @@ export default async function OrderDetail({ params }: { params: Promise<{ id: st
           </div>
         </Panel>
 
-        <Panel title="Control documents" sub={po.category ? `Checklist for ${po.category} jobs, from adm Indicia's document library` : "From adm Indicia's document library"}>
+        <Panel title="Control documents" sub={po.category ? `Checklist for ${po.category} jobs, from our document library` : "From our document library"}>
           <ul className="divide-y divide-line">
             {checklist.map((c) => (
               <li key={c.code} className="px-5 py-3">

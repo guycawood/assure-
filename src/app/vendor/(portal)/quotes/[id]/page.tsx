@@ -43,7 +43,7 @@ export default async function QuoteDetail({ params }: { params: Promise<{ id: st
       <PageHead title={v.rfq.title} crumbs={[{ label: "Quote requests", href: "/vendor/quotes" }, { label: v.rfq.rfq_number }]}
         sub={`${v.rfq.job_number} · ${v.rfq.market} · prices in ${v.rfq.currency} · ${v.rfq.incoterm ?? "DDP"}${v.rfq.incoterm_place ? ` ${v.rfq.incoterm_place}` : ""}`}>
         {editable && (
-          <ActionDialog label="Decline to quote" variant="danger" title="Decline this quote request" sub="adm Indicia will see your reason." action={declineRfq} hidden={{ rfq: v.rfq.id }} submit="Decline" >
+          <ActionDialog label="Decline to quote" variant="danger" title="Decline this quote request" sub="We will see your reason." action={declineRfq} hidden={{ rfq: v.rfq.id }} submit="Decline" >
             <label className="label" htmlFor="reason">Reason</label>
             <textarea id="reason" name="reason" required rows={3} maxLength={1000} className="input" placeholder="e.g. No capacity in this window" />
           </ActionDialog>

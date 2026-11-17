@@ -24,7 +24,7 @@ export default {
         "bad-soft": c("bad-soft"),
         info: c("info"),
         "info-soft": c("info-soft"),
-        // adm Indicia brand + service palette, for module identity and charts.
+        // Our brand + service palette, for module identity and charts.
         brand: {
           navy: "#010062",
           pale: "#F0F7F7",

@@ -63,7 +63,7 @@ export default async function CrmEmail({ params, searchParams }: { params: Promi
           <div className="overflow-x-auto"><table className="w-full text-sm">
             <thead><tr><Th>Name</Th><Th>Email</Th><Th>Client</Th><Th>Status</Th><Th>First opened</Th><Th>Opens</Th><Th>Clicks</Th></tr></thead>
             <tbody>{shown.map((r) => (
-              <tr key={r.id}><Td className="font-semibold">{r.full_name}</Td><Td>{r.email ?? "—"}</Td><Td>{r.client_name ?? "adm Indicia"}</Td>
+              <tr key={r.id}><Td className="font-semibold">{r.full_name}</Td><Td>{r.email ?? "—"}</Td><Td>{r.client_name ?? "Internal"}</Td>
                 <Td>{r.status === "excluded" ? <span className="text-bad">Excluded: {r.excluded_reason}</span> : r.unsubscribed_at ? <Pill tone="bad">Unsubscribed</Pill> : <Pill tone={r.opens ? "ok" : "neutral"}>{r.opens ? "Read" : "Not read"}</Pill>}</Td>
                 <Td>{r.first_opened_at ? fmtDateTime(r.first_opened_at) : "—"}</Td><Td>{r.opens}</Td><Td>{r.clicks}</Td></tr>))}</tbody>
           </table></div>

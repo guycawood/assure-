@@ -137,8 +137,8 @@ test("client function: own client only, no supplier names, no cost; vendors and 
   assert.equal((await as("client", "select count(*)::int n from public.rpt_spec_lines")).rows[0].n, 0);
   assert.equal((await as("vendor", "select count(*)::int n from public.rpt_spec_lines")).rows[0].n, 0);
   assert.equal((await as("vendor", "select count(*)::int n from public.rpt_client_lines()")).rows[0].n, 0);
-  await rejects(as("client", "select public.scorecard_report(null, '{}'::jsonb)"), /adm Indicia staff/);
-  await rejects(as("vendor", "select public.scorecard_values(null, '{}'::jsonb)"), /adm Indicia staff/);
+  await rejects(as("client", "select public.scorecard_report(null, '{}'::jsonb)"), /staff/);
+  await rejects(as("vendor", "select public.scorecard_values(null, '{}'::jsonb)"), /staff/);
   // Staff see the full line, supplier included.
   const internal = (await as("admin", "select supplier_name, cost from public.rpt_spec_lines where client_id = $1", [cA])).rows;
   assert.equal(internal.length, 4);

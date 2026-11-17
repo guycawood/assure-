@@ -12,7 +12,7 @@ export default async function ClientCampaigns({ searchParams }: { searchParams: 
   return (
     <>
       {ctx.preview && <PreviewBanner name={ctx.accounts.map((a) => a.name).join(", ")} />}
-      <PageHead title="Campaigns" sub="Campaigns adm Indicia is running for you, with the markets they cover." />
+      <PageHead title="Campaigns" sub="Campaigns we are running for you, with the markets they cover." />
       {campaigns.length === 0 ? <Card><Empty title="No campaigns yet" /></Card> : (
         <section className="grid gap-4 lg:grid-cols-2">
           {campaigns.map((c) => {

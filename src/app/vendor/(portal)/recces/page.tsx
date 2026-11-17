@@ -58,7 +58,7 @@ export default async function RecceesPage() {
           </ActionDialog>
         )}
       </PageHead>
-      {recces.length === 0 ? <Card><Empty title="No recces yet">{outlets.length ? "Start one with the New recce button." : "When adm Indicia assigns outlets to you, you can survey them here."}</Empty></Card> : (
+      {recces.length === 0 ? <Card><Empty title="No recces yet">{outlets.length ? "Start one with the New recce button." : "When we assign outlets to you, you can survey them here."}</Empty></Card> : (
         <Card className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead><tr><th className="th">Outlet</th><th className="th">Product / location</th><th className="th">Space (W×H×D cm)</th><th className="th">Unit (W×H×D cm)</th><th className="th text-right">Units fit</th><th className="th">Status</th><th className="th" /></tr></thead>

@@ -52,7 +52,7 @@ export async function submitRfi(rfiId: string, _: VendorActionResult, fd: FormDa
   const { error } = await supabase.rpc("submit_vendor_rfi", { p_rfi: rfiId, p_data: data, p_bank: bank });
   if (error) {
     const safe = /^(This information request|Enter |Confirm )/.test(error.message);
-    return { error: safe ? error.message : "Your information couldn't be submitted. Try again, or contact adm Indicia." };
+    return { error: safe ? error.message : "Your information couldn't be submitted. Try again, or contact us." };
   }
   revalidatePath("/vendor", "layout");
   return { ok: true };

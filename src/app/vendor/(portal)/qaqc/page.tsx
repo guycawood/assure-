@@ -19,14 +19,14 @@ export default async function VendorQaqc() {
 
   return (
     <>
-      <PageHead title="QA/QC" sub="The quality evidence adm Indicia needs on your orders. The level depends on the item and the order; each order shows why." />
+      <PageHead title="QA/QC" sub="The quality evidence we need on your orders. The level depends on the item and the order; each order shows why." />
       <div className="grid gap-4 sm:grid-cols-3">
         <Stat label="To upload" value={todo.length} hint={overdue ? `${overdue} overdue` : "Nothing overdue"} tone={overdue ? "bad" : undefined} />
-        <Stat label="With adm Indicia for review" value={review} />
+        <Stat label="With us for review" value={review} />
         <Stat label="Plans passed" value={plans.filter((p) => p.status === "passed").length} hint={`of ${plans.length}`} />
       </div>
       <Card>
-        {todo.length === 0 ? <Empty title="Nothing to upload right now">QA/QC plans appear here when adm Indicia issues you a purchase order.</Empty> : (
+        {todo.length === 0 ? <Empty title="Nothing to upload right now">QA/QC plans appear here when we issue you a purchase order.</Empty> : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead><tr><th className="th">Order</th><th className="th">Item</th><th className="th">Level</th><th className="th">Checkpoint</th><th className="th">Needs</th><th className="th">Due</th><th className="th">Status</th></tr></thead>

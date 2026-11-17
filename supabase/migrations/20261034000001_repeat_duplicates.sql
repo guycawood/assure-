@@ -40,7 +40,7 @@ returns uuid language plpgsql security definer set search_path = public as $$
 declare s public.job_specs; j public.jobs; v_cols text; v_id uuid; v record; v_new_version uuid; v_map jsonb := '{}'::jsonb;
   v_versions int;
 begin
-  if auth.uid() is null or not public.is_internal() then raise exception 'Only adm Indicia staff can duplicate specs' using errcode = '42501'; end if;
+  if auth.uid() is null or not public.is_internal() then raise exception 'Only staff can duplicate specs' using errcode = '42501'; end if;
   select * into s from public.job_specs where id = p_spec;
   if s.id is null then raise exception 'Spec not found'; end if;
   select * into j from public.jobs where id = coalesce(p_job, s.job_id);

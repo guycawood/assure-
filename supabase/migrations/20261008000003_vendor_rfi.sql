@@ -231,8 +231,8 @@ begin
   insert into public.email_outbox (to_email, subject, body, link, ticket_id, supplier_id, created_by)
   values (
     v_email,
-    'adm Indicia: please register and complete your vendor information',
-    format(E'Hello%s,\n\nadm Indicia would like to onboard %s as a vendor. Please register on SRM and complete your company information, certifications and bank details using the link below. The link works once and expires in 14 days.\n\n%s\n\nIf you weren''t expecting this, you can ignore this email.\n\nadm Indicia Supplier Team',
+    'Please register and complete your vendor information',
+    format(E'Hello%s,\n\nWe would like to onboard %s as a vendor. Please register on SRM and complete your company information, certifications and bank details using the link below. The link works once and expires in 14 days.\n\n%s\n\nIf you weren''t expecting this, you can ignore this email.\n\nSupplier Team',
            coalesce(' ' || nullif(trim(p_contact_name), ''), ''), v_name, v_link),
     v_link, t.id, v_supplier, auth.uid());
 
@@ -273,7 +273,7 @@ begin
     raise exception 'This information request is not for your company' using errcode = '42501';
   end if;
   if r.status not in ('sent','returned') then raise exception 'This information request has already been submitted'; end if;
-  if r.expires_at < now() then raise exception 'This information request has expired. Ask your adm Indicia contact for a new link.'; end if;
+  if r.expires_at < now() then raise exception 'This information request has expired. Ask your contact for a new link.'; end if;
   if nullif(trim(p_data->>'legal_name'), '') is null or nullif(trim(p_data->>'registration_number'), '') is null then
     raise exception 'Enter your registered company name and registration number';
   end if;
@@ -354,8 +354,8 @@ begin
     perform public._ticket_event(r.ticket_id, 'Procurement head returned the information to the vendor: ' || p_note);
     v_link := rtrim(coalesce(p_link_base, ''), '/') || '/vendor/register?invite=' || v_token;
     insert into public.email_outbox (to_email, subject, body, link, ticket_id, supplier_id, created_by)
-    values (r.contact_email, 'adm Indicia: please update your vendor information',
-            format(E'Hello,\n\nWe reviewed the information submitted for %s and need a few changes:\n\n%s\n\nPlease update and resubmit using this link (expires in 14 days):\n\n%s\n\nadm Indicia Supplier Team', v_name, p_note, v_link),
+    values (r.contact_email, 'Please update your vendor information',
+            format(E'Hello,\n\nWe reviewed the information submitted for %s and need a few changes:\n\n%s\n\nPlease update and resubmit using this link (expires in 14 days):\n\n%s\n\nSupplier Team', v_name, p_note, v_link),
             v_link, r.ticket_id, r.supplier_id, auth.uid());
 
   else

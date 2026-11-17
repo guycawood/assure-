@@ -7,7 +7,7 @@ import { clsx } from "clsx";
 import { btn, Pill } from "@/components/ui";
 import { MSymbol } from "@/components/symbol";
 import { CONCEPT_STATUS, conceptReadyToSend, MARKETS, type ConceptRow } from "@/lib/briefing";
-import { createBriefsFromConcept, decideConcept, sendToSourcing, submitConcept, type ActionResult } from "./actions";
+import { createBriefsFromConcept, decideConcept, renderConcept, sendToSourcing, submitConcept, type ActionResult } from "./actions";
 
 type C = Pick<ConceptRow, "id" | "status" | "client_approval_required" | "client_status" | "decision_comments" | "client_comments">;
 
@@ -35,18 +35,20 @@ export function ConceptActions({ c, canDecide, approvalRequired, mode = "brief" 
   const status = c.status ?? "proposed";
 
   const run = (fn: () => Promise<ActionResult>) => start(async () => { const r = await fn(); setRes(r); if (r.ok) router.refresh(); });
-  const submit = () => {
-    const note = window.prompt("Anything the approver should know? (optional)");
-    if (note !== null) run(() => submitConcept(c.id, note));
+  // Notes are asked for inline: window.prompt is blocked in embedded browsers and silently did nothing there.
+  const [ask, setAsk] = useState<null | "submit" | "changes" | "send">(null);
+  const [note, setNote] = useState("");
+  const open = (k: "submit" | "changes" | "send") => { setAsk(k); setNote(""); setRes(null); };
+  const confirm = () => {
+    if (ask === "changes" && !note.trim()) { setRes({ ok: false, message: "Say what needs to change." }); return; }
+    const k = ask; setAsk(null);
+    if (k === "submit") run(() => submitConcept(c.id, note));
+    else if (k === "changes") run(() => decideConcept(c.id, "changes_requested", note));
+    else if (k === "send") run(() => sendToSourcing(c.id, note));
   };
-  const changes = () => {
-    const why = window.prompt("What needs to change?");
-    if (why && why.trim()) run(() => decideConcept(c.id, "changes_requested", why));
-  };
-  const send = () => {
-    const note = window.prompt("Anything Sourcing should know about this concept? (optional)");
-    if (note !== null) run(() => sendToSourcing(c.id, note));
-  };
+  const submit = () => open("submit");
+  const changes = () => open("changes");
+  const send = () => open("send");
 
   const ready = mode === "brief" && conceptReadyToSend(c, approvalRequired);
   return (
@@ -54,6 +56,11 @@ export function ConceptActions({ c, canDecide, approvalRequired, mode = "brief" 
       <ConceptStatusPill c={c} />
       {status === "changes_requested" && (c.client_comments || c.decision_comments) && (
         <p className="rounded-md border border-bad/30 bg-bad-soft px-2 py-1 text-xs text-bad">{c.client_comments ? `Client: ${c.client_comments}` : c.decision_comments}</p>
+      )}
+      {mode === "brief" && (
+        <button className={btn.secondary} disabled={pending} onClick={() => run(() => renderConcept(c.id))}>
+          <MSymbol name="image" size={16} /> {pending ? "Working…" : "Render visual"}
+        </button>
       )}
       <div className="flex flex-wrap gap-2">
         {(status === "proposed" || status === "changes_requested") && (
@@ -75,6 +82,26 @@ export function ConceptActions({ c, canDecide, approvalRequired, mode = "brief" 
           <button className={clsx(btn.primary, "flex-1")} disabled={pending} onClick={() => setPicking(true)}><MSymbol name="add" size={16} /> Create briefs for markets</button>
         )}
       </div>
+      {ask && (
+        <div className="space-y-2 rounded-lg border border-line bg-surface-2/60 p-2">
+          <label className="text-xs font-semibold" htmlFor={`note-${c.id}`}>{ask === "submit" ? "Anything the approver should know? (optional)" : ask === "changes" ? "What needs to change?" : "Anything Sourcing should know about this concept? (optional)"}</label>
+          <textarea id={`note-${c.id}`} className="input w-full" rows={2} value={note} onChange={(e) => setNote(e.target.value)} autoFocus />
+          <div className="flex gap-2">
+            <button className={btn.primary} disabled={pending} onClick={confirm}>{ask === "submit" ? "Submit for approval" : ask === "changes" ? "Request changes" : "Send to Sourcing"}</button>
+            <button className={btn.secondary} onClick={() => setAsk(null)}>Cancel</button>
+          </div>
+        </div>
+      )}
+      {ask && (
+        <div className="space-y-2 rounded-lg border border-line bg-surface-2/60 p-2">
+          <label className="text-xs font-semibold" htmlFor={`note-${c.id}`}>{ask === "submit" ? "Anything the approver should know? (optional)" : ask === "changes" ? "What needs to change?" : "Anything Sourcing should know about this concept? (optional)"}</label>
+          <textarea id={`note-${c.id}`} className="input w-full" rows={2} value={note} onChange={(e) => setNote(e.target.value)} />
+          <div className="flex gap-2">
+            <button className={btn.primary} disabled={pending} onClick={confirm}>{ask === "submit" ? "Submit for approval" : ask === "changes" ? "Request changes" : "Send to Sourcing"}</button>
+            <button className={btn.secondary} onClick={() => setAsk(null)}>Cancel</button>
+          </div>
+        </div>
+      )}
       {mode === "campaign" && picking && (
         <div className="space-y-2 rounded-lg border border-line bg-surface-2/60 p-2">
           <p className="text-xs font-semibold">One draft brief per market:</p>

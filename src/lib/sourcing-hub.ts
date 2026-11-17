@@ -120,7 +120,7 @@ export function estimateSell(cost: number, mode: PricingMode, percent: number, c
   const pre = mode === "margin" ? cost / (1 - percent / 100) : cost * (1 + percent / 100);
   return Math.round((pre / (1 - (commission + rebate) / 100)) * 100) / 100;
 }
-/** Split of a sell price into cost, commission, rebate and what adm Indicia keeps. */
+/** Split of a sell price into cost, commission, rebate and what the team keeps. */
 export function sellBreakdown(cost: number, sell: number, commission = 0, rebate = 0) {
   const commissionAmount = Math.round(sell * commission) / 100;
   const rebateAmount = Math.round(sell * rebate) / 100;

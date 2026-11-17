@@ -77,7 +77,7 @@ export default async function CrmReviews({ searchParams }: { searchParams: Promi
           <Input name="scheduled_on" label="Date" type="date" required />
           <label className="flex items-center gap-2 self-end pb-2 text-sm"><input type="hidden" name="visible_field" value="1" /><input type="checkbox" name="client_visible" defaultChecked /> Show the date to the client in the portal</label>
           <TextArea name="agenda" label="Agenda (one item per line)" rows={4} required className="sm:col-span-2 lg:col-span-3" />
-          <label className="block"><span className="label">adm Indicia attendees</span>
+          <label className="block"><span className="label">Internal attendees</span>
             <select name="internal_attendees" multiple size={5} className="input">{people.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}</select></label>
           <label className="block sm:col-span-2"><span className="label">Client attendees (contacts of that client; Ctrl to pick several)</span>
             <select name="contact_attendees" multiple size={5} className="input">{contacts.filter((c) => c.active).map((c) => <option key={c.id} value={c.id}>{c.full_name} ({c.client_name})</option>)}</select></label>

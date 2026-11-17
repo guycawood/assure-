@@ -29,7 +29,7 @@ export default async function ProfilePage() {
 
   return (
     <>
-      <PageHead title="Company profile" sub="The details adm Indicia holds for your company. To change your registered details, send us a message and our team will update them." />
+      <PageHead title="Company profile" sub="The details we hold for your company. To change your registered details, send us a message and our team will update them." />
       <Panel title={c.name} sub={[c.supplier_code, c.category].filter(Boolean).join(" · ")} actions={<ButtonLink href="/vendor/messages">Ask for a change</ButtonLink>}>
         <div className="grid gap-5 p-5 text-sm sm:grid-cols-2 lg:grid-cols-3">
           {field("Legal entity", c.legal_entity)}
@@ -49,10 +49,10 @@ export default async function ProfilePage() {
       <Card className="flex flex-wrap items-center gap-4 p-5">
         <div className="min-w-0 flex-1">
           <p className="font-display text-lg font-bold">Pre-assessment questionnaire</p>
-          <p className="text-sm text-muted">Five sections: supplier details, certifications, capabilities, factory and site photos. adm Indicia uses it to assess and onboard you.</p>
+          <p className="text-sm text-muted">Five sections: supplier details, certifications, capabilities, factory and site photos. We use it to assess and onboard you.</p>
           {pa && <p className="mt-2 text-sm"><Pill tone={pa.status === "draft" ? "warn" : statusTone(pa.status === "onboarded" ? "completed" : pa.status)}>{PA_LABEL[pa.status] ?? human(pa.status)}</Pill>
             {pa.submitted_at && <span className="ml-2 text-xs text-muted">Submitted {formatDate(pa.submitted_at)}</span>}</p>}
-          {pa?.feedback_to_vendor && <p className="mt-2 rounded-lg bg-warn-soft p-3 text-sm"><b>From adm Indicia:</b> {pa.feedback_to_vendor}</p>}
+          {pa?.feedback_to_vendor && <p className="mt-2 rounded-lg bg-warn-soft p-3 text-sm"><b>From us:</b> {pa.feedback_to_vendor}</p>}
         </div>
         <ButtonLink href="/vendor/pre-assessment" variant="primary">{!pa ? "Start" : ["draft", "under_review"].includes(pa.status) ? "Continue" : "View answers"}</ButtonLink>
       </Card>

@@ -72,7 +72,7 @@ export default async function ContractDetail({ params }: { params: Promise<{ id:
             {canAct(ctx.permission) && c.status !== "cancelled" && (
               <div className="border-b border-line p-5">
                 <ActionForm action={commentContract} hidden={{ id: c.id }} submit="Send comment" resetOnOk>
-                  <label className="label" htmlFor="body">Comment or question for adm Indicia</label>
+                  <label className="label" htmlFor="body">Comment or question for us</label>
                   <textarea id="body" name="body" required rows={3} maxLength={2000} className="input" />
                 </ActionForm>
               </div>
@@ -93,7 +93,7 @@ export default async function ContractDetail({ params }: { params: Promise<{ id:
             {parties.map((p) => (
               <li key={p.id} className="flex items-center gap-3 px-5 py-3 text-sm">
                 <span className="grid h-7 w-7 place-items-center rounded-full bg-surface-2 text-xs font-bold">{p.signing_order}</span>
-                <span className="min-w-0 flex-1"><span className="block font-semibold">{p.name}</span><span className="block truncate text-xs text-muted">{p.is_internal ? "adm Indicia" : p.email} · {human(p.role)}</span></span>
+                <span className="min-w-0 flex-1"><span className="block font-semibold">{p.name}</span><span className="block truncate text-xs text-muted">{p.is_internal ? "Our team" : p.email} · {human(p.role)}</span></span>
                 <Pill tone={statusTone(p.status)}>{p.status === "signed" && p.signed_at ? `Signed ${formatDate(p.signed_at)}` : human(p.status)}</Pill>
               </li>
             ))}

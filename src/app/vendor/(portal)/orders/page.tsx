@@ -12,9 +12,9 @@ export default async function OrdersPage() {
   const waiting = rows.filter((r) => r.status === "issued").length;
   return (
     <>
-      <PageHead title="Orders" sub={`Purchase orders from adm Indicia. Accept each one to start production, then upload control documents and your invoice against it.${waiting ? ` ${waiting} waiting for you.` : ""}`} />
+      <PageHead title="Orders" sub={`Purchase orders from us. Accept each one to start production, then upload control documents and your invoice against it.${waiting ? ` ${waiting} waiting for you.` : ""}`} />
       <Card className="overflow-x-auto">
-        {rows.length === 0 ? <Empty title="No purchase orders yet">When adm Indicia issues you a purchase order, it appears here.</Empty> : (
+        {rows.length === 0 ? <Empty title="No purchase orders yet">When we issue you a purchase order, it appears here.</Empty> : (
           <table className="w-full text-sm">
             <thead><tr><th className="th">PO</th><th className="th">Job</th><th className="th text-right">Value</th><th className="th">PO date</th><th className="th">Delivery</th><th className="th">Status</th></tr></thead>
             <tbody>

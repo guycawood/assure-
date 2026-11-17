@@ -4,7 +4,7 @@ Source: the product taxonomy spec exported from the Base44 prototype (Oct 2026),
 (Next.js + Postgres). The taxonomy is governed in the master Watchtower.
 
 ## 1. Purpose
-One stable, governed naming tree for everything adm Indicia buys and produces, used by specifications, orders,
+One stable, governed naming tree for everything the team buys and produces, used by specifications, orders,
 spend reporting and analytics. Rules:
 1. **Stable taxonomy, changing materials.** The taxonomy classifies products (what the item is). Materials live on
    each specification's bill of materials, because materials change per job while the taxonomy is stable.

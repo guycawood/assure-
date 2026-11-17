@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { membersOf, moduleByKey, type ModuleKey } from "@/modules/registry";
 import { ButtonLink, Card, PageHead, Stat, type Crumb } from "@/components/ui";
@@ -26,6 +26,9 @@ export async function WatchtowerRoute({ module, base, slug, sp }: { module?: Mod
   const root: Crumb[] = m ? [{ label: m.name, href: m.basePath }, { label: "Watchtower", href: base }] : [{ label: "Watchtower", href: base }];
   const [section, key, id] = slug;
 
+  // Rate cards are managed in Sourcing, not here (with their Impact Grade, requests and approval).
+  if (section === "libraries" && key === "rate_cards") redirect("/sourcing/rate-cards");
+
   if (!section) return m ? <ModuleWatchtower module={m.key} base={base} /> : notFound();
   if (section === "libraries" && !key) {
     return (
@@ -49,7 +52,7 @@ async function ModuleWatchtower({ module, base }: { module: ModuleKey; base: str
   const keys = membersOf(module); // a section's Watchtower covers its areas too (e.g. Sourcing includes RFQs)
   const supabase = await createClient();
   const [{ data: defs }, { data: crs }, { data: audit }, ...healthLists] = await Promise.all([
-    supabase.from("library_definitions").select("key").in("module", keys),
+    supabase.from("library_definitions").select("key").in("module", keys).neq("key", "rate_cards"),
     supabase.from("change_requests").select("status").in("module", keys),
     supabase.from("library_audit").select("id").in("module", keys).limit(1000),
     ...keys.map((k) => getHealth(supabase, k)),

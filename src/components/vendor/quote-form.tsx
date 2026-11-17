@@ -119,7 +119,7 @@ export function QuoteForm({ rfqId, currency, lines, prices, details = [], altern
               )}
               <SpecSummary spec={l.spec} />
               <p className="mt-1 text-xs text-muted">{[l.incoterm ? `Incoterm ${l.incoterm}` : null, l.delivery_date ? `Deliver by ${l.delivery_date}` : null].filter(Boolean).join(" · ")}</p>
-              {l.notes && <p className="mt-1 text-xs"><b>Note from adm Indicia:</b> {l.notes}</p>}
+              {l.notes && <p className="mt-1 text-xs"><b>Note from us:</b> {l.notes}</p>}
               {(l.spec_changes?.length ?? 0) > 0 && (
                 <div className="mt-2 rounded-lg bg-warn-soft px-3 py-2 text-xs text-warn">
                   <b>Spec changed since it was sent (revision {l.spec_revision_sent ?? 1} → {l.spec_revision}).</b> {l.spec_changes!.map((c) => `Revision ${c.revision}: ${c.note ?? ""}`).join(" · ")} Please check your prices and resubmit.
@@ -149,7 +149,7 @@ export function QuoteForm({ rfqId, currency, lines, prices, details = [], altern
             <fieldset className="border-t border-line px-4 py-3">
               <legend className="sr-only">Packaging (proposed)</legend>
               <p className="text-sm font-semibold">Packaging (proposed)</p>
-              <p className="text-xs text-muted">How you would pack this line. Give the carton size and units per carton below{pk?.quote_required.length ? ` (adm Indicia needs: ${pk.quote_required.map((r) => r.label.toLowerCase()).join("; ")})` : ""}. Not sure yet? Give a date you will confirm it by.</p>
+              <p className="text-xs text-muted">How you would pack this line. Give the carton size and units per carton below{pk?.quote_required.length ? ` (We need: ${pk.quote_required.map((r) => r.label.toLowerCase()).join("; ")})` : ""}. Not sure yet? Give a date you will confirm it by.</p>
               {pf && <p className="mt-1 text-xs text-accent">Pre-filled from your verified sheet {pf.sheet_ref} ({pf.match}). Check it still applies.</p>}
               {pk?.sheet_ref && <p className="mt-1 text-xs text-muted">On file as data sheet {pk.sheet_ref}.</p>}
               <div className="mt-2 flex flex-wrap gap-3">
@@ -224,7 +224,7 @@ export function QuoteForm({ rfqId, currency, lines, prices, details = [], altern
       })}
       <div className="grid gap-4 sm:grid-cols-[200px_1fr]">
         <div><label className="label" htmlFor="lead_time_days">Overall lead time (days)</label><input id="lead_time_days" name="lead_time_days" inputMode="numeric" className="input" defaultValue={leadTime ?? ""} /></div>
-        <div><label className="label" htmlFor="notes">Notes for adm Indicia</label><textarea id="notes" name="notes" rows={2} maxLength={2000} className="input" defaultValue={notes ?? ""} placeholder="Assumptions, packing, delivery terms…" /></div>
+        <div><label className="label" htmlFor="notes">Notes for us</label><textarea id="notes" name="notes" rows={2} maxLength={2000} className="input" defaultValue={notes ?? ""} placeholder="Assumptions, packing, delivery terms…" /></div>
       </div>
       <p className="text-sm">Total at the first quantity break: <b className="tabular-nums">{money(firstBreakTotal, currency)}</b> <span className="text-xs text-muted">(we calculate totals from your unit prices)</span></p>
     </ActionForm>

@@ -104,7 +104,7 @@ create or replace function public.aac_effective_rules(p_spec uuid) returns jsonb
 language plpgsql stable security definer set search_path = public as $$
 declare cfg public.sourcing_settings; v jsonb := '{}'::jsonb; rt text; r public.library_records;
 begin
-  if not public.is_internal() then raise exception 'Only adm Indicia staff can see triage rules' using errcode = '42501'; end if;
+  if not public.is_internal() then raise exception 'Only staff can see triage rules' using errcode = '42501'; end if;
   select * into cfg from public.sourcing_settings where id;
   foreach rt in array array['adopt','adapt','push','create'] loop
     select * into r from public.aac_rules_for(p_spec, rt) limit 1;

@@ -8,7 +8,7 @@ export default async function Unsubscribe({ params }: { params: Promise<{ token:
   const { token } = await params;
   return (
     <section className="space-y-3 rounded-2xl border border-line bg-surface p-6 shadow-card">
-      <h1 className="font-display text-xl font-bold">Stop emails from adm Indicia</h1>
+      <h1 className="font-display text-xl font-bold">Stop emails from us</h1>
       {/^[0-9a-f]{64}$/.test(token) ? (
         <><p className="text-sm text-muted">Confirm below and we will stop sending you marketing emails and surveys. Your account team can still contact you about work in progress.</p>
           <UnsubscribeButton token={token} /></>

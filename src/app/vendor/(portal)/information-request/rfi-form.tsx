@@ -56,7 +56,7 @@ export function RfiForm({ rfiId, initial, email }: { rfiId: string; initial: Rfi
       </Section>
       <section className="space-y-3 rounded-md border border-line bg-surface p-5">
         <h2 className="font-display text-lg font-semibold">Certifications you hold</h2>
-        <p className="text-xs text-muted">Tick all that apply. adm Indicia will ask for copies of the certificates.</p>
+        <p className="text-xs text-muted">Tick all that apply. We will ask for copies of the certificates.</p>
         <div className="grid gap-2 sm:grid-cols-3">
           {CERTIFICATIONS.map((c) => (
             <label key={c} className="flex items-center gap-2 text-sm">
@@ -81,7 +81,7 @@ export function RfiForm({ rfiId, initial, email }: { rfiId: string; initial: Rfi
         <span>I confirm the information above is accurate and I&apos;m authorised to provide it on behalf of my company.</span>
       </label>
       {state.error && <p className="text-sm text-bad" role="alert">{state.error}</p>}
-      <div><button type="submit" disabled={pending} className={btn.primary}>{pending ? "Submitting…" : "Submit to adm Indicia"}</button></div>
+      <div><button type="submit" disabled={pending} className={btn.primary}>{pending ? "Submitting…" : "Submit to us"}</button></div>
     </form>
   );
 }

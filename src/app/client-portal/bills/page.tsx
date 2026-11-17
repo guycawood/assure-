@@ -16,7 +16,7 @@ type Bill = {
 
 const LABEL = { sent: ["To pay", "warn"], overdue: ["Overdue", "bad"], paid: ["Paid", "ok"] } as const;
 
-// Bills adm Indicia has sent from Finance+, per job, with what is still to pay.
+// Bills we have sent from Finance+, per job, with what is still to pay.
 export default async function ClientBills({ searchParams }: { searchParams: Promise<{ preview?: string }> }) {
   const ctx = await portalContext(await searchParams);
   const bills = (await rpc<Bill[]>(ctx.supabase, "client_portal_bills", scope(ctx))) ?? [];
@@ -33,7 +33,7 @@ export default async function ClientBills({ searchParams }: { searchParams: Prom
         <Stat label="Paid" value={byCur(bills.filter((b) => b.status === "paid"))} tone="ok" icon={<MSymbol name="check_circle" size={20} />} />
       </section>
       <Card className="overflow-x-auto">
-        {bills.length === 0 ? <Empty title="No bills yet">Bills appear here once adm Indicia sends them.</Empty> : (
+        {bills.length === 0 ? <Empty title="No bills yet">Bills appear here once we send them.</Empty> : (
           <table className="w-full text-sm">
             <thead><tr><th className="th">Bill</th><th className="th">Job</th><th className="th">Your PO</th><th className="th text-right">Net</th><th className="th text-right">VAT</th><th className="th text-right">Total</th><th className="th">Due</th><th className="th">Status</th></tr></thead>
             <tbody>{bills.map((b) => {

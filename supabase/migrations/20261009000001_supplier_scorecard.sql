@@ -253,7 +253,7 @@ begin
 
   (v, 'compliance', 'coc', 'Signed Code of Conduct', 5, 'option', null,
    '[{"value":"yes","label":"Signed","score":5},{"value":"no","label":"Not signed","score":0}]',
-   null, 'Supplier data', 'Signed adm Indicia Code of Conduct on file.',
+   null, 'Supplier data', 'Signed our Code of Conduct on file.',
    'Sustainability view: a vendor without a signed CoC should not be scored or onboarded. Applied here as a PSL block (setting).', 1),
   (v, 'compliance', 'eproc', 'eProc engagement', 5, 'option', null,
    '[{"value":"eproc","label":"Uses eProc","score":5},{"value":"offline","label":"Offline","score":0}]',

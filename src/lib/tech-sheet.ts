@@ -57,7 +57,7 @@ export const sheetStatus = (s: string | null | undefined) => SHEET_STATUS[s ?? "
 export const SOURCE_LABEL: Record<string, string> = { quote: "From the quote", po: "Opened on the PO", copied: "Copied from an earlier sheet", library: "Pre-filled from a verified sheet" };
 export const EVENT_LABEL: Record<string, string> = {
   created: "Opened", saved: "Saved", declared: "Declared", redeclared_after_mismatch: "Declared again after a mismatch", verified: "Verified at pre-shipment",
-  mismatch: "Mismatch at pre-shipment", copied: "Copied from an earlier sheet", quote_proposal: "Packaging proposed with the quote", reopened: "Reopened by adm Indicia",
+  mismatch: "Mismatch at pre-shipment", copied: "Copied from an earlier sheet", quote_proposal: "Packaging proposed with the quote", reopened: "Reopened by the team",
 };
 
 export const pctTone = (p: number | null | undefined): Tone => (p == null ? "neutral" : p >= 100 ? "ok" : p >= 60 ? "warn" : "bad");

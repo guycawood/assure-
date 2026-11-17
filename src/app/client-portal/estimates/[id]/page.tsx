@@ -5,7 +5,12 @@ import { estimateStatus, fmtDate, fmtMoney, isUuid, type EstimateDetail } from "
 import { Card, PageHead, Panel, Pill } from "@/components/ui";
 import { Field, PreviewBanner } from "@/components/client/bits";
 import { ClientActionForm } from "@/components/client/forms";
-import { decideEstimate } from "../../actions";
+import { decideEstimate, provideClientPo } from "../../actions";
+
+type ClientPoStatus = {
+  needed: boolean; sell_price: number; currency: string; last_chased_at: string | null; can_provide: boolean;
+  provided: { po_number: string; amount: number; po_date: string }[];
+};
 
 export const metadata: Metadata = { title: "Estimate" };
 
@@ -17,6 +22,7 @@ export default async function ClientEstimate({ params, searchParams }: { params:
   const ctx = await portalContext(sp);
   const e = await rpc<EstimateDetail>(ctx.supabase, "client_portal_estimate", { p_estimate: id, ...scope(ctx) });
   if (!e) notFound();
+  const po = ctx.preview ? null : await rpc<ClientPoStatus>(ctx.supabase, "client_estimate_po_status", { p_estimate: id });
   const st = estimateStatus(e);
   const waitingForMe = e.status === "sent" && !e.decision;
 
@@ -64,6 +70,27 @@ export default async function ClientEstimate({ params, searchParams }: { params:
         </div>
 
         <div className="flex flex-col gap-6">
+          {po && (po.needed || po.provided.length > 0) && (
+            <Panel title="Your purchase order">
+              <div className="space-y-3 px-5 py-4 text-sm">
+                {po.provided.length > 0 && (
+                  <ul className="space-y-0.5">{po.provided.map((p) => <li key={p.po_number}><b>{p.po_number}</b> <span className="text-muted">· {fmtMoney(p.amount, e.currency, 2)} · {fmtDate(p.po_date)}</span></li>)}</ul>
+                )}
+                {po.needed && (
+                  <>
+                    <p className="rounded-lg bg-warn-soft p-3 text-warn">We need your purchase order number before we can place the order.{po.last_chased_at ? ` We last asked on ${fmtDate(po.last_chased_at)}.` : ""}</p>
+                    {ctx.preview ? <p className="text-muted">Turned off in preview.</p> : po.can_provide ? (
+                      <ClientActionForm action={provideClientPo} hidden={{ estimate_id: e.id }} submit="Send our PO number">
+                        <label className="label" htmlFor="po-number">Your purchase order number</label>
+                        <input id="po-number" name="po_number" required minLength={2} maxLength={80} className="input" />
+                        <p className="text-xs text-muted">This covers the full estimate ({fmtMoney(po.sell_price, e.currency, 2)}) unless you have already sent other purchase orders.</p>
+                      </ClientActionForm>
+                    ) : <p className="text-muted">Ask an approver on your team to send the purchase order.</p>}
+                  </>
+                )}
+              </div>
+            </Panel>
+          )}
           <Panel title="Your decision">
             <div className="px-5 py-4 text-sm">
               {ctx.preview ? (
@@ -93,7 +120,7 @@ export default async function ClientEstimate({ params, searchParams }: { params:
               ) : e.decision ? (
                 <p>
                   <b>{e.decision.decided_by_name}</b> {e.decision.decision === "approve" ? "approved" : "declined"} this on {fmtDate(e.decision.decided_at)}.
-                  {e.status === "sent" && " adm Indicia is confirming it now."}
+                  {e.status === "sent" && " We are confirming it now."}
                   {e.decision.comment && <span className="mt-2 block whitespace-pre-line text-muted">&ldquo;{e.decision.comment}&rdquo;</span>}
                 </p>
               ) : (

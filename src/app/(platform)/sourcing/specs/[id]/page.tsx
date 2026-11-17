@@ -8,12 +8,18 @@ import { COMPONENT_TYPES, money, ROUTES, SPEC_TYPES, specType } from "@/lib/sour
 import { computeSpecCo2e, deriveComponentWeight } from "@/lib/sourcing-emissions";
 import { rfqBlockers, specForm, testingLabel, type SpecHub, type SpecRevision } from "@/lib/sourcing-hub";
 import { Card, PageHead, Panel, Pill } from "@/components/ui";
+import { ImpactGradeBadge } from "@/components/impact-grade/grade-badge";
+import { getCarbonIntensity, getSpecGrades } from "@/lib/impact-grade-data";
+import { IntensityChip } from "@/components/impact-grade/intensity-chip";
+import { GradeRecordPanel } from "@/components/impact-grade/grade-record";
+import { getGradeOptions, getRecord, toRecordView } from "@/lib/impact-grade-spec";
+import { getClientTargets } from "@/lib/client-targets-data";
 import { ActionForm, Field } from "@/components/sourcing/action-form";
 import { ActivityList, Facts, RoutePill, Td, Th, fmtDateTime } from "@/components/sourcing/bits";
 import { ApprovalRequests } from "@/components/approvals/requests";
 import { SubstrateSelect } from "@/components/sourcing/spec-fields";
 import { SpecHubFields } from "@/components/sourcing/spec-hub-fields";
-import { addComponent, addVersion, deleteComponent, deleteVersion, overrideTriage, recomputeSpec, reviseSpec, runTriage, updateSpec, updateSpecDetails } from "../../actions";
+import { addComponent, addVersion, deleteComponent, deleteVersion, overrideTriage, pickRateCard, recomputeSpec, reviseSpec, runTriage, updateSpec, updateSpecDetails } from "../../actions";
 import { getSheetDetails, getSheetRows } from "@/lib/tech-sheet-data";
 import { SpecTechSheets } from "@/components/tech-sheet/internal-panel";
 import { DuplicateDialog } from "@/components/repeat/duplicate-dialog";
@@ -27,6 +33,11 @@ type RepeatContext = {
   verified_sheet: { sheet_ref: string; supplier_name: string } | null;
 };
 
+type RateCardChoice = {
+  id: string; code: string; name: string; supplier_name: string | null; eligible: boolean; graded: boolean; grade_score: number | null; grade_confidence: number | null; client_specific: boolean;
+  unit_price: number; currency: string; size_dev: number; qty_ok: boolean; route: "adopt" | "adapt" | "push" | null;
+};
+
 export const metadata: Metadata = { title: "Spec" };
 
 /** Spec | Technical & packaging tabs. */
@@ -38,14 +49,28 @@ function SpecTabs({ id, tab, count }: { id: string; tab: string; count: number }
   return <nav className="flex gap-1 border-b border-line">{t("spec", "Spec")}{t("tech", `Technical & packaging${count ? ` (${count})` : ""}`)}</nav>;
 }
 
-export default async function SpecPage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ tab?: string }> }) {
+export default async function SpecPage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ tab?: string; from?: string; outcome?: string }> }) {
   const me = await requireInternal();
   const { id } = await params;
-  const tab = (await searchParams).tab === "tech" ? "tech" : "spec";
+  const sp = await searchParams;
+  const tab = sp.tab === "tech" ? "tech" : "spec";
+  const cardOutcome = sp.from === "rate-card" ? ({
+    routed: "Brief, job and spec created from the rate card. The line is routed to the card's price, with no RFQ.",
+    awaiting_approval: "Brief, job and spec created from the rate card. A second sourcing lead has to approve skipping the RFQ.",
+    needs_lead: "Brief, job and spec created from the rate card. The line waits at Create until a sourcing lead confirms the card in the Triage panel.",
+  } as Record<string, string>)[sp.outcome ?? ""] ?? null : null;
   const supabase = await createClient();
   const spec = (await getSpec(supabase, id)) as SpecHub | null;
   if (!spec) notFound();
   const sheetRows = await getSheetRows(supabase, { spec_id: id });
+  // What the HS code library suggests for this product, sub-product and material mix (the spec's own HS code is never overwritten).
+  const hsSuggestion = ((await supabase.rpc("hs_code_resolve", { p_spec: id })).data ?? { hs_code: null }) as { hs_code: string | null; basis: "rule" | "product_default" | null; rule_code?: string; rule_name?: string };
+  const hsHint = hsSuggestion.hs_code
+    ? `Library suggests ${hsSuggestion.hs_code}${hsSuggestion.basis === "rule" ? ` (rule ${hsSuggestion.rule_code}: ${hsSuggestion.rule_name})` : ` (default for ${hsSuggestion.rule_name})`}${spec.hs_code && spec.hs_code !== hsSuggestion.hs_code ? ". The code on this spec differs; check it" : ""}`
+    : "No HS code rule fits this product and material yet. Add one in Watchtower > Libraries > HS code rules";
+  // Every live rate card that could price this line, so a sourcing lead can choose one.
+  const cardChoices: RateCardChoice[] = tab === "spec" && spec.route && !spec.is_draft && spec.push_status !== "accepted"
+    ? ((await supabase.rpc("spec_triage_cards", { p_spec: id })).data as RateCardChoice[] | null) ?? [] : [];
   if (tab === "tech") {
     // Suppliers on this spec: invited to quote on it, or on an estimate / PO for it.
     const lineRows = await rows<{ rfq_id: string }>(supabase, "rfq_lines", { eq: { spec_id: id } });
@@ -92,6 +117,13 @@ export default async function SpecPage({ params, searchParams }: { params: Promi
     supabase.from("brief_handoffs").select("brief_id, payload").eq("seeded_spec_id", id).maybeSingle(),
   ]);
   const seed = seedRow as { brief_id: string; payload: { brief?: { code?: string; title?: string }; concept?: { name?: string } } } | null;
+  const [grades, clientTargets, intensity] = await Promise.all([getSpecGrades(supabase, [id]), getClientTargets(supabase, (jobRow as { client_id: string } | null)?.client_id ?? null),
+    getCarbonIntensity(supabase, { specIds: [id] })]);
+  const gradeRec = await getRecord(supabase, "spec", id);
+  let gradeSupplierName: string | null = null;
+  if (gradeRec?.supplier_id) gradeSupplierName = ((await supabase.from("suppliers").select("name").eq("id", gradeRec.supplier_id).maybeSingle()).data as { name: string } | null)?.name ?? null;
+  const gradeView = gradeRec ? toRecordView(gradeRec, gradeSupplierName) : null;
+  const gradeOptions = await getGradeOptions(supabase);
   const jobsForRepeat = ((openJobs ?? []) as { id: string; job_number: string; title: string; status: string }[]).filter((j) => !["closed", "cancelled"].includes(j.status));
   const repeat = repeatCtx as RepeatContext | null;
   const live = computeSpecCo2e({ spec, versions, components, substratesById: libs.substrates, factorsByCode: libs.factors, singleSubstrate: spec.substrate_id ? libs.substrates[spec.substrate_id] : null });
@@ -109,6 +141,8 @@ export default async function SpecPage({ params, searchParams }: { params: Promi
         {spec.is_draft && <Pill tone="warn">Draft</Pill>}
         <Pill tone="info">Revision {spec.revision ?? 1}</Pill>
         <RoutePill route={spec.route} confidence={spec.confidence} />
+        <ImpactGradeBadge score={grades.get(id)} floor={clientTargets?.impact_grade_floor} />
+        <IntensityChip economic={intensity[0]?.economic_intensity} physical={intensity[0]?.physical_intensity} />
         <DuplicateDialog label="Duplicate for repeat order" title={`Duplicate spec ${spec.spec_no}: ${spec.title}`} submit="Create the repeat spec" action={duplicateSpec} hidden={{ id }}
           sub="Copies every product field, the versions and the bill of materials as a draft, linked to this spec. The RFQ, quotes, triage, estimates and POs are not copied.">
           <Field label="Put it on job" htmlFor="dup-job">
@@ -122,6 +156,7 @@ export default async function SpecPage({ params, searchParams }: { params: Promi
         </DuplicateDialog>
       </PageHead>
       <SpecTabs id={id} tab={tab} count={sheetRows.length} />
+      {cardOutcome && <Card className="border-ok/40 bg-ok-soft px-5 py-3 text-sm">{cardOutcome}</Card>}
       {repeat && (
         <Card className="flex flex-wrap items-start gap-x-6 gap-y-2 border-accent/30 px-5 py-3 text-sm">
           <span className="inline-flex items-center gap-1.5 font-semibold"><MSymbol name="repeat" size={18} className="text-accent" /> Repeat order</span>
@@ -144,6 +179,9 @@ export default async function SpecPage({ params, searchParams }: { params: Promi
       {locked && <Card className="border-warn/40 bg-warn-soft px-5 py-3 text-sm text-warn">This spec is on a sent RFQ, so suppliers are quoting on it. To change it, use <b>Revise spec</b> below: a new revision is saved with your note, the RFQ is flagged &quot;spec changed&quot; and the invited suppliers are asked to re-quote. The revision they quoted on stays on record.</Card>}
       {onDraftRfq && <Card className="px-5 py-3 text-sm text-muted">This spec is on a draft RFQ. Edit it freely until the RFQ is sent.</Card>}
       {blockers.length > 0 && <Card className="border-bad/30 bg-bad-soft px-5 py-3 text-sm text-bad">Before this spec can go out on an RFQ, add: {blockers.join(", ")}.</Card>}
+      <Panel title="Impact Grade" sub="Calculated from this spec, the supplier's SRM scorecard and the PEF model. Every input shows how well it is evidenced; confidence rises and the range narrows as better evidence arrives.">
+        <GradeRecordPanel specId={id} record={gradeView} options={gradeOptions} />
+      </Panel>
 
       <div className="grid gap-4 xl:grid-cols-3">
         <div className="space-y-4 xl:col-span-2">
@@ -185,7 +223,7 @@ export default async function SpecPage({ params, searchParams }: { params: Promi
                   <Field label="Size unit" htmlFor="size_unit">
                     <select id="size_unit" name="size_unit" defaultValue={spec.size_unit ?? "mm"} className="input"><option>mm</option><option>cm</option><option>in</option></select>
                   </Field>
-                  <Field label="HS code" htmlFor="hs_code" hint="Suggested from the dominant material; check it"><input id="hs_code" name="hs_code" defaultValue={spec.hs_code ?? ""} className="input" /></Field>
+                  <Field label="HS code" htmlFor="hs_code" hint={hsHint}><input id="hs_code" name="hs_code" defaultValue={spec.hs_code ?? ""} className="input" /></Field>
                   <Field label="Pages (paper items)" htmlFor="total_pages"><input id="total_pages" name="total_pages" inputMode="numeric" defaultValue={String(spec.spec_data?.total_pages ?? "")} className="input" /></Field>
                   <Field label="Supplier-confirmed unit weight (g)" htmlFor="supplier_confirmed_unit_weight_grams" hint="Promo, merch and custom items">
                     <input id="supplier_confirmed_unit_weight_grams" name="supplier_confirmed_unit_weight_grams" inputMode="decimal" defaultValue={String(spec.spec_data?.supplier_confirmed_unit_weight_grams ?? "")} className="input" />
@@ -292,6 +330,28 @@ export default async function SpecPage({ params, searchParams }: { params: Promi
                 </>
               ) : <p className="text-muted">Not triaged yet.</p>}
               {!spec.is_draft && spec.push_status !== "accepted" && <ActionForm action={runTriage} hidden={{ id }} submit={spec.route ? "Re-run triage" : "Run triage"} variant="primary" />}
+              {cardChoices.length > 0 && (
+                <details className="rounded-lg border border-line p-3">
+                  <summary className="cursor-pointer font-semibold">Choose a rate card ({cardChoices.length})</summary>
+                  <div className="mt-3 space-y-3">
+                    <ul className="space-y-1.5">
+                      {cardChoices.map((c) => (
+                        <li key={c.id} className="flex flex-wrap items-baseline justify-between gap-2 rounded-md border border-line px-3 py-2">
+                          <span><b>{c.name}</b> <span className="text-muted">{c.code} · {c.supplier_name ?? "No supplier"}{c.client_specific ? " · this client only" : ""}</span></span>
+                          <span className="tabular-nums">{money(c.unit_price, c.currency, 2)} · {c.size_dev}% size off · {c.qty_ok ? "quantity fits" : "quantity outside the card"}{" "}
+                            {c.graded ? <ImpactGradeBadge score={c.grade_score} compact /> : <Pill tone="warn">No reviewed grade</Pill>}{" "}
+                            {c.route ? <Pill tone={c.route === "adopt" ? "ok" : "info"}>{c.route === "push" ? "Supplier confirms" : c.route === "adapt" ? "Adapt" : "Adopt"}</Pill> : <Pill tone="bad">Supplier not eligible</Pill>}
+                            {spec.rate_card_name === c.name && <> <Pill tone="neutral">Applied</Pill></>}</span>
+                        </li>
+                      ))}
+                    </ul>
+                    <ActionForm action={pickRateCard} hidden={{ id }} submit="Use this card" variant="secondary">
+                      <Field label="Card" htmlFor="card"><select id="card" name="card" className="input">{cardChoices.filter((c) => c.eligible && c.graded).map((c) => <option key={c.id} value={c.id}>{c.name} ({c.code})</option>)}</select></Field>
+                      <Field label="Reason" htmlFor="card-reason" hint="Only a sourcing lead can choose. The line is priced from the card with no RFQ. Where the approval policy says so, a second lead approves it first."><input id="card-reason" name="reason" required className="input" /></Field>
+                    </ActionForm>
+                  </div>
+                </details>
+              )}
               {spec.route && spec.push_status !== "accepted" && (
                 <details className="rounded-lg border border-line p-3">
                   <summary className="cursor-pointer font-semibold">Override the route</summary>
@@ -335,7 +395,7 @@ export default async function SpecPage({ params, searchParams }: { params: Promi
               ["Spec form", specForm(spec.spec_form).label], ["Category", [spec.product_category, spec.product_sub_type].filter(Boolean).join(" · ") || null],
               ["Branding", spec.branding_method_name], ["AQL", spec.aql_level_name],
               ["Testing", (spec.testing_checklist ?? []).length ? (spec.testing_checklist ?? []).map(testingLabel).join(", ") : null],
-              ["HS code", spec.hs_code], ["Origin", spec.origin_country], ["MOQ / SU", spec.moq || spec.selling_unit_qty ? `${spec.moq ?? "—"} / ${spec.selling_unit_qty ?? "—"} ${spec.unit_of_measure ?? ""}` : null],
+              ["HS code", spec.hs_code ? `${spec.hs_code}${hsSuggestion.hs_code && hsSuggestion.hs_code !== spec.hs_code ? ` (library suggests ${hsSuggestion.hs_code})` : ""}` : hsSuggestion.hs_code ? `None set (library suggests ${hsSuggestion.hs_code})` : null], ["Origin", spec.origin_country], ["MOQ / SU", spec.moq || spec.selling_unit_qty ? `${spec.moq ?? "—"} / ${spec.selling_unit_qty ?? "—"} ${spec.unit_of_measure ?? ""}` : null],
               ["Weights (net / gross)", spec.net_weight_kg != null || spec.gross_weight_kg != null ? `${spec.net_weight_kg ?? "—"} / ${spec.gross_weight_kg ?? "—"} kg` : null],
               ["Reusable", spec.reusable == null ? null : spec.reusable ? `Yes${spec.number_of_uses ? `, ${spec.number_of_uses} uses` : ""}` : "No"],
               ["Recycled content", spec.recycled_content_percent != null ? `${spec.recycled_content_percent}%` : null],

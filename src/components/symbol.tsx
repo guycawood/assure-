@@ -1,7 +1,7 @@
 import { clsx } from "clsx";
 
 /**
- * Google Material Symbols (Rounded), the icon set named in the adm Indicia brand guidelines (fonts.google.com/icons).
+ * Google Material Symbols (Rounded), the icon set named in the brand guidelines (fonts.google.com/icons).
  * The font is loaded in the root layout. `name` is the symbol's ligature, e.g. "local_shipping".
  */
 export function MSymbol({ name, size = 20, fill, className, style, label }: {

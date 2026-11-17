@@ -1,0 +1,3120 @@
+{
+ "source": "Global Business Transformation artifact (claude.ai/artifact/UTjH6dhWiLJgSBog7We3kZ)",
+ "capturedAt": "2026-11-11",
+ "processes": [
+  {
+   "id": "client-brief",
+   "name": "Client brief intake and validation",
+   "variant": "Target",
+   "lanes": {
+    "client": "Client (marketing / buying)",
+    "at": "Account team / project manager",
+    "cr": "Creative team"
+   },
+   "steps": [
+    {
+     "id": "b1",
+     "type": "start",
+     "lane": "client",
+     "text": "Client creates project and brief with all mandatory data",
+     "system": "a/i platform, client platform, or email and phone",
+     "target": "System Guy: Briefing+ (client portal)"
+    },
+    {
+     "id": "b2",
+     "type": "step",
+     "lane": "client",
+     "text": "Client sets brief type: artworking, creative ideation, product brief",
+     "system": "Platform",
+     "target": "System Guy: Briefing+"
+    },
+    {
+     "id": "b3",
+     "type": "step",
+     "lane": "at",
+     "text": "Receive brief, create job or project, record 'client brief received'",
+     "system": "Project / order management system",
+     "target": "System Guy: Sourcing"
+    },
+    {
+     "id": "b4",
+     "type": "decision",
+     "lane": "at",
+     "text": "Creative input needed?",
+     "system": null,
+     "target": null
+    },
+    {
+     "id": "b5",
+     "type": "step",
+     "lane": "cr",
+     "text": "Project manager reviews brief with operational creative",
+     "system": null,
+     "target": "System Guy: Briefing+ ideation"
+    },
+    {
+     "id": "b7",
+     "type": "decision",
+     "lane": "at",
+     "text": "Brief clear and complete?",
+     "system": null,
+     "target": null
+    },
+    {
+     "id": "b6",
+     "type": "step",
+     "lane": "at",
+     "text": "Send brief back to client with the reason; set up client meeting if needed",
+     "system": "Platform, email",
+     "target": null
+    },
+    {
+     "id": "b8",
+     "type": "end",
+     "lane": "at",
+     "text": "Record 'client brief complete', hand over to sourcing or creative",
+     "system": "Project / order management system",
+     "target": null
+    },
+    {
+     "id": "smw0m8wx5a",
+     "type": "step",
+     "lane": "client",
+     "text": "New step",
+     "system": null,
+     "target": null
+    },
+    {
+     "id": "ig1",
+     "type": "step",
+     "lane": "at",
+     "text": "Check the client's sustainability targets and Impact Grade floor against the brief; flag gaps",
+     "system": "System Guy: CRM client profile, Briefing+",
+     "target": "System Guy: Impact Grade, CRM"
+    }
+   ]
+  },
+  {
+   "id": "creative-work",
+   "name": "Creative work needed",
+   "variant": "Target",
+   "lanes": {
+    "client": "Client (marketing / buying)",
+    "at": "Account team / project manager",
+    "ctm": "Creative traffic management",
+    "cr": "Creative team",
+    "sup": "Supplier or external agency"
+   },
+   "steps": [
+    {
+     "id": "cr1",
+     "type": "start",
+     "lane": "at",
+     "text": "Complete creative brief received",
+     "system": "Platform",
+     "target": null
+    },
+    {
+     "id": "cr2",
+     "type": "step",
+     "lane": "at",
+     "text": "Project manager assigns creative resource",
+     "system": null,
+     "target": null
+    },
+    {
+     "id": "cr3",
+     "type": "decision",
+     "lane": "at",
+     "text": "Client on a retainer?",
+     "system": null,
+     "target": null
+    },
+    {
+     "id": "cr5",
+     "type": "step",
+     "lane": "cr",
+     "text": "Choose quoting basis and produce the creative quote",
+     "system": null,
+     "target": null
+    },
+    {
+     "id": "cr4",
+     "type": "step",
+     "lane": "cr",
+     "text": "Kick off with client and start without a quote",
+     "system": null,
+     "target": null
+    },
+    {
+     "id": "cr6",
+     "type": "decision",
+     "lane": "client",
+     "text": "Quote approved?",
+     "system": null,
+     "target": null
+    },
+    {
+     "id": "cr9",
+     "type": "step",
+     "lane": "at",
+     "text": "Log rejection reason; project manager receives notice",
+     "system": "Platform",
+     "target": null
+    },
+    {
+     "id": "cr7",
+     "type": "step",
+     "lane": "at",
+     "text": "Confirm quote approval and PO on system",
+     "system": "Platform",
+     "target": null
+    },
+    {
+     "id": "cr8",
+     "type": "step",
+     "lane": "cr",
+     "text": "Creative development or production work",
+     "system": null,
+     "target": null
+    },
+    {
+     "id": "cr10",
+     "type": "decision",
+     "lane": "cr",
+     "text": "Supplier input needed?",
+     "system": null,
+     "target": null
+    },
+    {
+     "id": "cr11",
+     "type": "step",
+     "lane": "ctm",
+     "text": "Prepare supplier brief, create RFI for panel suppliers",
+     "system": "Platform",
+     "target": null
+    },
+    {
+     "id": "cr12",
+     "type": "decision",
+     "lane": "sup",
+     "text": "Confirm or reject the RFI?",
+     "system": null,
+     "target": null
+    },
+    {
+     "id": "cr12a",
+     "type": "step",
+     "lane": "sup",
+     "text": "Confirm IP rule, send ideation proposal",
+     "system": "Platform",
+     "target": null
+    },
+    {
+     "id": "cr12b",
+     "type": "step",
+     "lane": "ctm",
+     "text": "Log rejection reason, add another supplier if needed",
+     "system": "Platform",
+     "target": null
+    },
+    {
+     "id": "cr13",
+     "type": "step",
+     "lane": "cr",
+     "text": "Internal QA sign-off, then send proposal to client",
+     "system": null,
+     "target": null
+    },
+    {
+     "id": "cr15",
+     "type": "decision",
+     "lane": "client",
+     "text": "Client feedback?",
+     "system": null,
+     "target": null
+    },
+    {
+     "id": "cr16",
+     "type": "decision",
+     "lane": "at",
+     "text": "Samples needed?",
+     "system": null,
+     "target": null
+    },
+    {
+     "id": "cr17",
+     "type": "end",
+     "lane": "client",
+     "text": "Project lost or cancelled, reason logged",
+     "system": "Platform",
+     "target": null
+    },
+    {
+     "id": "cr18",
+     "type": "step",
+     "lane": "sup",
+     "text": "Product sampling process",
+     "system": null,
+     "target": null
+    },
+    {
+     "id": "cr19",
+     "type": "step",
+     "lane": "cr",
+     "text": "Prepare final files and send to client",
+     "system": null,
+     "target": null
+    },
+    {
+     "id": "cr20",
+     "type": "end",
+     "lane": "at",
+     "text": "Issue client invoice",
+     "system": "Accounting system",
+     "target": null
+    }
+   ]
+  },
+  {
+   "id": "sourcing-adm",
+   "name": "Sourcing from client brief to offer",
+   "variant": "adm legacy",
+   "lanes": {
+    "client": "Client",
+    "at": "Account team",
+    "rbh": "RBH buyers",
+    "sup": "Supplier"
+   },
+   "steps": [
+    {
+     "id": "a1",
+     "type": "start",
+     "lane": "client",
+     "text": "Sends brief to account team",
+     "system": null,
+     "target": null
+    },
+    {
+     "id": "a2",
+     "type": "step",
+     "lane": "at",
+     "text": "Fill briefing form with all information and specs",
+     "system": "Airtable",
+     "target": "System Guy: Briefing+"
+    },
+    {
+     "id": "a3",
+     "type": "decision",
+     "lane": "at",
+     "text": "Sourced by RBH or by the account team?",
+     "system": null,
+     "target": null
+    },
+    {
+     "id": "a4",
+     "type": "step",
+     "lane": "rbh",
+     "text": "Buying manager receives brief and assigns a buyer",
+     "system": "Airtable",
+     "target": null
+    },
+    {
+     "id": "a5",
+     "type": "step",
+     "lane": "rbh",
+     "text": "Buyer reviews brief and sends RFQ to suppliers",
+     "system": "Email, offline",
+     "target": "System Guy: Sourcing (RFQ)"
+    },
+    {
+     "id": "a6",
+     "type": "step",
+     "lane": "sup",
+     "text": "Provides quote",
+     "system": "Email",
+     "target": "System Guy: Vendor portal"
+    },
+    {
+     "id": "a7",
+     "type": "step",
+     "lane": "rbh",
+     "text": "Submit all-cost quotes, selling price calculated",
+     "system": "Airtable price calculator",
+     "target": "System Guy: Sourcing, Order Management"
+    },
+    {
+     "id": "b1",
+     "type": "step",
+     "lane": "at",
+     "text": "Send RFQ to suppliers directly",
+     "system": "Email, offline",
+     "target": null
+    },
+    {
+     "id": "b2",
+     "type": "step",
+     "lane": "sup",
+     "text": "Provides quote",
+     "system": "Email",
+     "target": null
+    },
+    {
+     "id": "b3",
+     "type": "step",
+     "lane": "at",
+     "text": "Select quote and calculate offer",
+     "system": "Airtable",
+     "target": "System Guy: Sourcing, Order Management"
+    },
+    {
+     "id": "a8",
+     "type": "step",
+     "lane": "at",
+     "text": "Submit offer: estimate from Quote Generator, by email or InTouch",
+     "system": "Quote Generator, InTouch",
+     "target": "System Guy: Order Management"
+    },
+    {
+     "id": "a9",
+     "type": "end",
+     "lane": "client",
+     "text": "Client receives offer",
+     "system": null,
+     "target": null
+    },
+    {
+     "id": "ig4",
+     "type": "step",
+     "lane": "at",
+     "text": "Calculate the provisional Impact Grade on the spec and compare it with the client's floor",
+     "system": "System Guy: Impact Grade",
+     "target": "System Guy: Impact Grade"
+    },
+    {
+     "id": "ig5",
+     "type": "step",
+     "lane": "at",
+     "text": "Recalculate the Impact Grade with the chosen supplier's SRM score and PEF; check the client's floor before the offer",
+     "system": "System Guy: Impact Grade, SRM scorecard",
+     "target": "System Guy: Impact Grade, SRM"
+    }
+   ]
+  },
+  {
+   "id": "sourcing-indicia",
+   "name": "Sourcing in Sourcing Hub",
+   "variant": "Indicia legacy",
+   "lanes": {
+    "client": "Client",
+    "prod": "Production team",
+    "sup": "Supplier"
+   },
+   "steps": [
+    {
+     "id": "c1",
+     "type": "start",
+     "lane": "client",
+     "text": "Sends brief to production team",
+     "system": null,
+     "target": null
+    },
+    {
+     "id": "c2",
+     "type": "decision",
+     "lane": "prod",
+     "text": "Creative development required?",
+     "system": null,
+     "target": null
+    },
+    {
+     "id": "c3",
+     "type": "sub",
+     "lane": "prod",
+     "text": "Creative development with retail or supplier",
+     "system": "Offline",
+     "target": "System Guy: Briefing+ ideation"
+    },
+    {
+     "id": "c4",
+     "type": "step",
+     "lane": "prod",
+     "text": "Create job and spec",
+     "system": "Sourcing Hub",
+     "target": "System Guy: Sourcing"
+    },
+    {
+     "id": "c5",
+     "type": "step",
+     "lane": "prod",
+     "text": "Pick from proposed suppliers, send RFQ",
+     "system": "Sourcing Hub",
+     "target": "System Guy: Sourcing (RFQ)"
+    },
+    {
+     "id": "c6",
+     "type": "step",
+     "lane": "sup",
+     "text": "Quote directly in Sourcing Hub",
+     "system": "Sourcing Hub",
+     "target": "System Guy: Vendor portal"
+    },
+    {
+     "id": "c7",
+     "type": "step",
+     "lane": "prod",
+     "text": "Select quote, selling price calculated automatically",
+     "system": "Sourcing Hub",
+     "target": "System Guy: Sourcing, Order Management"
+    },
+    {
+     "id": "c8",
+     "type": "end",
+     "lane": "client",
+     "text": "Client receives offer",
+     "system": null,
+     "target": null
+    },
+    {
+     "id": "ig2",
+     "type": "step",
+     "lane": "prod",
+     "text": "Calculate the provisional Impact Grade on the spec and compare it with the client's floor",
+     "system": "System Guy: Impact Grade, Sourcing Hub",
+     "target": "System Guy: Impact Grade"
+    },
+    {
+     "id": "ig3",
+     "type": "step",
+     "lane": "prod",
+     "text": "Recalculate the Impact Grade with the chosen supplier's SRM score and PEF; a second person reviews it before the offer",
+     "system": "System Guy: Impact Grade, SRM scorecard",
+     "target": "System Guy: Impact Grade, SRM"
+    }
+   ]
+  },
+  {
+   "id": "rfp-process",
+   "name": "RFP process",
+   "variant": "Target",
+   "lanes": {
+    "client": "Client (marketing / buying)",
+    "at": "Client services / production services / account team",
+    "cr": "Creative team and creative traffic management",
+    "sup": "Product supplier"
+   },
+   "steps": [
+    {
+     "id": "r1",
+     "type": "start",
+     "lane": "at",
+     "text": "Brief confirmed; discuss challenges and solutions with the client where needed",
+     "system": "Project / order management system",
+     "target": null
+    },
+    {
+     "id": "r2",
+     "type": "decision",
+     "lane": "at",
+     "text": "Does the product need internal creative work (technical plans)?",
+     "system": null,
+     "target": null
+    },
+    {
+     "id": "r3",
+     "type": "step",
+     "lane": "at",
+     "text": "Issue technical file request to the creative team",
+     "system": "Project / order management system",
+     "target": null
+    },
+    {
+     "id": "r4",
+     "type": "decision",
+     "lane": "cr",
+     "text": "Is the brief clear, concise and feasible (technically or on budget)?",
+     "system": null,
+     "target": null
+    },
+    {
+     "id": "r5",
+     "type": "step",
+     "lane": "cr",
+     "text": "Assign creative resource; technical creative work done; issue initial technical file",
+     "system": null,
+     "target": null
+    },
+    {
+     "id": "r6",
+     "type": "step",
+     "lane": "at",
+     "text": "Create RFP, selecting one or several suppliers",
+     "system": "Project / order management system",
+     "target": null
+    },
+    {
+     "id": "r7",
+     "type": "step",
+     "lane": "sup",
+     "text": "Receive RFP; clarify points through the chat system if needed",
+     "system": "Platform",
+     "target": null
+    },
+    {
+     "id": "r8",
+     "type": "decision",
+     "lane": "sup",
+     "text": "Confirm or reject the RFP?",
+     "system": "Platform",
+     "target": null
+    },
+    {
+     "id": "r9",
+     "type": "step",
+     "lane": "sup",
+     "text": "Click 'Confirm, will bid'; issue production proposal including estimate quote",
+     "system": "Platform",
+     "target": null
+    },
+    {
+     "id": "r10",
+     "type": "step",
+     "lane": "at",
+     "text": "Review the quote and request a sampling quote; create the sampling job",
+     "system": "Project / order management system",
+     "target": null
+    },
+    {
+     "id": "r11",
+     "type": "step",
+     "lane": "sup",
+     "text": "Issue sample quote",
+     "system": "Platform",
+     "target": null
+    },
+    {
+     "id": "r12",
+     "type": "decision",
+     "lane": "at",
+     "text": "Does the client need to approve the sample quote?",
+     "system": null,
+     "target": null
+    },
+    {
+     "id": "r13",
+     "type": "step",
+     "lane": "client",
+     "text": "Approve the sample quote; send client PO",
+     "system": "Client platform / email",
+     "target": null
+    },
+    {
+     "id": "r14",
+     "type": "step",
+     "lane": "at",
+     "text": "Issue sample PO; it is sent to the supplier automatically",
+     "system": "Project / order management system",
+     "target": null
+    },
+    {
+     "id": "r15",
+     "type": "end",
+     "lane": "sup",
+     "text": "Click 'Reject, will not bid' and select a rejection reason (comment mandatory)",
+     "system": "Platform",
+     "target": null
+    },
+    {
+     "id": "r16",
+     "type": "step",
+     "lane": "sup",
+     "text": "Confirm sample launch on the system and launch the sample; send photos or video",
+     "system": "Platform",
+     "target": null
+    },
+    {
+     "id": "r17",
+     "type": "decision",
+     "lane": "client",
+     "text": "Concept approved?",
+     "system": null,
+     "target": null
+    },
+    {
+     "id": "r18",
+     "type": "step",
+     "lane": "client",
+     "text": "Sign off technical drawing",
+     "system": null,
+     "target": null
+    },
+    {
+     "id": "r19",
+     "type": "step",
+     "lane": "sup",
+     "text": "Rework the sample",
+     "system": null,
+     "target": null
+    },
+    {
+     "id": "r20",
+     "type": "step",
+     "lane": "sup",
+     "text": "Send sample; upload invoice and proof of delivery",
+     "system": "Platform",
+     "target": null
+    },
+    {
+     "id": "r21",
+     "type": "decision",
+     "lane": "at",
+     "text": "Receive the sample and check conformity: sample OK?",
+     "system": "Project / order management system",
+     "target": null
+    },
+    {
+     "id": "r22",
+     "type": "step",
+     "lane": "at",
+     "text": "Click 'Sample OK internally'; service reception notice is generated automatically; invoice the client for the sample; send sample to client",
+     "system": "Project / order management system",
+     "target": null
+    },
+    {
+     "id": "r23",
+     "type": "step",
+     "lane": "at",
+     "text": "Click 'Sample rejected internally'; the sample PO is invalidated automatically",
+     "system": "Project / order management system",
+     "target": null
+    },
+    {
+     "id": "r24",
+     "type": "decision",
+     "lane": "client",
+     "text": "Does the client approve the sample?",
+     "system": null,
+     "target": null
+    },
+    {
+     "id": "r25",
+     "type": "end",
+     "lane": "client",
+     "text": "Confirm order, send books or confirm launch of RFQ (depends on the client)",
+     "system": null,
+     "target": null
+    },
+    {
+     "id": "r26",
+     "type": "end",
+     "lane": "at",
+     "text": "Record the cancellation and reason; supplier is notified",
+     "system": "Project / order management system",
+     "target": null
+    }
+   ]
+  },
+  {
+   "id": "supplier-mgmt",
+   "name": "Supplier onboarding",
+   "variant": "Both",
+   "lanes": {
+    "l1": "Lane to be defined"
+   },
+   "steps": []
+  },
+  {
+   "id": "supplier-onboarding-adm",
+   "name": "Supplier onboarding, StockTool route",
+   "variant": "adm legacy",
+   "lanes": {
+    "req": "Requestor / account team",
+    "proc": "Procurement team",
+    "sup": "Supplier"
+   },
+   "steps": [
+    {
+     "id": "a1",
+     "type": "start",
+     "lane": "req",
+     "text": "Request supplier onboarding in StockTool by filling in all supplier information; the system sends it to the PIC for approval",
+     "system": "StockTool",
+     "target": null
+    },
+    {
+     "id": "a2",
+     "type": "decision",
+     "lane": "proc",
+     "text": "Procurement lead reviews the request: accept or reject?",
+     "system": "StockTool",
+     "target": null
+    },
+    {
+     "id": "a3",
+     "type": "step",
+     "lane": "proc",
+     "text": "Share the RFI and required documents with the account team",
+     "system": "Email",
+     "target": null
+    },
+    {
+     "id": "a4",
+     "type": "step",
+     "lane": "req",
+     "text": "Send the RFI and all required documents to the supplier",
+     "system": "Email",
+     "target": null
+    },
+    {
+     "id": "a5",
+     "type": "step",
+     "lane": "sup",
+     "text": "Send back the filled-out documents to the account team",
+     "system": "Email",
+     "target": null
+    },
+    {
+     "id": "a6",
+     "type": "end",
+     "lane": "proc",
+     "text": "Review the information and approve; supplier can be used and paid",
+     "system": "Email and StockTool",
+     "target": null
+    },
+    {
+     "id": "a7",
+     "type": "end",
+     "lane": "req",
+     "text": "Request rejected; requestor and supplier are notified",
+     "system": "StockTool",
+     "target": null
+    }
+   ]
+  },
+  {
+   "id": "supplier-onboarding-indicia",
+   "name": "Supplier onboarding, Smartsheet route",
+   "variant": "Indicia legacy",
+   "lanes": {
+    "req": "Requestor",
+    "coe": "COE team (SRT team)",
+    "cm": "Category management",
+    "sup": "Supplier",
+    "qm": "Quality management",
+    "erp": "ERP team"
+   },
+   "steps": [
+    {
+     "id": "i1",
+     "type": "start",
+     "lane": "req",
+     "text": "Fill in the onboarding request",
+     "system": "Smartsheet",
+     "target": "System Guy: SRM (onboarding desk)"
+    },
+    {
+     "id": "i2",
+     "type": "step",
+     "lane": "coe",
+     "text": "Automation sends the approval request",
+     "system": "Smartsheet",
+     "target": "System Guy: SRM (onboarding desk)"
+    },
+    {
+     "id": "i3",
+     "type": "decision",
+     "lane": "cm",
+     "text": "Confirm the supplier is of interest?",
+     "system": "Smartsheet",
+     "target": null
+    },
+    {
+     "id": "i4",
+     "type": "end",
+     "lane": "req",
+     "text": "Request rejected and sent back to the requestor",
+     "system": "Smartsheet",
+     "target": null
+    },
+    {
+     "id": "i5",
+     "type": "step",
+     "lane": "coe",
+     "text": "Automation informs the team of the new onboarding; request is assigned to a COE member",
+     "system": "Smartsheet",
+     "target": "System Guy: SRM (onboarding desk)"
+    },
+    {
+     "id": "i6",
+     "type": "step",
+     "lane": "coe",
+     "text": "COE member sends the RFI to the supplier",
+     "system": "Smartsheet",
+     "target": "System Guy: SRM (onboarding desk)"
+    },
+    {
+     "id": "i7",
+     "type": "step",
+     "lane": "sup",
+     "text": "Fill in the form and share the RFI back to the COE team",
+     "system": null,
+     "target": "System Guy: Vendor portal"
+    },
+    {
+     "id": "i8",
+     "type": "step",
+     "lane": "coe",
+     "text": "Search external databases for the supplier (FSC and SEDEX) at the same time; record information in the tracker",
+     "system": "Smartsheet, FSC, SEDEX",
+     "target": null
+    },
+    {
+     "id": "i9",
+     "type": "decision",
+     "lane": "coe",
+     "text": "Is the RFI complete?",
+     "system": "Smartsheet",
+     "target": null
+    },
+    {
+     "id": "i10",
+     "type": "step",
+     "lane": "coe",
+     "text": "Call or email the supplier to clarify the information",
+     "system": "Email / phone",
+     "target": null
+    },
+    {
+     "id": "i11",
+     "type": "step",
+     "lane": "coe",
+     "text": "Send the RFI for evaluation",
+     "system": "Smartsheet",
+     "target": null
+    },
+    {
+     "id": "i12",
+     "type": "decision",
+     "lane": "cm",
+     "text": "Supplier evaluation: are the minimum requirements met?",
+     "system": "Smartsheet",
+     "target": null
+    },
+    {
+     "id": "i13",
+     "type": "end",
+     "lane": "req",
+     "text": "Requestor and COE team are informed that the requirements are not met",
+     "system": "Smartsheet",
+     "target": null
+    },
+    {
+     "id": "i14",
+     "type": "step",
+     "lane": "qm",
+     "text": "Evaluation and rating by the quality manager",
+     "system": "Smartsheet",
+     "target": "System Guy: SRM scorecard"
+    },
+    {
+     "id": "i15",
+     "type": "decision",
+     "lane": "qm",
+     "text": "Are the minimum requirements met?",
+     "system": "Smartsheet",
+     "target": null
+    },
+    {
+     "id": "i16",
+     "type": "end",
+     "lane": "coe",
+     "text": "COE and category management are informed of the rejection",
+     "system": "Smartsheet",
+     "target": null
+    },
+    {
+     "id": "i17",
+     "type": "step",
+     "lane": "qm",
+     "text": "Quality manager runs supplier audits",
+     "system": null,
+     "target": "System Guy: SRM"
+    },
+    {
+     "id": "i18",
+     "type": "step",
+     "lane": "coe",
+     "text": "COE team is notified of approval and selects the contract",
+     "system": null,
+     "target": null
+    },
+    {
+     "id": "i19",
+     "type": "step",
+     "lane": "coe",
+     "text": "Send the contract to the supplier for signature (standard MCD, premiums, logistics and services, paper bespoke, RPP, client addendums)",
+     "system": "PandaDoc",
+     "target": null
+    },
+    {
+     "id": "i20",
+     "type": "step",
+     "lane": "coe",
+     "text": "Onboarding approval by the head of supply chain",
+     "system": "Email",
+     "target": null
+    },
+    {
+     "id": "i21",
+     "type": "step",
+     "lane": "coe",
+     "text": "Request bank details from the supplier",
+     "system": "Email",
+     "target": null
+    },
+    {
+     "id": "i22",
+     "type": "step",
+     "lane": "erp",
+     "text": "Create the supplier entity in NAV",
+     "system": "Navision",
+     "target": null
+    },
+    {
+     "id": "i23",
+     "type": "step",
+     "lane": "coe",
+     "text": "Create the supplier record in SRM (Assure+)",
+     "system": "SRM (Assure+)",
+     "target": "System Guy: SRM"
+    },
+    {
+     "id": "i24",
+     "type": "step",
+     "lane": "coe",
+     "text": "Request supplier creation in Sourcing Hub from the ERP team",
+     "system": "Smartsheet",
+     "target": null
+    },
+    {
+     "id": "i25",
+     "type": "step",
+     "lane": "coe",
+     "text": "Send the SEDEX membership invite link",
+     "system": "SEDEX",
+     "target": null
+    },
+    {
+     "id": "i26",
+     "type": "step",
+     "lane": "coe",
+     "text": "Send the sustainability and capability survey",
+     "system": "SRM (Assure+)",
+     "target": "System Guy: SRM, Vendor portal"
+    },
+    {
+     "id": "i27",
+     "type": "step",
+     "lane": "erp",
+     "text": "Create the supplier in Sourcing Hub and confirm to the COE team",
+     "system": "Sourcing Hub",
+     "target": null
+    },
+    {
+     "id": "i28",
+     "type": "step",
+     "lane": "erp",
+     "text": "Send the Sourcing Hub welcome pack and training material; request the Sourcing Hub group from category management",
+     "system": "Email",
+     "target": null
+    },
+    {
+     "id": "i29",
+     "type": "step",
+     "lane": "cm",
+     "text": "Allocate the supplier to Sourcing Hub groups and panels",
+     "system": "Email",
+     "target": null
+    },
+    {
+     "id": "i30",
+     "type": "end",
+     "lane": "erp",
+     "text": "Confirm to all stakeholders that the supplier is available in Sourcing Hub for everyone to use",
+     "system": "Email",
+     "target": null
+    },
+    {
+     "id": "ig7",
+     "type": "step",
+     "lane": "coe",
+     "text": "Record the sustainability data on the SRM scorecard (CSR, EMS, FSC, Sedex, diverse, renewable energy)",
+     "system": "SRM scorecard, System Guy",
+     "target": "System Guy: SRM scorecard, Impact Grade"
+    }
+   ]
+  },
+  {
+   "id": "supplier-performance",
+   "name": "Supplier performance management",
+   "variant": "Both",
+   "lanes": {
+    "l1": "Lane to be defined"
+   },
+   "steps": []
+  },
+  {
+   "id": "order-adhoc-adm",
+   "name": "Ad hoc order, supplier PO and SO",
+   "variant": "adm legacy",
+   "lanes": {
+    "client": "Client",
+    "at": "Account team",
+    "omc": "OMC",
+    "sup": "Supplier"
+   },
+   "steps": [
+    {
+     "id": "o1",
+     "type": "start",
+     "lane": "client",
+     "text": "Sends client PO to account team",
+     "system": "Email",
+     "target": null
+    },
+    {
+     "id": "o2",
+     "type": "step",
+     "lane": "at",
+     "text": "Request OMC to create supplier PO and SO, attach documents",
+     "system": "Airtable",
+     "target": null
+    },
+    {
+     "id": "o3",
+     "type": "step",
+     "lane": "omc",
+     "text": "Create PO and SO, run VAT engine check",
+     "system": "Stocktool, VAT engine",
+     "target": null
+    },
+    {
+     "id": "o4",
+     "type": "step",
+     "lane": "omc",
+     "text": "Sign PO based on delegation of authority",
+     "system": "Stocktool",
+     "target": null
+    },
+    {
+     "id": "o5",
+     "type": "step",
+     "lane": "omc",
+     "text": "Send PO to supplier, or to RBH who forwards it",
+     "system": "Stocktool, email",
+     "target": null
+    },
+    {
+     "id": "o6",
+     "type": "end",
+     "lane": "sup",
+     "text": "Supplier receives PO",
+     "system": null,
+     "target": null
+    },
+    {
+     "id": "o7",
+     "type": "end",
+     "lane": "omc",
+     "text": "Upload client PO to SO, send SO to client",
+     "system": "Stocktool",
+     "target": null
+    }
+   ]
+  },
+  {
+   "id": "order-adhoc-indicia",
+   "name": "Ad hoc order in Sourcing Hub",
+   "variant": "Indicia legacy",
+   "lanes": {
+    "client": "Client",
+    "prod": "Production team",
+    "sup": "Supplier"
+   },
+   "steps": [
+    {
+     "id": "p1",
+     "type": "start",
+     "lane": "client",
+     "text": "Sends client PO to production team",
+     "system": null,
+     "target": null
+    },
+    {
+     "id": "p2",
+     "type": "step",
+     "lane": "prod",
+     "text": "Upload client PO, create supplier PO",
+     "system": "Sourcing Hub",
+     "target": null
+    },
+    {
+     "id": "p3",
+     "type": "step",
+     "lane": "prod",
+     "text": "Automated, configurable supplier PO approval",
+     "system": "Sourcing Hub",
+     "target": null
+    },
+    {
+     "id": "p4",
+     "type": "step",
+     "lane": "prod",
+     "text": "Send PO to supplier",
+     "system": "Sourcing Hub",
+     "target": null
+    },
+    {
+     "id": "p5",
+     "type": "end",
+     "lane": "sup",
+     "text": "Accepts PO",
+     "system": "Sourcing Hub",
+     "target": null
+    }
+   ]
+  },
+  {
+   "id": "order-catalogue-adm",
+   "name": "Catalogue order and order window",
+   "variant": "adm legacy",
+   "lanes": {
+    "client": "Client",
+    "at": "Account team",
+    "omc": "OMC",
+    "sup": "Supplier"
+   },
+   "steps": [
+    {
+     "id": "q1",
+     "type": "start",
+     "lane": "client",
+     "text": "Places order in webshop",
+     "system": "Webshop",
+     "target": null
+    },
+    {
+     "id": "q2",
+     "type": "step",
+     "lane": "omc",
+     "text": "Initial SO sent to client automatically",
+     "system": "Webshop, Stocktool",
+     "target": null
+    },
+    {
+     "id": "q3",
+     "type": "step",
+     "lane": "omc",
+     "text": "Order window closes",
+     "system": null,
+     "target": null
+    },
+    {
+     "id": "q4",
+     "type": "step",
+     "lane": "at",
+     "text": "Chase client for PO",
+     "system": "Email",
+     "target": null
+    },
+    {
+     "id": "q5",
+     "type": "step",
+     "lane": "omc",
+     "text": "Requote on final quantities, update sales prices",
+     "system": "Stocktool",
+     "target": null
+    },
+    {
+     "id": "q6",
+     "type": "step",
+     "lane": "omc",
+     "text": "Create consolidated PO, sign by delegation of authority",
+     "system": "Stocktool",
+     "target": null
+    },
+    {
+     "id": "q7",
+     "type": "step",
+     "lane": "sup",
+     "text": "Receives PO",
+     "system": null,
+     "target": null
+    },
+    {
+     "id": "q8",
+     "type": "end",
+     "lane": "omc",
+     "text": "Send final SO to client",
+     "system": "Stocktool",
+     "target": null
+    }
+   ]
+  },
+  {
+   "id": "order-window",
+   "name": "Order window: consolidation and delivery planning",
+   "variant": "Target",
+   "lanes": {
+    "buy": "Buying team / sourcing team (a/i)",
+    "client": "Client",
+    "sup": "Product supplier",
+    "wh": "Logistics / warehousing partner"
+   },
+   "steps": [
+    {
+     "id": "w1",
+     "type": "start",
+     "lane": "buy",
+     "text": "1. Create article and master SKU codes for the products",
+     "system": null,
+     "target": null
+    },
+    {
+     "id": "w2",
+     "type": "step",
+     "lane": "buy",
+     "text": "2. Add priced items to the webshop: visuals, specifications, taxonomy",
+     "system": "Webshop",
+     "target": null
+    },
+    {
+     "id": "w3",
+     "type": "step",
+     "lane": "buy",
+     "text": "3. Open the order window; the client is notified of dates, length and support contacts",
+     "system": "Webshop",
+     "target": null
+    },
+    {
+     "id": "w4",
+     "type": "step",
+     "lane": "client",
+     "text": "4. Log in to the webshop through SSO (mobile or PC)",
+     "system": "Webshop",
+     "target": null
+    },
+    {
+     "id": "w5",
+     "type": "step",
+     "lane": "client",
+     "text": "5. Browse items; view MOQs and price breaks",
+     "system": "Webshop",
+     "target": null
+    },
+    {
+     "id": "w6",
+     "type": "step",
+     "lane": "client",
+     "text": "6. Select items and submit the order; buying team is notified automatically",
+     "system": "Webshop",
+     "target": null
+    },
+    {
+     "id": "w7",
+     "type": "step",
+     "lane": "client",
+     "text": "7. Receive the sales order form; the order joins all other incoming orders",
+     "system": "Webshop",
+     "target": null
+    },
+    {
+     "id": "w8",
+     "type": "step",
+     "lane": "buy",
+     "text": "8. Close the order window on the agreed date; client is notified by email",
+     "system": "Webshop",
+     "target": null
+    },
+    {
+     "id": "w9",
+     "type": "step",
+     "lane": "buy",
+     "text": "9. Consolidate orders automatically, including DC and freight cost, quantities per market and material cost",
+     "system": "Order management system",
+     "target": null
+    },
+    {
+     "id": "w10",
+     "type": "decision",
+     "lane": "client",
+     "text": "10. Is the consolidated quote acceptable?",
+     "system": "Order management system",
+     "target": null
+    },
+    {
+     "id": "w11",
+     "type": "step",
+     "lane": "client",
+     "text": "11. Confirm the quote through the tool; buying team is notified",
+     "system": "Order management system",
+     "target": null
+    },
+    {
+     "id": "w12",
+     "type": "step",
+     "lane": "buy",
+     "text": "12. Re-quote automatically; the system can ask the supplier for updated numbers",
+     "system": "Order management system",
+     "target": null
+    },
+    {
+     "id": "w13",
+     "type": "step",
+     "lane": "buy",
+     "text": "13. Prepare the final sales order split per market and push it to the client",
+     "system": "Order management system",
+     "target": null
+    },
+    {
+     "id": "w14",
+     "type": "step",
+     "lane": "client",
+     "text": "14. Review and confirm the final sales order split per market",
+     "system": "Order management system",
+     "target": null
+    },
+    {
+     "id": "w15",
+     "type": "step",
+     "lane": "client",
+     "text": "15. Raise the client PO from the final breakdown and upload it",
+     "system": "Order management system",
+     "target": null
+    },
+    {
+     "id": "w16",
+     "type": "step",
+     "lane": "buy",
+     "text": "16. Receive and validate the client PO against the initial sales order form",
+     "system": "Order management system",
+     "target": null
+    },
+    {
+     "id": "w17",
+     "type": "step",
+     "lane": "buy",
+     "text": "17. Raise supplier PO and send it automatically; supplier is notified",
+     "system": "Order management system",
+     "target": null
+    },
+    {
+     "id": "w18",
+     "type": "step",
+     "lane": "sup",
+     "text": "18. Receive supplier PO; confirm receipt, validate specs, schedule resource, confirm in the tool",
+     "system": "Order management system",
+     "target": null
+    },
+    {
+     "id": "w19",
+     "type": "step",
+     "lane": "sup",
+     "text": "19. Launch production; notify the buying team",
+     "system": "Order management system",
+     "target": null
+    },
+    {
+     "id": "w20",
+     "type": "step",
+     "lane": "wh",
+     "text": "20. Warehousing hub receives goods into inventory",
+     "system": "Warehouse system",
+     "target": null
+    },
+    {
+     "id": "w21",
+     "type": "step",
+     "lane": "wh",
+     "text": "21. Warehouse updates stock automatically; buying team is notified of receipt and stock levels",
+     "system": "Warehouse system",
+     "target": null
+    },
+    {
+     "id": "w22",
+     "type": "step",
+     "lane": "wh",
+     "text": "22. Pick and pack goods per market order with integrated software",
+     "system": "Warehouse system",
+     "target": null
+    },
+    {
+     "id": "w23",
+     "type": "step",
+     "lane": "wh",
+     "text": "23. Ship to the markets automatically; updates go to a/i by software",
+     "system": "Warehouse system",
+     "target": null
+    },
+    {
+     "id": "w24",
+     "type": "end",
+     "lane": "wh",
+     "text": "24. Issue proof of delivery on delivery, for example by code scan; buying team is notified",
+     "system": "Warehouse system",
+     "target": null
+    }
+   ]
+  },
+  {
+   "id": "delivery-incoterm",
+   "name": "Delivery by incoterm and goods in",
+   "variant": "Both legacy",
+   "lanes": {
+    "sup": "Supplier",
+    "omc": "OMC",
+    "cst": "CST and QA/QC"
+   },
+   "steps": [
+    {
+     "id": "d1",
+     "type": "start",
+     "lane": "sup",
+     "text": "Goods ready to ship",
+     "system": null,
+     "target": null
+    },
+    {
+     "id": "d2",
+     "type": "decision",
+     "lane": "sup",
+     "text": "Incoterm?",
+     "system": null,
+     "target": null
+    },
+    {
+     "id": "d3",
+     "type": "step",
+     "lane": "sup",
+     "text": "Deliver to client, upload POD and invoice",
+     "system": "eProc, Sourcing Hub",
+     "target": null
+    },
+    {
+     "id": "d4",
+     "type": "step",
+     "lane": "omc",
+     "text": "Stock-in on arrival; in-transit bookkeeping posts to SAGE",
+     "system": "Stocktool, SAGE",
+     "target": null
+    },
+    {
+     "id": "d5",
+     "type": "step",
+     "lane": "omc",
+     "text": "Stock-out at final destination, supplier uploads POD",
+     "system": "Stocktool",
+     "target": null
+    },
+    {
+     "id": "d6",
+     "type": "step",
+     "lane": "cst",
+     "text": "Check PO and POD, inspection if required",
+     "system": "Gravity, eProc",
+     "target": null
+    },
+    {
+     "id": "d7",
+     "type": "end",
+     "lane": "omc",
+     "text": "Set status Ready to be Invoiced",
+     "system": "Stocktool OIH",
+     "target": null
+    }
+   ]
+  },
+  {
+   "id": "logistics-stock",
+   "name": "Logistics and warehousing",
+   "variant": "Target",
+   "lanes": {
+    "client": "Client (marketing / buying)",
+    "cs": "Client services team (a/i)",
+    "ops": "Operations team (a/i)",
+    "sup": "Product supplier",
+    "wh": "Warehouse / logistics supplier",
+    "log": "Logistics team (a/i)"
+   },
+   "steps": [
+    {
+     "id": "g1",
+     "type": "start",
+     "lane": "client",
+     "text": "Client raises PO for new stock: specification, volume, packing; for hero items also forecast, safety stock and trigger levels",
+     "system": "Client PO system",
+     "target": null
+    },
+    {
+     "id": "g1a",
+     "type": "start",
+     "lane": "cs",
+     "text": "Trigger level is reached for a hero item",
+     "system": "Project / order management system",
+     "target": null
+    },
+    {
+     "id": "g2",
+     "type": "step",
+     "lane": "cs",
+     "text": "Receive client PO; raise supplier PO in the virtual warehouse for delivery",
+     "system": "Project / order management system",
+     "target": null
+    },
+    {
+     "id": "g3",
+     "type": "decision",
+     "lane": "sup",
+     "text": "Delivery terms: DDP, or FOB / ex works?",
+     "system": null,
+     "target": null
+    },
+    {
+     "id": "g4",
+     "type": "step",
+     "lane": "sup",
+     "text": "Supplier fulfils the order and despatches goods to the warehouse",
+     "system": null,
+     "target": null
+    },
+    {
+     "id": "g5",
+     "type": "step",
+     "lane": "log",
+     "text": "a/i collects goods from the product supplier and delivers them to the warehouse supplier",
+     "system": null,
+     "target": null
+    },
+    {
+     "id": "g6",
+     "type": "step",
+     "lane": "wh",
+     "text": "Receive goods against the supplier POD; confirm receipt",
+     "system": "Warehouse system",
+     "target": null
+    },
+    {
+     "id": "g7",
+     "type": "step",
+     "lane": "ops",
+     "text": "Receive confirmation; stock in goods in the system, available to call off",
+     "system": "Project / order management system",
+     "target": null
+    },
+    {
+     "id": "g8",
+     "type": "decision",
+     "lane": "ops",
+     "text": "Kitting or co-packing required?",
+     "system": null,
+     "target": null
+    },
+    {
+     "id": "g9",
+     "type": "step",
+     "lane": "ops",
+     "text": "Raise POs for kit components and a service PO for kitting consolidation",
+     "system": "Project / order management system",
+     "target": null
+    },
+    {
+     "id": "g10",
+     "type": "step",
+     "lane": "ops",
+     "text": "Raise the SO for the kit master article; pull the component cost in",
+     "system": "Project / order management system",
+     "target": null
+    },
+    {
+     "id": "g11",
+     "type": "step",
+     "lane": "ops",
+     "text": "Stock in kit components when delivered to the warehouse",
+     "system": "Project / order management system",
+     "target": null
+    },
+    {
+     "id": "g12",
+     "type": "step",
+     "lane": "ops",
+     "text": "Kit master is stocked in automatically; duplicates removed",
+     "system": "Project / order management system",
+     "target": null
+    },
+    {
+     "id": "g13",
+     "type": "step",
+     "lane": "ops",
+     "text": "Create delivery note / packing list from the client PO to release goods for final delivery (stock out)",
+     "system": "Project / order management system",
+     "target": null
+    },
+    {
+     "id": "g14",
+     "type": "decision",
+     "lane": "ops",
+     "text": "Where is the stock held?",
+     "system": null,
+     "target": null
+    },
+    {
+     "id": "g15",
+     "type": "step",
+     "lane": "sup",
+     "text": "Product supplier picks, packs, despatches to the client and gives tracking",
+     "system": null,
+     "target": null
+    },
+    {
+     "id": "g16",
+     "type": "step",
+     "lane": "wh",
+     "text": "Warehouse supplier picks, packs, despatches to the client and gives tracking",
+     "system": null,
+     "target": null
+    },
+    {
+     "id": "g17",
+     "type": "step",
+     "lane": "wh",
+     "text": "Confirm delivery to the client address and provide proof of delivery and delivery date",
+     "system": null,
+     "target": null
+    },
+    {
+     "id": "g18",
+     "type": "end",
+     "lane": "ops",
+     "text": "Receive confirmation of delivery; raise the client invoice (batch creation)",
+     "system": "Project / order management system",
+     "target": null
+    }
+   ]
+  },
+  {
+   "id": "qa-qc",
+   "name": "QA and QC inspection",
+   "variant": "Target",
+   "lanes": {
+    "client": "Client (marketing / buying)",
+    "cs": "Client services team (a/i)",
+    "proc": "Procurement team (a/i)",
+    "sup": "Product supplier",
+    "qa": "Product QA/QC",
+    "log": "Logistics team and transport partner"
+   },
+   "steps": [
+    {
+     "id": "q1",
+     "type": "start",
+     "lane": "client",
+     "text": "(a) Client creates PO from the approved estimate and sends it to client services, or enters it on the platform",
+     "system": "Client PO system or platform",
+     "target": null
+    },
+    {
+     "id": "q2",
+     "type": "step",
+     "lane": "cs",
+     "text": "(b) Load client PO, click Create supplier PO, send PO for approval",
+     "system": "Project / order management system",
+     "target": "System Guy: Order Management"
+    },
+    {
+     "id": "q3",
+     "type": "step",
+     "lane": "proc",
+     "text": "(c) Check all PO fields (price, incoterm, quantities, planning), click Approve and send supplier PO",
+     "system": "Project / order management system",
+     "target": "System Guy: Order Management"
+    },
+    {
+     "id": "q4",
+     "type": "step",
+     "lane": "sup",
+     "text": "(d) Open the email link and click Accept PO on the platform",
+     "system": "Platform",
+     "target": "System Guy: Vendor portal"
+    },
+    {
+     "id": "q5",
+     "type": "step",
+     "lane": "sup",
+     "text": "(e) Receive final artwork; launch proof or sample",
+     "system": "Platform",
+     "target": null
+    },
+    {
+     "id": "q6",
+     "type": "decision",
+     "lane": "sup",
+     "text": "Digital proof or physical proof?",
+     "system": null,
+     "target": null
+    },
+    {
+     "id": "q7",
+     "type": "step",
+     "lane": "sup",
+     "text": "(f) Upload digital proof on the platform",
+     "system": "Platform",
+     "target": null
+    },
+    {
+     "id": "q8",
+     "type": "step",
+     "lane": "cs",
+     "text": "Check the digital proof and approve it to go to the client; the platform sends it automatically",
+     "system": "Platform",
+     "target": null
+    },
+    {
+     "id": "q9",
+     "type": "step",
+     "lane": "sup",
+     "text": "(f1) Send physical proof to client services; upload image and tracking number",
+     "system": "Platform",
+     "target": null
+    },
+    {
+     "id": "q10",
+     "type": "step",
+     "lane": "cs",
+     "text": "(f2) Check dimensions and material, send the proof to the client office, record the send date",
+     "system": "Project / order management system",
+     "target": null
+    },
+    {
+     "id": "q11",
+     "type": "step",
+     "lane": "client",
+     "text": "(g) Receive notification, log in, view and approve the proof",
+     "system": "Platform",
+     "target": null
+    },
+    {
+     "id": "q12",
+     "type": "step",
+     "lane": "cs",
+     "text": "(h) Approval is recorded; a/i team and supplier are notified",
+     "system": "Platform",
+     "target": null
+    },
+    {
+     "id": "q13",
+     "type": "step",
+     "lane": "sup",
+     "text": "(i) Launch production based on the approved proof",
+     "system": null,
+     "target": null
+    },
+    {
+     "id": "q14",
+     "type": "step",
+     "lane": "qa",
+     "text": "(j) Confirm finished production on the platform and book the final random inspection (third party or internal); inspect to sampling size and client AQL",
+     "system": "Platform",
+     "target": "System Guy: Execution, QA/QC"
+    },
+    {
+     "id": "q15",
+     "type": "decision",
+     "lane": "sup",
+     "text": "(k) Delivery terms: DDP, or FOB / other incoterm where a/i owns the goods early on?",
+     "system": null,
+     "target": null
+    },
+    {
+     "id": "q16",
+     "type": "step",
+     "lane": "sup",
+     "text": "(k) Organise delivery of goods to the client warehouse or port, following client guidelines (palletisation or not)",
+     "system": null,
+     "target": null
+    },
+    {
+     "id": "q17",
+     "type": "step",
+     "lane": "sup",
+     "text": "(l) Upload proof of delivery and invoice on the platform",
+     "system": "Platform",
+     "target": null
+    },
+    {
+     "id": "q18",
+     "type": "step",
+     "lane": "log",
+     "text": "(k1) Goods in transit by boat, train or plane, owned by a/i",
+     "system": null,
+     "target": null
+    },
+    {
+     "id": "q19",
+     "type": "step",
+     "lane": "cs",
+     "text": "(k2) Receive confirmation that ownership transferred; issue stock-in entry in the accounting system",
+     "system": "Accounting system",
+     "target": null
+    },
+    {
+     "id": "q20",
+     "type": "step",
+     "lane": "log",
+     "text": "(l1) Goods arrive at port; contact the transport partner and provide the bill of lading",
+     "system": null,
+     "target": null
+    },
+    {
+     "id": "q21",
+     "type": "step",
+     "lane": "log",
+     "text": "(m1) Transport partner books a delivery appointment with the client warehouse",
+     "system": null,
+     "target": null
+    },
+    {
+     "id": "q22",
+     "type": "step",
+     "lane": "log",
+     "text": "(m1) Deliver goods to the client warehouse as per its requirements",
+     "system": null,
+     "target": null
+    },
+    {
+     "id": "q23",
+     "type": "step",
+     "lane": "client",
+     "text": "(n) Confirm delivery to account services, then on the platform",
+     "system": "Platform",
+     "target": "System Guy: Logistics"
+    },
+    {
+     "id": "q24",
+     "type": "end",
+     "lane": "cs",
+     "text": "(o) Goods receipt notice: confirm on the platform that delivery is done, which leads to payment (AP)",
+     "system": "Platform",
+     "target": "System Guy: Logistics, Order Management"
+    },
+    {
+     "id": "ig6",
+     "type": "step",
+     "lane": "qa",
+     "text": "Check the declared Impact Grade inputs against the finished goods (weights, materials, recycled content certificates); raise the evidence to Measured or Verified and recalculate",
+     "system": "System Guy: Impact Grade",
+     "target": "System Guy: Impact Grade"
+    }
+   ]
+  },
+  {
+   "id": "project-closure",
+   "name": "Project closure and compliance",
+   "variant": "Both",
+   "lanes": {
+    "l1": "Lane to be defined"
+   },
+   "steps": []
+  },
+  {
+   "id": "invoicing-adm",
+   "name": "Client invoicing, daily run",
+   "variant": "adm legacy",
+   "lanes": {
+    "cst": "CST",
+    "omc": "OMC billing",
+    "at": "Account team",
+    "fin": "Finance"
+   },
+   "steps": [
+    {
+     "id": "ci0",
+     "type": "start",
+     "lane": "cst",
+     "text": "Compliance confirmed on PO, POD, supplier invoice, client PO",
+     "system": "Sourcing Hub, Smartsheet",
+     "target": null
+    },
+    {
+     "id": "ci1",
+     "type": "step",
+     "lane": "omc",
+     "text": "Daily check of OIH report: status Ready to be invoiced",
+     "system": "Stocktool OIH",
+     "target": null
+    },
+    {
+     "id": "ci2",
+     "type": "step",
+     "lane": "omc",
+     "text": "Create delivery note and proforma, send to account team",
+     "system": "Stocktool",
+     "target": null
+    },
+    {
+     "id": "ci3",
+     "type": "step",
+     "lane": "at",
+     "text": "Approve proforma",
+     "system": "Email",
+     "target": null
+    },
+    {
+     "id": "ci4",
+     "type": "step",
+     "lane": "omc",
+     "text": "Create client invoice",
+     "system": "Stocktool",
+     "target": null
+    },
+    {
+     "id": "ci5",
+     "type": "step",
+     "lane": "omc",
+     "text": "Upload to client portal or send by email",
+     "system": "Portal, email",
+     "target": null
+    },
+    {
+     "id": "ci6",
+     "type": "step",
+     "lane": "omc",
+     "text": "Update OIH status to Invoiced",
+     "system": "Stocktool OIH",
+     "target": null
+    },
+    {
+     "id": "ci7",
+     "type": "end",
+     "lane": "fin",
+     "text": "Invoice and COGS accrual imported to SAGE automatically",
+     "system": "SAGE",
+     "target": null
+    }
+   ]
+  },
+  {
+   "id": "invoicing-indicia",
+   "name": "Client invoicing, twice-weekly run",
+   "variant": "Indicia legacy",
+   "lanes": {
+    "fsc": "FSSC",
+    "tax": "Tax team",
+    "erp": "ERP team"
+   },
+   "steps": [
+    {
+     "id": "n1",
+     "type": "start",
+     "lane": "fsc",
+     "text": "Mon and Thu: download closed jobs report",
+     "system": "Reporting hub",
+     "target": null
+    },
+    {
+     "id": "n2",
+     "type": "step",
+     "lane": "tax",
+     "text": "Check tax, return file with correct tax",
+     "system": "Email",
+     "target": null
+    },
+    {
+     "id": "n3",
+     "type": "step",
+     "lane": "fsc",
+     "text": "Check buy vs sell price, multi PO, client PO format",
+     "system": "Excel",
+     "target": null
+    },
+    {
+     "id": "n6",
+     "type": "step",
+     "lane": "erp",
+     "text": "Retrieve data from Sourcing Hub, fix data errors for Navision",
+     "system": "Sourcing Hub, Navision",
+     "target": null
+    },
+    {
+     "id": "n4",
+     "type": "step",
+     "lane": "fsc",
+     "text": "Bulk post entries; invoices and AR entries generated by legal entity",
+     "system": "Navision",
+     "target": null
+    },
+    {
+     "id": "n5",
+     "type": "end",
+     "lane": "fsc",
+     "text": "Share invoices through client portal interface or email",
+     "system": "Navision, client portal",
+     "target": null
+    }
+   ]
+  },
+  {
+   "id": "ar-overdue",
+   "name": "Chasing overdue receivables",
+   "variant": "Both legacy",
+   "lanes": {
+    "fin": "Credit control",
+    "at": "Account team",
+    "client": "Client"
+   },
+   "steps": [
+    {
+     "id": "r1",
+     "type": "start",
+     "lane": "fin",
+     "text": "Daily AR report generated from ledger",
+     "system": "SAGE and SharePoint, or Navision",
+     "target": null
+    },
+    {
+     "id": "r2",
+     "type": "step",
+     "lane": "fin",
+     "text": "Review AR debt report, chase client ahead of overdue date",
+     "system": "Email, portal",
+     "target": null
+    },
+    {
+     "id": "r3",
+     "type": "step",
+     "lane": "client",
+     "text": "Provides payment date or flags an issue",
+     "system": null,
+     "target": null
+    },
+    {
+     "id": "r4",
+     "type": "decision",
+     "lane": "fin",
+     "text": "Issue with the invoice?",
+     "system": null,
+     "target": null
+    },
+    {
+     "id": "r5",
+     "type": "step",
+     "lane": "at",
+     "text": "Resolve discrepancy; involve operations or check Sourcing Hub",
+     "system": "Sourcing Hub",
+     "target": null
+    },
+    {
+     "id": "r6",
+     "type": "step",
+     "lane": "fin",
+     "text": "NCR, credit or rebill; send copy if client is missing the invoice",
+     "system": "Ledger",
+     "target": null
+    },
+    {
+     "id": "r8",
+     "type": "step",
+     "lane": "client",
+     "text": "Pays invoice",
+     "system": "Bank",
+     "target": null
+    },
+    {
+     "id": "r9",
+     "type": "end",
+     "lane": "fin",
+     "text": "Payment allocated, invoice drops off AR report",
+     "system": "SAGE or Navision",
+     "target": null
+    }
+   ]
+  },
+  {
+   "id": "ap-invoice-adm",
+   "name": "Supplier invoice, AP clerk route",
+   "variant": "adm legacy",
+   "lanes": {
+    "sup": "Supplier",
+    "ap": "AP clerk"
+   },
+   "steps": [
+    {
+     "id": "w1",
+     "type": "start",
+     "lane": "sup",
+     "text": "Creates invoice against the PO",
+     "system": null,
+     "target": null
+    },
+    {
+     "id": "w2",
+     "type": "step",
+     "lane": "sup",
+     "text": "Submit via eProc or Stocktool; upload to SharePoint",
+     "system": "eProc, Stocktool, SharePoint",
+     "target": null
+    },
+    {
+     "id": "w3",
+     "type": "step",
+     "lane": "ap",
+     "text": "Pre-post in SAGE; check VAT, billing info, currency",
+     "system": "SAGE",
+     "target": null
+    },
+    {
+     "id": "w4",
+     "type": "step",
+     "lane": "ap",
+     "text": "Check PO in backend and accrual in SEI report",
+     "system": "Backend",
+     "target": null
+    },
+    {
+     "id": "w5",
+     "type": "step",
+     "lane": "ap",
+     "text": "Confirm in backend, post in SAGE, move to AP Final",
+     "system": "SAGE",
+     "target": null
+    },
+    {
+     "id": "w6",
+     "type": "end",
+     "lane": "ap",
+     "text": "Approved to be paid",
+     "system": null,
+     "target": null
+    }
+   ]
+  },
+  {
+   "id": "ap-invoice-indicia",
+   "name": "Supplier invoice, Sourcing Hub route",
+   "variant": "Indicia legacy",
+   "lanes": {
+    "sup": "Supplier",
+    "cst": "CST",
+    "fssc": "FSSC AP"
+   },
+   "steps": [
+    {
+     "id": "z1",
+     "type": "start",
+     "lane": "sup",
+     "text": "Uploads invoice and POD",
+     "system": "Sourcing Hub, eProc",
+     "target": null
+    },
+    {
+     "id": "z2",
+     "type": "step",
+     "lane": "cst",
+     "text": "Check invoice and POD against supplier PO",
+     "system": "Sourcing Hub, eProc",
+     "target": null
+    },
+    {
+     "id": "z3",
+     "type": "decision",
+     "lane": "cst",
+     "text": "Invoice OK?",
+     "system": null,
+     "target": null
+    },
+    {
+     "id": "z4",
+     "type": "step",
+     "lane": "fssc",
+     "text": "Create invoice for every supplier entry",
+     "system": "Navision",
+     "target": null
+    },
+    {
+     "id": "z5",
+     "type": "step",
+     "lane": "sup",
+     "text": "Correct and resubmit",
+     "system": "Sourcing Hub",
+     "target": null
+    },
+    {
+     "id": "z6",
+     "type": "end",
+     "lane": "fssc",
+     "text": "Approved to be paid",
+     "system": null,
+     "target": null
+    }
+   ]
+  },
+  {
+   "id": "ap-payment-run",
+   "name": "Supplier payment run",
+   "variant": "Both legacy",
+   "lanes": {
+    "fssc": "FSSC AP and Treasury",
+    "fin": "Regional finance"
+   },
+   "steps": [
+    {
+     "id": "y1",
+     "type": "start",
+     "lane": "fssc",
+     "text": "Approved supplier invoices available",
+     "system": null,
+     "target": null
+    },
+    {
+     "id": "y2",
+     "type": "step",
+     "lane": "fssc",
+     "text": "Pull draft payment proposal, 4 days before the run",
+     "system": "Excel",
+     "target": null
+    },
+    {
+     "id": "y3",
+     "type": "step",
+     "lane": "fssc",
+     "text": "Final checks, send for cash approval",
+     "system": "Monday.com",
+     "target": null
+    },
+    {
+     "id": "y4",
+     "type": "step",
+     "lane": "fssc",
+     "text": "Set up payment in HSBC or import AP payment file",
+     "system": "Bank",
+     "target": null
+    },
+    {
+     "id": "y5",
+     "type": "step",
+     "lane": "fssc",
+     "text": "Dual check, then payment issued",
+     "system": "Bank",
+     "target": null
+    },
+    {
+     "id": "y6",
+     "type": "step",
+     "lane": "fssc",
+     "text": "Post payment, distribute payment run report (VSOR)",
+     "system": "Navision",
+     "target": null
+    },
+    {
+     "id": "y7",
+     "type": "end",
+     "lane": "fin",
+     "text": "Quarterly reconciliation of COGS approvals against invoices",
+     "system": null,
+     "target": null
+    }
+   ]
+  },
+  {
+   "id": "supplier-invoice-timing",
+   "name": "Supplier invoice bookkeeping timing (interim, FSSC Mumbai)",
+   "variant": "Interim target",
+   "lanes": {
+    "sup": "Supplier",
+    "ops": "Operations (CST)",
+    "fssc": "FSSC Mumbai (Team FSSC)",
+    "ar": "Client invoicing (AR)",
+    "fin": "Regional finance / FP&A"
+   },
+   "steps": [
+    {
+     "id": "s1",
+     "type": "start",
+     "lane": "sup",
+     "text": "Supplier fulfils its obligations: delivers and submits invoice and POD",
+     "system": "Sourcing Hub, eProc",
+     "target": null
+    },
+    {
+     "id": "s2",
+     "type": "step",
+     "lane": "ops",
+     "text": "Check the invoice: PO match, POD or GRN, compliance checks",
+     "system": "Sourcing Hub",
+     "target": null
+    },
+    {
+     "id": "s3",
+     "type": "decision",
+     "lane": "ops",
+     "text": "Supplier invoice compliant?",
+     "system": null,
+     "target": null
+    },
+    {
+     "id": "s3b",
+     "type": "step",
+     "lane": "sup",
+     "text": "Correct and resubmit",
+     "system": "Sourcing Hub",
+     "target": null
+    },
+    {
+     "id": "s4",
+     "type": "decision",
+     "lane": "fssc",
+     "text": "Which case applies?",
+     "system": null,
+     "target": null
+    },
+    {
+     "id": "s5",
+     "type": "sub",
+     "lane": "fssc",
+     "text": "Standard flow: supplier and client invoices booked together",
+     "system": "Navision",
+     "target": null
+    },
+    {
+     "id": "s6",
+     "type": "step",
+     "lane": "ops",
+     "text": "Close the supplier job, independent of the client-side job",
+     "system": "Sourcing Hub",
+     "target": null
+    },
+    {
+     "id": "s7",
+     "type": "step",
+     "lane": "ops",
+     "text": "Closed supplier job appears on the weekly report",
+     "system": "Sourcing Hub, Navision",
+     "target": null
+    },
+    {
+     "id": "s8",
+     "type": "step",
+     "lane": "fssc",
+     "text": "Post the supplier invoice by journal entry, balance sheet only: Dr Parking / Suspense, Cr Suppliers",
+     "system": "Navision",
+     "target": null
+    },
+    {
+     "id": "s9",
+     "type": "step",
+     "lane": "fssc",
+     "text": "Pay the supplier on agreed payment terms: Dr Suppliers, Cr Bank",
+     "system": "Navision",
+     "target": null
+    },
+    {
+     "id": "s10",
+     "type": "decision",
+     "lane": "ar",
+     "text": "Corresponding AR job closed?",
+     "system": null,
+     "target": null
+    },
+    {
+     "id": "s12",
+     "type": "step",
+     "lane": "ar",
+     "text": "AR side stays open; keep on the tracker pending closure",
+     "system": "Tracker",
+     "target": null
+    },
+    {
+     "id": "s11",
+     "type": "step",
+     "lane": "fssc",
+     "text": "System report identifies AR-closed jobs for FSSC",
+     "system": "Sourcing Hub",
+     "target": null
+    },
+    {
+     "id": "s13",
+     "type": "step",
+     "lane": "ar",
+     "text": "Client invoicing: Dr Client, Cr Sales",
+     "system": "Navision",
+     "target": null
+    },
+    {
+     "id": "s14",
+     "type": "step",
+     "lane": "fssc",
+     "text": "Move the cost to P&L: Dr Purchases, Cr Parking / Suspense",
+     "system": "Navision",
+     "target": null
+    },
+    {
+     "id": "s15",
+     "type": "step",
+     "lane": "fssc",
+     "text": "Monthly controls: maintain job tracker, reconcile Parking / Suspense",
+     "system": "Tracker, Navision",
+     "target": null
+    },
+    {
+     "id": "s16",
+     "type": "end",
+     "lane": "fin",
+     "text": "Updated report shared with regional finance and FP&A",
+     "system": null,
+     "target": null
+    }
+   ]
+  },
+  {
+   "id": "shasta-e2e",
+   "name": "Order to invoice through Shasta",
+   "variant": "Phase 1",
+   "lanes": {
+    "client": "Client",
+    "at": "Account team",
+    "sup": "Supplier",
+    "cst": "CST",
+    "omc": "OMC",
+    "it": "App Support / IT",
+    "fin": "Local finance"
+   },
+   "steps": [
+    {
+     "id": "s1",
+     "type": "start",
+     "lane": "client",
+     "text": "Sends new client brief",
+     "system": "Email",
+     "target": null
+    },
+    {
+     "id": "s2",
+     "type": "step",
+     "lane": "at",
+     "text": "Input brief, create specs and RFQ",
+     "system": "Sourcing Hub",
+     "target": null
+    },
+    {
+     "id": "s3",
+     "type": "step",
+     "lane": "sup",
+     "text": "Supplier or RBH quotes",
+     "system": "Sourcing Hub",
+     "target": null
+    },
+    {
+     "id": "s4",
+     "type": "step",
+     "lane": "at",
+     "text": "Create estimate to client",
+     "system": "Sourcing Hub",
+     "target": null
+    },
+    {
+     "id": "s5",
+     "type": "step",
+     "lane": "client",
+     "text": "Accepts estimate and sends client PO",
+     "system": "Email",
+     "target": null
+    },
+    {
+     "id": "s6",
+     "type": "step",
+     "lane": "at",
+     "text": "Raise supplier PO and send to supplier",
+     "system": "Sourcing Hub",
+     "target": null
+    },
+    {
+     "id": "s7",
+     "type": "step",
+     "lane": "cst",
+     "text": "Run compliance checks, set job to Completed",
+     "system": "Sourcing Hub",
+     "target": null
+    },
+    {
+     "id": "s8",
+     "type": "step",
+     "lane": "at",
+     "text": "Open estimate, launch extension, click Check Status",
+     "system": "Browser extension (SH)",
+     "target": null
+    },
+    {
+     "id": "s9",
+     "type": "step",
+     "lane": "at",
+     "text": "Click Load Articles, PO and SO",
+     "system": "Browser extension (SH)",
+     "target": null
+    },
+    {
+     "id": "s10",
+     "type": "decision",
+     "lane": "at",
+     "text": "Shasta result?",
+     "system": null,
+     "target": null
+    },
+    {
+     "id": "s11",
+     "type": "step",
+     "lane": "omc",
+     "text": "Article, PO and SO created in Stocktool",
+     "system": "Stocktool",
+     "target": null
+    },
+    {
+     "id": "s12",
+     "type": "step",
+     "lane": "sup",
+     "text": "Upload POD and supplier invoice",
+     "system": "Sourcing Hub",
+     "target": null
+    },
+    {
+     "id": "s13",
+     "type": "step",
+     "lane": "at",
+     "text": "Click Load Supplier invoices to Stocktool",
+     "system": "Browser extension (SH)",
+     "target": null
+    },
+    {
+     "id": "s14",
+     "type": "step",
+     "lane": "at",
+     "text": "Click Load Client bills to Stocktool",
+     "system": "Browser extension (SH)",
+     "target": null
+    },
+    {
+     "id": "s15",
+     "type": "step",
+     "lane": "omc",
+     "text": "Download client invoice, send to client",
+     "system": "Stocktool, email or portal",
+     "target": null
+    },
+    {
+     "id": "s16",
+     "type": "end",
+     "lane": "fin",
+     "text": "Hand over to the AP and AR process",
+     "system": "Finance systems",
+     "target": null
+    },
+    {
+     "id": "m1",
+     "type": "sub",
+     "lane": "cst",
+     "text": "Manual interim process",
+     "system": null,
+     "target": null
+    },
+    {
+     "id": "e1",
+     "type": "step",
+     "lane": "at",
+     "text": "Copy Request ID, add screenshot, raise one ticket per estimate",
+     "system": "Email to App Support",
+     "target": null
+    },
+    {
+     "id": "e2",
+     "type": "step",
+     "lane": "it",
+     "text": "Review and resolve error, close ticket",
+     "system": "Jira",
+     "target": null
+    }
+   ]
+  },
+  {
+   "id": "shasta-triage",
+   "name": "Shasta triage: always try Shasta first",
+   "variant": "Phase 1",
+   "lanes": {
+    "at": "Account team",
+    "app": "App Support / IT",
+    "ops": "OMC / Ops Excellence"
+   },
+   "steps": [
+    {
+     "id": "t1",
+     "type": "start",
+     "lane": "at",
+     "text": "Job closed in Sourcing Hub",
+     "system": "Sourcing Hub",
+     "target": null
+    },
+    {
+     "id": "t2",
+     "type": "step",
+     "lane": "at",
+     "text": "Attempt the job in Shasta",
+     "system": "Browser extension (SH)",
+     "target": null
+    },
+    {
+     "id": "t3",
+     "type": "decision",
+     "lane": "at",
+     "text": "Shasta result?",
+     "system": null,
+     "target": null
+    },
+    {
+     "id": "t4",
+     "type": "end",
+     "lane": "at",
+     "text": "Job in Stocktool, normal downstream process continues",
+     "system": "Stocktool",
+     "target": null
+    },
+    {
+     "id": "t5",
+     "type": "step",
+     "lane": "ops",
+     "text": "Confirm job is on the manual input file, else request it",
+     "system": "Input file, reporting form",
+     "target": null
+    },
+    {
+     "id": "t6",
+     "type": "sub",
+     "lane": "ops",
+     "text": "Manual interim process",
+     "system": null,
+     "target": null
+    },
+    {
+     "id": "t7",
+     "type": "decision",
+     "lane": "app",
+     "text": "Error type?",
+     "system": null,
+     "target": null
+    },
+    {
+     "id": "t10",
+     "type": "step",
+     "lane": "at",
+     "text": "Fix tax, delivery or closed status in Sourcing Hub",
+     "system": "Sourcing Hub",
+     "target": null
+    },
+    {
+     "id": "t11",
+     "type": "step",
+     "lane": "app",
+     "text": "Raise ticket, App Support resolves, then retry",
+     "system": "Email, Jira",
+     "target": null
+    }
+   ]
+  },
+  {
+   "id": "manual-interim",
+   "name": "Manual interim process",
+   "variant": "Phase 1",
+   "lanes": {
+    "at": "Account team",
+    "omc": "OMC",
+    "cst": "CST",
+    "fin": "Local finance"
+   },
+   "steps": [
+    {
+     "id": "i1",
+     "type": "start",
+     "lane": "at",
+     "text": "Estimate not supported by Shasta, or ticket says go manual",
+     "system": null,
+     "target": null
+    },
+    {
+     "id": "i2",
+     "type": "step",
+     "lane": "at",
+     "text": "Fill 'By AT' fields in the input file",
+     "system": "Excel input file",
+     "target": null
+    },
+    {
+     "id": "i3",
+     "type": "step",
+     "lane": "at",
+     "text": "Create Airtable task 'Migrate order from SH to ST'",
+     "system": "Airtable",
+     "target": null
+    },
+    {
+     "id": "i4",
+     "type": "step",
+     "lane": "omc",
+     "text": "Complete yellow 'By OMC' fields, click Migrate Ready",
+     "system": "Excel input file",
+     "target": null
+    },
+    {
+     "id": "i5",
+     "type": "step",
+     "lane": "omc",
+     "text": "Refresh output file, upload Article, PO and SO templates",
+     "system": "Excel output file, backend",
+     "target": null
+    },
+    {
+     "id": "i6",
+     "type": "step",
+     "lane": "omc",
+     "text": "Check SO and PO against Sourcing Hub, amend pricing, send PO for approval",
+     "system": "Stocktool",
+     "target": null
+    },
+    {
+     "id": "i7",
+     "type": "decision",
+     "lane": "at",
+     "text": "PO OK?",
+     "system": null,
+     "target": null
+    },
+    {
+     "id": "i8",
+     "type": "step",
+     "lane": "at",
+     "text": "Request amendment in Airtable, update input file",
+     "system": "Airtable, Excel",
+     "target": null
+    },
+    {
+     "id": "i9",
+     "type": "step",
+     "lane": "omc",
+     "text": "Share PO and SO PDFs, close Airtable task, click Migrated",
+     "system": "Email, input file",
+     "target": null
+    },
+    {
+     "id": "i10",
+     "type": "step",
+     "lane": "cst",
+     "text": "Upload supplier invoice, POD, client PO; confirm compliance",
+     "system": "eProc, Sourcing Hub, Stocktool SO",
+     "target": null
+    },
+    {
+     "id": "i11",
+     "type": "step",
+     "lane": "omc",
+     "text": "Create delivery note and proforma",
+     "system": "Stocktool",
+     "target": null
+    },
+    {
+     "id": "i12",
+     "type": "step",
+     "lane": "at",
+     "text": "Confirm proforma",
+     "system": "Email",
+     "target": null
+    },
+    {
+     "id": "i13",
+     "type": "step",
+     "lane": "omc",
+     "text": "Issue client invoice, send by email or portal",
+     "system": "Stocktool",
+     "target": null
+    },
+    {
+     "id": "i14",
+     "type": "end",
+     "lane": "fin",
+     "text": "E-invoicing where required, bookkeeping, supplier payment",
+     "system": "Finance systems",
+     "target": null
+    }
+   ]
+  },
+  {
+   "id": "semi-shasta",
+   "name": "Semi-Shasta exceptions",
+   "variant": "Phase 1",
+   "lanes": {
+    "at": "Account team",
+    "cst": "CST",
+    "omc": "OMC"
+   },
+   "steps": [
+    {
+     "id": "x1",
+     "type": "start",
+     "lane": "at",
+     "text": "Button 1 worked, then button 2 or 3 failed",
+     "system": "Browser extension (SH)",
+     "target": null
+    },
+    {
+     "id": "x2",
+     "type": "decision",
+     "lane": "at",
+     "text": "Which button failed?",
+     "system": null,
+     "target": null
+    },
+    {
+     "id": "x3",
+     "type": "step",
+     "lane": "at",
+     "text": "Email CST with job, estimate and Stocktool PO reference",
+     "system": "Email",
+     "target": null
+    },
+    {
+     "id": "x4",
+     "type": "step",
+     "lane": "cst",
+     "text": "Upload supplier invoice and POD",
+     "system": "Stocktool, eProc",
+     "target": null
+    },
+    {
+     "id": "x5",
+     "type": "step",
+     "lane": "at",
+     "text": "Create Airtable task 'Invoice client' with EXTERNAL REF ID",
+     "system": "Airtable",
+     "target": null
+    },
+    {
+     "id": "x6",
+     "type": "step",
+     "lane": "omc",
+     "text": "Set Ready to Invoice, create delivery note and invoice, send",
+     "system": "Stocktool",
+     "target": null
+    },
+    {
+     "id": "x7",
+     "type": "end",
+     "lane": "omc",
+     "text": "Mark Airtable task complete",
+     "system": "Airtable",
+     "target": null
+    }
+   ]
+  },
+  {
+   "id": "multi-vat",
+   "name": "Multiple VAT rates in one estimate",
+   "variant": "Phase 1",
+   "lanes": {
+    "at": "Account team",
+    "omc": "OMC",
+    "it": "IT"
+   },
+   "steps": [
+    {
+     "id": "v1",
+     "type": "start",
+     "lane": "at",
+     "text": "Estimate has more than one VAT rate",
+     "system": "Sourcing Hub",
+     "target": null
+    },
+    {
+     "id": "v2",
+     "type": "step",
+     "lane": "at",
+     "text": "Fill input file, raise Airtable migrate task",
+     "system": "Excel, Airtable",
+     "target": null
+    },
+    {
+     "id": "v3",
+     "type": "step",
+     "lane": "omc",
+     "text": "Split by VAT rate, add suffix A, B, C to each reference",
+     "system": "Excel input and output files",
+     "target": null
+    },
+    {
+     "id": "v4",
+     "type": "sub",
+     "lane": "omc",
+     "text": "Run the full manual process for each split SO",
+     "system": null,
+     "target": null
+    },
+    {
+     "id": "v5",
+     "type": "step",
+     "lane": "it",
+     "text": "Restore original Job-Estimate external reference",
+     "system": "IT ticket (ManageEngine)",
+     "target": null
+    },
+    {
+     "id": "v6",
+     "type": "end",
+     "lane": "omc",
+     "text": "Reconcile all split SOs to the SH estimate, confirm links",
+     "system": "Stocktool, guardrails",
+     "target": null
+    }
+   ]
+  },
+  {
+   "id": "wave2-e2e",
+   "name": "Phase 2 end-to-end: Stocktool order execution and invoicing",
+   "variant": "Phase 2",
+   "lanes": {
+    "cl": "Client",
+    "sup": "Supplier",
+    "at": "Account Team",
+    "src": "Sourcing",
+    "sha": "SHASTA (system)",
+    "omc": "OMC",
+    "cst": "CST / FSSC",
+    "fin": "Finance"
+   },
+   "steps": [
+    {
+     "id": "w1",
+     "type": "step",
+     "lane": "at",
+     "text": "Spec creation: client brief turned into a product specification",
+     "system": "Sourcing Hub",
+     "target": null
+    },
+    {
+     "id": "w2",
+     "type": "step",
+     "lane": "src",
+     "text": "Sourcing and RFQ: suppliers quoted through the portal, supplier selected",
+     "system": "Sourcing Hub, Supplier Portal",
+     "target": null
+    },
+    {
+     "id": "w3",
+     "type": "step",
+     "lane": "at",
+     "text": "Estimate creation: client price built, incoterm set (DDP or non-DDP)",
+     "system": "Sourcing Hub",
+     "target": null
+    },
+    {
+     "id": "w4",
+     "type": "step",
+     "lane": "cl",
+     "text": "Client approves the estimate. Sourcing Hub activity ends here",
+     "system": "Sourcing Hub",
+     "target": null
+    },
+    {
+     "id": "wd",
+     "type": "decision",
+     "lane": "sha",
+     "text": "Unit and account activated for Phase 2?",
+     "system": "SHASTA",
+     "target": null
+    },
+    {
+     "id": "wx",
+     "type": "sub",
+     "lane": "omc",
+     "text": "Today's flow: Sourcing Hub to job closure, then Stocktool (Phase 1)",
+     "system": null,
+     "target": null
+    },
+    {
+     "id": "w5",
+     "type": "step",
+     "lane": "sha",
+     "text": "SHASTA trigger: job handed to Stocktool at approval, for activated markets and accounts",
+     "system": "SHASTA",
+     "target": null
+    },
+    {
+     "id": "w6",
+     "type": "step",
+     "lane": "omc",
+     "text": "Order creation: Stocktool order created, VAT calculated automatically",
+     "system": "Stocktool",
+     "target": null
+    },
+    {
+     "id": "w7",
+     "type": "step",
+     "lane": "omc",
+     "text": "Supplier PO and goods receipt: PO issued, goods received, stock recognised for non-DDP",
+     "system": "Stocktool",
+     "target": null
+    },
+    {
+     "id": "w8",
+     "type": "step",
+     "lane": "sup",
+     "text": "Delivery and POD: goods delivered, POD uploaded by the supplier",
+     "system": "Stocktool, Supplier Portal",
+     "target": null
+    },
+    {
+     "id": "w9",
+     "type": "step",
+     "lane": "cst",
+     "text": "Compliance check: CST records compliance evidence and approves",
+     "system": "Stocktool",
+     "target": null
+    },
+    {
+     "id": "w10",
+     "type": "step",
+     "lane": "cst",
+     "text": "Client invoice generated (route: Stocktool or Navision, to be decided)",
+     "system": "Stocktool, Navision",
+     "target": null
+    },
+    {
+     "id": "w11",
+     "type": "step",
+     "lane": "omc",
+     "text": "Closure: order and job closed",
+     "system": "Stocktool",
+     "target": null
+    },
+    {
+     "id": "w12",
+     "type": "step",
+     "lane": "fin",
+     "text": "Accounting postings: AP, AR and stock postings to the correct entity",
+     "system": "Navision, Sage",
+     "target": null
+    },
+    {
+     "id": "w13",
+     "type": "step",
+     "lane": "fin",
+     "text": "Reconciliation: Stocktool to Navision totals reconciled, month end closed",
+     "system": "Navision, reporting",
+     "target": null
+    }
+   ]
+  }
+ ]
+}

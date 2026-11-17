@@ -52,7 +52,7 @@ await asSuper("insert into auth.users (id, email) values ($1,'a@alpha-h.example'
 const { rows: [client] } = await asSuper(
   "insert into public.sourcing_clients (code, name, min_quotes_required, default_markup_percent, gsc_commission_percent, year_end_rebate_percent) values ('HUB','Hub Client',2,10,2,3) returning id",
 );
-const { rows: [be] } = await asSuper("insert into public.sourcing_billing_entities (code, name, region, market) values ('BE-HDE','adm Indicia GmbH','EMEA','Germany') returning id");
+const { rows: [be] } = await asSuper("insert into public.sourcing_billing_entities (code, name, region, market) values ('BE-HDE','Northgate Brand Services GmbH','EMEA','Germany') returning id");
 
 async function newJob(title = "Promo job") {
   return one("agent", "insert into public.jobs (title, client_id, billing_entity_id, region, market) values ($1,$2,$3,'EMEA','Germany') returning id, job_number", [title, client.id, be.id]);
@@ -112,6 +112,7 @@ test("more than 6 quantity breaks are accepted (up to 12); incoterms come from t
 
 test("HS code is required to send an RFQ with promo lines; the sent revision is recorded", async () => {
   await as("agent", "select public.rfq_set_suppliers($1,$2)", [rfq, JSON.stringify([sA, sB])]);
+  await asSuper("insert into public.impact_grade_records (subject_kind, subject_id, score, letter) values ('spec', $1, 60, 'C')", [spec]);
   await rejects(as("agent", "select public.rfq_send($1)", [rfq]), /need an HS code/);
   await as("agent", "update public.job_specs set hs_code = '4202.92' where id = $1", [spec]); // not sent yet: a plain edit
   await as("agent", "select public.rfq_send($1)", [rfq]);

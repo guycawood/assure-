@@ -69,8 +69,8 @@ test("vendors and client users can't read CRM internals or call CRM functions", 
       const { rows } = await as(user, `select count(*)::int n from public.${tbl}`);
       assert.equal(rows[0].n, 0, `${tbl} should be empty for ${user}`);
     }
-    await rejects(as(user, "select public.crm_account_save(null, $1, 'FR', null, null)", [A]), /Only adm Indicia staff/);
-    await rejects(as(user, "select public.crm_feedback_capture($1, null, null, 10, 'x')", [A]), /Only adm Indicia staff/);
+    await rejects(as(user, "select public.crm_account_save(null, $1, 'FR', null, null)", [A]), /Only staff/);
+    await rejects(as(user, "select public.crm_feedback_capture($1, null, null, 10, 'x')", [A]), /Only staff/);
   }
   await rejects(as("cA1", "select * from public.approvals_crm"), /permission denied/);
 });
@@ -136,7 +136,7 @@ test("new client set-up: with a policy, the client can't be used on jobs until F
   const req = await requestFor("CRM_CLIENT_SETUP", nc);
   await rejects(as("finance", "select public.approval_request_decide($1, true, null)", [req.id]), /someone else/);
   await rejects(as("agent", "select public.approval_request_decide($1, true, null)", [req.id]), /finance/i);
-  // Someone at adm Indicia with no role at all can't decide it either (approval_has_role never answers NULL).
+  // Someone on the team with no role at all can't decide it either (approval_has_role never answers NULL).
   await rejects(as("plain", "select public.approval_request_decide($1, true, null)", [req.id]), /finance/i);
   assert.ok(!(await inbox("plain")).some((r) => r.item_id === req.id));
   assert.ok((await inbox("admin")).some((r) => r.item_id === req.id && r.market === "GB" && r.market_name === "United Kingdom"));

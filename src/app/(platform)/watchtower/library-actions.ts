@@ -34,18 +34,28 @@ export async function createRecord(key: string, input: RecordInput): Promise<Res
   return call("library_create", { p_key: key, p_code: input.code || null, p_name: input.name, p_data: data, p_effective_from: input.effective_from || null, p_notes: input.notes || null }, "Added.");
 }
 
+/**
+ * The form only carries the schema's fields, so keep anything else the record holds (e.g. a country's distance
+ * tables, workbook row order) rather than silently dropping it on a correction or a new version.
+ */
+async function withExisting(id: string, data: Record<string, unknown>) {
+  const supabase = await createClient();
+  const { data: rec } = await supabase.from("library_records").select("data").eq("id", id).maybeSingle();
+  return { ...((rec?.data as Record<string, unknown> | undefined) ?? {}), ...data };
+}
+
 export async function updateRecord(key: string, id: string, input: RecordInput): Promise<Result> {
   const { data, errors } = coerceData(schemaFor(key), input.data);
   if (!input.name.trim()) errors.unshift("Name is required");
   if (errors.length) return fail(errors.join(". "));
-  return call("library_update", { p_id: id, p_name: input.name, p_data: data, p_notes: input.notes || null, p_reason: input.reason }, "Correction saved.");
+  return call("library_update", { p_id: id, p_name: input.name, p_data: await withExisting(id, data), p_notes: input.notes || null, p_reason: input.reason }, "Correction saved.");
 }
 
 export async function supersedeRecord(key: string, id: string, input: RecordInput): Promise<Result> {
   const { data, errors } = coerceData(schemaFor(key), input.data);
   if (!input.name.trim()) errors.unshift("Name is required");
   if (errors.length) return fail(errors.join(". "));
-  return call("library_supersede", { p_id: id, p_name: input.name, p_data: data, p_effective_from: input.effective_from || null, p_note: input.reason }, "New version created.");
+  return call("library_supersede", { p_id: id, p_name: input.name, p_data: await withExisting(id, data), p_effective_from: input.effective_from || null, p_note: input.reason }, "New version created.");
 }
 
 export async function approveRecord(id: string, approve: boolean, note: string): Promise<Result> {

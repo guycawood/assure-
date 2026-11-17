@@ -13,7 +13,7 @@ type Given = { id: string; client_name: string; market: string | null; score: nu
 
 const tone = (s: number) => (s >= 9 ? "ok" : s >= 7 ? "warn" : "bad") as "ok" | "warn" | "bad";
 
-// Clients rate adm Indicia (0-10) and see who looks after them. Both through client-safe functions scoped to their accounts.
+// Clients rate us (0-10) and see who looks after them. Both through client-safe functions scoped to their accounts.
 export default async function ClientFeedback({ searchParams }: { searchParams: Promise<{ preview?: string }> }) {
   const ctx = await portalContext(await searchParams);
   const [team, given, surveys] = await Promise.all([
@@ -36,7 +36,7 @@ export default async function ClientFeedback({ searchParams }: { searchParams: P
         </Card>
       )}
 
-      <Panel title="Your account team" sub="The adm Indicia people who look after your business">
+      <Panel title="Your account team" sub="The people who look after your business">
         {(team ?? []).length === 0 ? <Empty title="Your account team will appear here" /> : (
           <ul className="divide-y divide-line">{(team ?? []).map((t) => (
             <li key={`${t.client_name}-${t.market}`} className="flex flex-wrap items-center gap-3 px-5 py-3 text-sm">
@@ -47,7 +47,7 @@ export default async function ClientFeedback({ searchParams }: { searchParams: P
       </Panel>
 
       <Card className="px-5 py-4">
-        <h2 className="mb-3 font-display text-[0.95rem] font-bold">How likely are you to recommend adm Indicia to a colleague?</h2>
+        <h2 className="mb-3 font-display text-[0.95rem] font-bold">How likely are you to recommend us to a colleague?</h2>
         {ctx.preview ? <p className="text-sm text-muted">Preview: only the client&apos;s own users can send feedback.</p> : (
           <ClientActionForm action={sendFeedback} submit="Send feedback" hidden={ctx.accounts.length === 1 ? { client_id: ctx.accounts[0].id } : undefined}>
             {ctx.accounts.length > 1 && (

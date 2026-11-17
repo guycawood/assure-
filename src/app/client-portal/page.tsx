@@ -9,11 +9,13 @@ import { MSymbol } from "@/components/symbol";
 import { OrderTimeline, PreviewBanner } from "@/components/client/bits";
 import { ClientActionForm } from "@/components/client/forms";
 import { respondReview } from "./actions";
+import { GradeStat } from "@/components/impact-grade/grade-stat";
+import { getPortalClientGrade } from "@/lib/impact-grade-data";
 
 export default async function ClientPortalHome({ searchParams }: { searchParams: Promise<{ preview?: string }> }) {
   const ctx = await portalContext(await searchParams, { allowPicker: true });
 
-  // adm Indicia staff without a client chosen: pick one to preview.
+  // Staff without a client chosen: pick one to preview.
   if (ctx.isInternal && !ctx.preview) {
     const clients = await previewClients(ctx.supabase);
     return (
@@ -50,6 +52,7 @@ export default async function ClientPortalHome({ searchParams }: { searchParams:
     rpc<{ id: string; client_name: string; title: string; review_type: string; scheduled_on: string; agenda: string[]; my_response: string | null }[]>(ctx.supabase, "client_portal_reviews", s),
     rpc<{ id: string; client_name: string; title: string; detail: string | null; due_date: string | null; status: string; from_review: string | null; owner_name: string }[]>(ctx.supabase, "client_portal_actions", s),
   ]);
+  const grade = await getPortalClientGrade(ctx.supabase, ctx.preview);
   const names = ctx.accounts.map((a) => a.name).join(", ");
   const waiting = (estimates ?? []).filter((e) => e.status === "sent");
   const active = (orders ?? []).filter((o) => o.status !== "closed").slice(0, 4);
@@ -59,9 +62,10 @@ export default async function ClientPortalHome({ searchParams }: { searchParams:
   return (
     <>
       {ctx.preview && <PreviewBanner name={names} />}
-      <PageHead title={ctx.preview ? names : `Welcome${first ? `, ${first}` : ""}`} sub={`Your campaigns, briefs, estimates and orders with adm Indicia${names ? ` for ${names}` : ""}.`} />
+      <PageHead title={ctx.preview ? names : `Welcome${first ? `, ${first}` : ""}`} sub={`Your campaigns, briefs, estimates and orders with us${names ? ` for ${names}` : ""}.`} />
 
-      <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
+      <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-6">
+        <GradeStat avg={grade.avg} specs={grade.specs} graded={grade.graded} of="your jobs" icon={<MSymbol name="eco" />} />
         <Stat label="Live campaigns" value={summary?.live_campaigns ?? 0} icon={<MSymbol name="campaign" />} />
         <Stat label="Open briefs" value={summary?.open_briefs ?? 0} hint="With us or in development" icon={<MSymbol name="description" />} />
         <Stat label="Estimates to decide" value={summary?.estimates_awaiting ?? 0} tone={summary?.estimates_awaiting ? "warn" : undefined} icon={<MSymbol name="request_quote" />} />
@@ -99,7 +103,7 @@ export default async function ClientPortalHome({ searchParams }: { searchParams:
                 </li>))}</ul>
             )}
           </Panel>
-          <Panel title="Our actions for you" sub="What adm Indicia has agreed to do">
+          <Panel title="Our actions for you" sub="What we have agreed to do">
             {(ourActions ?? []).length === 0 ? <Empty title="Nothing open right now" /> : (
               <ul className="divide-y divide-line">{(ourActions ?? []).map((a) => (
                 <li key={a.id} className="flex flex-wrap items-start gap-3 px-5 py-3 text-sm">

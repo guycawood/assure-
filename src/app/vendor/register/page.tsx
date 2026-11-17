@@ -22,13 +22,13 @@ export default async function VendorRegister({ searchParams }: { searchParams: P
           <div className="grid h-9 w-9 place-items-center rounded bg-accent font-display text-lg font-bold text-accent-fg">A+</div>
           <div>
             <h1 className="font-display text-xl font-bold leading-none">SRM Vendor Portal</h1>
-            <p className="mt-1 text-xs text-muted">adm Indicia</p>
+            
           </div>
         </div>
         {info.valid ? (
           <>
             <p>
-              adm Indicia has invited <b>{info.supplier_name}</b> to register as a vendor. You&apos;ll be asked for your company details,
+              We have invited <b>{info.supplier_name}</b> to register as a vendor. You&apos;ll be asked for your company details,
               certifications and bank details. It takes about 10 minutes.
             </p>
             <RegisterForm invite={invite} email={info.email!} demo={isDemoMode()} />
@@ -41,7 +41,7 @@ export default async function VendorRegister({ searchParams }: { searchParams: P
             <p className="text-muted">
               {info.reason === "used"
                 ? "If you've already registered, sign in to the vendor portal with your email address."
-                : "Ask your adm Indicia contact to send you a new information request."}
+                : "Ask your contact to send you a new information request."}
             </p>
             <Link href="/login" className="font-semibold text-accent underline underline-offset-2">Go to sign in</Link>
           </div>

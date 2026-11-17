@@ -8,6 +8,8 @@ import { formatDate, personName, timeAgo } from "@/lib/srt";
 import { Card, Empty, PageHead, Panel, Stat } from "@/components/ui";
 import { Chips, SupplierLink } from "@/components/assure/bits";
 import { CertReview, DocReview } from "@/components/assure/forms";
+import { DocumentCheck, type DocCheck } from "@/components/assure/document-check";
+import { runDocumentChecks } from "@/lib/ocr/run";
 
 export const metadata: Metadata = { title: "Document review" };
 
@@ -23,6 +25,13 @@ export default async function ReviewQueue({ searchParams }: { searchParams: Prom
     getSuppliers(supabase),
     getInternalPeople(supabase),
   ]);
+  // Read anything uploaded and not yet checked, so a reviewer opening the queue sees findings straight away. The scheduler does this too.
+  try { await runDocumentChecks(5); } catch { /* the checks are an aid, never a blocker */ }
+  const [docChecks, certChecks] = await Promise.all([
+    supabase.rpc("docchecks_for", { p_type: "document", p_ids: docs.map((d) => d.id) }),
+    supabase.rpc("docchecks_for", { p_type: "certificate", p_ids: certs.map((c) => c.id) }),
+  ]);
+  const checkOf = new Map([...((docChecks.data as DocCheck[] | null) ?? []), ...((certChecks.data as DocCheck[] | null) ?? [])].map((c) => [c.subject_id, c]));
   const sMap = new Map(suppliers.map((s) => [s.id, s]));
   const pMap = byId(people);
   const q = sp.q?.toLowerCase();
@@ -60,6 +69,7 @@ export default async function ReviewQueue({ searchParams }: { searchParams: Prom
                   <p className="text-xs text-muted">Uploaded by {uploader(d.uploaded_by_role, d.uploaded_by)} · {timeAgo(d.created_at)} · {d.file_path}</p>
                 </div>
                 {d.uploaded_by === me.id ? <span className="text-xs text-muted">You uploaded this; someone else checks it</span> : <DocReview id={d.id} supplierId={d.supplier_id} />}
+                <DocumentCheck type="document" id={d.id} check={checkOf.get(d.id)} />
               </li>
             ))}
           </ul>
@@ -77,6 +87,7 @@ export default async function ReviewQueue({ searchParams }: { searchParams: Prom
                     <p className="text-xs text-muted">Uploaded by {uploader(c.uploaded_by_role, c.uploaded_by)} · {timeAgo(c.created_at)}{c.document_path ? ` · ${c.document_path}` : ""}</p>
                   </div>
                   {c.uploaded_by === me.id ? <span className="text-xs text-muted">You uploaded this; someone else checks it</span> : <CertReview id={c.id} supplierId={c.supplier_id} />}
+                  <DocumentCheck type="certificate" id={c.id} check={checkOf.get(c.id)} />
                 </li>
               ))}
             </ul>

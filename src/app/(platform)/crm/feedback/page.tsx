@@ -17,7 +17,9 @@ export default async function CrmFeedback({ searchParams }: { searchParams: Prom
   await requireInternal();
   const sp = await searchParams;
   const supabase = await createClient();
-  const [all, clients] = await Promise.all([getFeedback(supabase, { client_id: sp.client }), getClients(supabase)]);
+  const [all, clients, caseRes] = await Promise.all([getFeedback(supabase, { client_id: sp.client }), getClients(supabase),
+    supabase.from("crm_feedback_cases").select("id, feedback_id, status")]);
+  const caseOf = new Map(((caseRes.data as { id: string; feedback_id: string | null; status: string }[] | null) ?? []).filter((c) => c.feedback_id).map((c) => [c.feedback_id as string, c]));
   const rows = sp.open === "1" ? all.filter((f) => f.score <= 6 && !f.followed_up_at) : all;
   const year = all.filter((f) => new Date(f.created_at).getTime() >= Date.now() - 365 * 86_400_000);
   const score = nps(year.map((f) => f.score));
@@ -26,12 +28,14 @@ export default async function CrmFeedback({ searchParams }: { searchParams: Prom
 
   return (
     <>
-      <PageHead title="Feedback" sub="How clients rate adm Indicia (0 to 10), from the team and from the Client Portal. Scores of 6 or less are followed up."
-        crumbs={[{ label: "CRM", href: "/crm" }, { label: "Feedback" }]} />
+      <PageHead title="Feedback" sub="How clients rate the team (0 to 10), from the team and from the Client Portal. A low score opens a case that someone owns until the client has been told what was done."
+        crumbs={[{ label: "CRM", href: "/crm" }, { label: "Feedback" }]}>
+        <Link href="/crm/feedback/cases" className="btn-primary">Feedback cases</Link>
+      </PageHead>
       <div className="grid gap-3 sm:grid-cols-3">
         <Stat label="NPS (12 months)" value={score ?? "—"} tone={score == null ? undefined : score >= 30 ? "ok" : score >= 0 ? "warn" : "bad"} hint={`${year.length} scores`} icon={<MSymbol name="reviews" />} />
         <Stat label="Average score" value={avg} icon={<MSymbol name="star" />} />
-        <Stat label="To follow up" value={openCount} tone={openCount ? "warn" : "ok"} hint={<Link className="underline" href="/crm/feedback?open=1">Show them</Link>} icon={<MSymbol name="support_agent" />} />
+        <Stat label="To follow up" value={openCount} tone={openCount ? "warn" : "ok"} hint={<Link className="underline" href="/crm/feedback/cases">Open the cases</Link>} icon={<MSymbol name="support_agent" />} />
       </div>
       <form className="flex flex-wrap items-end gap-3" method="get">
         <Select name="client" label="Client" options={clientOptions(clients)} value={sp.client} empty="All clients" />
@@ -54,10 +58,13 @@ export default async function CrmFeedback({ searchParams }: { searchParams: Prom
                 <span className="text-xs text-muted">{fmtDate(f.created_at)} · {f.contact_name ?? f.submitted_by_name}{f.market ? ` · ${f.market}` : ""}</span></div>
               {f.comment && <p>{f.comment}</p>}
               {f.followed_up_at ? <p className="text-xs text-ok">Followed up {fmtDate(f.followed_up_at)}: {f.follow_up_note}</p> : f.score <= 6 && (
-                <ActionForm action={followUpFeedback} hidden={{ id: f.id }} submit="Record follow-up" variant="secondary" inline>
-                  <input name="note" className="input w-80" placeholder="What was done about it" aria-label="Follow-up note" />
-                </ActionForm>
+                caseOf.get(f.id)
+                  ? <Link className="text-sm font-semibold text-accent underline" href={`/crm/feedback/cases/${caseOf.get(f.id)!.id}`}>Open the case</Link>
+                  : <ActionForm action={followUpFeedback} hidden={{ id: f.id }} submit="Record follow-up" variant="secondary" inline>
+                      <input name="note" className="input w-80" placeholder="What was done about it" aria-label="Follow-up note" />
+                    </ActionForm>
               )}
+              {caseOf.get(f.id)?.status === "closed" && <Link className="text-xs text-muted underline" href={`/crm/feedback/cases/${caseOf.get(f.id)!.id}`}>See the closed case</Link>}
             </li>))}</ul>
         )}
       </Panel>

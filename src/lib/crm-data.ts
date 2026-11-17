@@ -7,7 +7,7 @@ import type {
 } from "@/lib/crm";
 import type { DeliveryKpis } from "@/lib/qaqc";
 
-// Server-side reads for CRM. Everything reads internal views (security invoker), so RLS limits them to adm Indicia staff.
+// Server-side reads for CRM. Everything reads internal views (security invoker), so RLS limits them to staff.
 type Client = Awaited<ReturnType<typeof createClient>>;
 type Filter = Record<string, string | null | undefined>;
 

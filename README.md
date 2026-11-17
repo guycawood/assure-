@@ -1,6 +1,6 @@
 # System Guy
 
-adm Indicia's platform (CRM, Briefing, Shopper IQ, Sourcing, Order Management, SRM, Finance, Watchtower). It started as the supplier relationship management (SRM) build. This repo is the fresh build that replaces the Base44 prototype.
+our platform (CRM, Briefing, Shopper IQ, Sourcing, Order Management, SRM, Finance, Watchtower). It started as the supplier relationship management (SRM) build. This repo is the fresh build that replaces the Base44 prototype.
 
 **Phase 1 (this release): internal portal + SRT Onboarding Desk**
 

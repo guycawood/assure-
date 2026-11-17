@@ -27,6 +27,7 @@ export type BriefDetail = BriefRow & {
   objective: string | null; brief_text: string | null; target_outlets: string | null; product_category: string | null;
   sustainability_targets: string | null; min_recycled_pct: number | null; require_fsc: boolean; client_id: string;
   timeline: { event: string; to_status: string | null; at: string }[]; comments: ClientComment[];
+  returned_reason?: string | null; meeting_requested?: boolean | null;
 };
 
 export type Decision = { decision: "approve" | "decline"; comment: string | null; client_order_ref: string | null; decided_at: string; decided_by_name: string | null };
@@ -65,7 +66,8 @@ export type Report = {
 // Labels (client-facing wording)
 // ---------------------------------------------------------------------------
 export const BRIEF_STATUS: Record<string, { label: string; tone: Tone }> = {
-  submitted: { label: "With adm Indicia for review", tone: "info" },
+  submitted: { label: "With us for review", tone: "info" },
+  with_client: { label: "Waiting for your answer", tone: "warn" },
   in_ideation: { label: "Approved, ideas in progress", tone: "accent" },
   spec_created: { label: "Moved to production planning", tone: "ok" },
   archived: { label: "Closed", tone: "neutral" },
@@ -74,8 +76,8 @@ export const BRIEF_STATUS: Record<string, { label: string; tone: Tone }> = {
 export function estimateStatus(e: Pick<EstimateRow, "status" | "decision">): { label: string; tone: Tone } {
   if (e.status === "approved") return { label: "Approved", tone: "ok" };
   if (e.status === "declined") return { label: "Declined", tone: "bad" };
-  if (e.decision?.decision === "approve") return { label: "You approved: adm Indicia is confirming", tone: "info" };
-  if (e.decision?.decision === "decline") return { label: "You declined: adm Indicia is following up", tone: "warn" };
+  if (e.decision?.decision === "approve") return { label: "You approved: we are confirming", tone: "info" };
+  if (e.decision?.decision === "decline") return { label: "You declined: we are following up", tone: "warn" };
   return { label: "Waiting for your decision", tone: "warn" };
 }
 
@@ -104,6 +106,8 @@ export const BRIEF_EVENT: Record<string, string> = {
   submitted: "Brief submitted",
   approved: "Brief approved",
   changes_requested: "Changes being made",
+  sent_back_to_client: "Sent back to you for more information",
+  client_resubmitted: "You resubmitted the brief",
   archived: "Brief closed",
   handoff_created: "Concept chosen, sent to production planning",
   spec_created: "Production planning started",

@@ -17,6 +17,10 @@ export type AssetRow = {
   file_url: string | null; metadata: Record<string, unknown>; metadata_source: string; created_at: string;
   /** Rights/brand sign-off before Briefing+ reuses the asset. */
   rights_status?: "pending" | "approved" | "rejected"; can_signoff?: boolean;
+  /** The spec this asset shows, and that spec's Impact Grade. */
+  spec_id?: string | null; spec_title?: string | null; spec_job_number?: string | null;
+  ig_score?: number | string | null; ig_letter?: string | null; ig_confidence?: number | null;
+  ig_range_low?: number | string | null; ig_range_high?: number | string | null; ig_review_status?: "unreviewed" | "reviewed" | "disputed" | null;
 };
 
 export const ASSET_TYPES = [

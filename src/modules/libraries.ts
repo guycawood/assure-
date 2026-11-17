@@ -291,7 +291,7 @@ export const LIBRARY_SCHEMAS: Record<string, LibrarySchema> = {
       { key: "approval_type", label: "Approval type", type: "text", required: true, column: true, help: "Code used by the module, e.g. BRIEF, CONCEPT, PO_DOA" },
       { key: "description", label: "What is approved", type: "textarea", column: true },
       { key: "approver_role", label: "Who approves", type: "enum", required: true, column: true, filter: true, options: [
-        { value: "admin", label: "Admin" }, { value: "internal", label: "Anyone at adm Indicia" }, { value: "named_person", label: "Named person" },
+        { value: "admin", label: "Admin" }, { value: "internal", label: "Anyone on the team" }, { value: "named_person", label: "Named person" },
         { value: "srt_agent", label: "SRT agent or lead" }, { value: "srt_lead", label: "SRT lead" }, { value: "finance", label: "Finance" },
         { value: "procurement", label: "Procurement" }, { value: "procurement_head", label: "Procurement head" }, { value: "sourcing_lead", label: "Sourcing lead" },
         { value: "doa", label: "Delegated authority (DOA)" }, { value: "module_owner", label: "Module owner" }, { value: "briefing_lead", label: "Briefing lead" },
@@ -538,6 +538,351 @@ export function displayValue(f: LibraryField, v: unknown): string {
   if (f.type === "number" && f.unit) return `${v} ${f.unit}`;
   return String(v);
 }
+
+// Impact Grade (PEF) libraries (migration 20261105000001; seeded from the Anthesis workbook by
+// scripts/impact-grade/build-seed.mjs). The engine (src/lib/pef.ts) reads these fields by name.
+const ACT = (extra: LibraryField[] = []): LibraryField[] => [
+  { key: "ecoinvent_activity", label: "ecoinvent activity", type: "text", column: true },
+  { key: "ecoinvent_reference_product", label: "Reference product", type: "text" },
+  ...extra,
+  { key: "reference_amount", label: "Amount per reference unit", type: "number" },
+  { key: "reference_unit", label: "Unit", type: "text", column: true },
+  { key: "seq", label: "Workbook row (lookup order)", type: "number", help: "When two rows match, the lower one wins, as in the workbook" },
+];
+const CAT_CODES = ["AE", "GWP", "CTUe", "Adpf", "Epf", "Epm", "Ept", "Ctuh-c", "Ctuh-nc", "IR", "LU", "ADPe", "ODP", "PM", "POCP", "WU"];
+Object.assign(LIBRARY_SCHEMAS, {
+  pef_impact_categories: {
+    codeLabel: "Category code", nameLabel: "Impact category",
+    note: "EF 3.1. Single score = Σ (impact ÷ normalisation factor × weighting factor). Weighting factors must add up to 100%.",
+    fields: [
+      { key: "normalisation_factor", label: "Normalisation factor", type: "number", required: true, column: true },
+      { key: "weighting_factor", label: "Weighting factor", type: "number", required: true, column: true, help: "As a fraction, e.g. 0.2106 = 21.06%" },
+      { key: "unit", label: "Unit", type: "text", column: true },
+      { key: "indicator", label: "Indicator", type: "text" },
+      { key: "ecoinvent_category", label: "ecoinvent category", type: "text" },
+      { key: "method", label: "Method", type: "text" },
+      { key: "sort", label: "Order", type: "number" },
+    ],
+  },
+  pef_grade_bands: {
+    codeLabel: "Letter", nameLabel: "Band",
+    note: "Letters for the Impact Grade score (0-100): the highest band whose minimum score it reaches. The Impact Grade comes from the Impact Grade sub-scores (PEF score = half). Provisional until every band is confirmed.",
+    fields: [
+      { key: "letter", label: "Letter", type: "text", required: true, column: true },
+      { key: "min_score", label: "From score", type: "number", required: true, column: true, help: "0 to 100" },
+      { key: "label", label: "Label", type: "text", column: true },
+      { key: "confirmed", label: "Confirmed", type: "boolean", column: true, filter: true },
+      { key: "seq", label: "Order", type: "number" },
+    ],
+  },
+  pef_parameters: {
+    codeLabel: "Parameter", nameLabel: "What it controls",
+    fields: [
+      { key: "value", label: "Value", type: "number", column: true },
+      { key: "text_value", label: "Text value", type: "text", column: true },
+      { key: "unit", label: "Unit", type: "text", column: true },
+      { key: "stage", label: "Stage", type: "text", column: true },
+      { key: "seq", label: "Order", type: "number" },
+    ],
+  },
+  pef_methodology: {
+    codeLabel: "Rule code", nameLabel: "Topic", groupBy: "stage",
+    fields: [
+      { key: "stage", label: "Stage", type: "enum", options: opts("General", "Material Acquisition & Preprocessing", "Manufacturing", "Usage", "Distribution", "End of Life"), required: true, column: true, filter: true },
+      { key: "rule", label: "Rule", type: "textarea", required: true, column: true },
+      { key: "assumption", label: "Assumption", type: "textarea" },
+      { key: "source_field", label: "Source / field", type: "text" },
+      { key: "seq", label: "Order", type: "number" },
+    ],
+  },
+  pef_open_issues: {
+    codeLabel: "Issue ID", nameLabel: "Issue",
+    fields: [
+      { key: "severity", label: "Severity", type: "enum", options: opts("high", "medium", "low"), required: true, column: true, filter: true },
+      { key: "status", label: "Status", type: "enum", options: opts("open", "decided", "resolved"), required: true, column: true, filter: true },
+      { key: "location", label: "Where", type: "text", column: true },
+      { key: "evidence", label: "Evidence", type: "textarea" },
+      { key: "recommendation", label: "Recommendation", type: "textarea" },
+      { key: "current_treatment", label: "How the model treats it today", type: "textarea" },
+      { key: "decision", label: "Decision", type: "textarea" },
+    ],
+  },
+  pef_virgin_materials: {
+    codeLabel: "Activity", nameLabel: "Substrate (Sourcing Hub name)",
+    fields: [
+      { key: "substrate_name", label: "Substrate name", type: "text", required: true },
+      { key: "substrate_type", label: "Type", type: "text", column: true, filter: false },
+      { key: "custom_factor", label: "Custom factor", type: "text", column: true },
+      { key: "manufacturing_process", label: "Forming process", type: "text", column: true },
+      { key: "raw_material", label: "Raw material (activity)", type: "text" },
+      { key: "includes_forming", label: "Includes forming", type: "boolean" },
+      { key: "includes_processing", label: "Includes processing", type: "boolean" },
+      ...ACT(),
+    ],
+  },
+  pef_recycled_materials: {
+    codeLabel: "Activity", nameLabel: "Substrate (Sourcing Hub name)",
+    fields: [
+      { key: "substrate_name", label: "Substrate name", type: "text", required: true },
+      { key: "can_include_recycled", label: "Recycled content allowed", type: "boolean", column: true, filter: true },
+      { key: "default_recycled_percent", label: "Default recycled content", type: "number", unit: "%", column: true },
+      { key: "custom_factor", label: "Custom factor", type: "text", column: true },
+      { key: "raw_material", label: "Raw material (activity)", type: "text" },
+      ...ACT(),
+    ],
+  },
+  pef_coatings: {
+    codeLabel: "Coating", nameLabel: "Coating label",
+    note: "A coating on a spec matches the first label contained in its text. Kg coatings use the coating weight; m2 coatings the coated area.",
+    fields: [{ key: "coating_label", label: "Label to match", type: "text", required: true }, { key: "custom_factor", label: "Custom factor", type: "text", column: true },
+      { key: "conversion_to_weight", label: "Weight per unit", type: "number" }, ...ACT()],
+  },
+  pef_custom_factors: {
+    codeLabel: "Row", nameLabel: "Custom factor", groupBy: "custom_factor",
+    note: "A custom factor is the sum of all its rows: amount per kg × the ecoinvent activity.",
+    fields: [
+      { key: "custom_factor", label: "Custom factor", type: "text", required: true, column: true },
+      { key: "ecoinvent_activity", label: "ecoinvent activity", type: "text", required: true, column: true },
+      { key: "ecoinvent_reference_product", label: "Reference product", type: "text", required: true },
+      { key: "amount_per_kg", label: "Amount per kg", type: "number", required: true, column: true },
+      { key: "unit", label: "Unit", type: "text", column: true },
+      { key: "seq", label: "Workbook row", type: "number" },
+    ],
+  },
+  pef_process_energy: {
+    codeLabel: "Activity", nameLabel: "Process",
+    fields: [
+      { key: "manufacturing_type", label: "Type", type: "text", column: true },
+      { key: "electricity_kwh", label: "Electricity", type: "number", unit: "kWh", column: true },
+      { key: "natural_gas_mj", label: "Natural gas", type: "number", unit: "MJ", column: true },
+      { key: "other_heat_mj", label: "Other heat", type: "number", unit: "MJ", column: true },
+      { key: "steam_kg", label: "Steam", type: "number", unit: "kg", column: true },
+      { key: "reference_unit", label: "Per", type: "text", column: true },
+      { key: "data_source", label: "Source", type: "text" },
+    ],
+  },
+  pef_process_labels: {
+    codeLabel: "Key", nameLabel: "Sourcing Hub label",
+    fields: [
+      { key: "kind", label: "Kind", type: "enum", options: opts("printing", "branding"), required: true, column: true, filter: true },
+      { key: "sourcing_hub_label", label: "Sourcing Hub label", type: "text", required: true },
+      { key: "activity", label: "Process energy activity", type: "text", required: true, column: true },
+    ],
+  },
+  pef_energy_activities: {
+    codeLabel: "Carrier|country", nameLabel: "Country · carrier",
+    fields: [
+      { key: "carrier", label: "Carrier", type: "enum", options: ["ELECTRICITY_kWh", "RENEWABLE_ELECTRICITY_kWh", "NATURAL_GAS_MJ", "HEAT_OTHER_THAN_NATURAL_GAS_MJ", "STEAM_KG"].map((v) => ({ value: v, label: v })), required: true, column: true, filter: true },
+      { key: "country_code", label: "Country", type: "text", required: true, column: true },
+      { key: "ecoinvent_geography", label: "ecoinvent geography", type: "text", column: true },
+      ...ACT(),
+    ],
+  },
+  pef_process_efficiency: {
+    codeLabel: "Process", nameLabel: "Process",
+    fields: [{ key: "efficiency", label: "Efficiency", type: "number", column: true, help: "Blank = already in the factor" }, { key: "efficiency_key", label: "Efficiency type", type: "text", column: true }, { key: "notes", label: "Notes", type: "textarea" }],
+  },
+  pef_transport_activities: {
+    codeLabel: "Key", nameLabel: "Country · activity",
+    fields: [
+      { key: "mode", label: "Mode", type: "enum", options: opts("Road", "Sea", "Plane"), required: true, column: true, filter: true },
+      { key: "country", label: "Country", type: "text", required: true, column: true },
+      { key: "country_code", label: "Code", type: "text" },
+      { key: "road_weight", label: "Truck class", type: "text", column: true },
+      { key: "plane_range", label: "Flight range", type: "text", column: true },
+      { key: "ecoinvent_geography", label: "ecoinvent geography", type: "text" },
+      ...ACT(),
+    ],
+  },
+  pef_countries: {
+    codeLabel: "Country code", nameLabel: "Country",
+    note: "Sea distances (km between main ports) and the default mode to each destination are held per origin country.",
+    fields: [{ key: "region", label: "Region", type: "text", column: true }, { key: "busiest_port", label: "Main port", type: "text", column: true },
+      { key: "road_feeder_km", label: "Road to/from port", type: "number", unit: "km", column: true }],
+  },
+  pef_use_electricity: {
+    codeLabel: "Country code", nameLabel: "Country",
+    fields: [{ key: "ecoinvent_geography", label: "ecoinvent geography", type: "text", column: true }, { key: "market_group", label: "Regional market group", type: "boolean", column: true, filter: true }, ...ACT()],
+  },
+  pef_usage_periods: {
+    codeLabel: "Activation period", nameLabel: "Activation period",
+    fields: [{ key: "hours", label: "Total hours", type: "number", required: true, column: true }, { key: "usage_score", label: "Usage score", type: "number", column: true }, { key: "seq", label: "Order", type: "number" }],
+  },
+  pef_eol_materials: {
+    codeLabel: "Substrate", nameLabel: "Substrate",
+    fields: [
+      { key: "eol_category", label: "Category", type: "text", column: true },
+      { key: "eol_classification", label: "Classification", type: "text", required: true, column: true },
+      { key: "technically_recyclable", label: "Technically recyclable", type: "boolean", column: true, filter: true },
+      { key: "substrate_name", label: "Substrate name", type: "text", required: true },
+      { key: "substrate_type", label: "Type", type: "text" },
+    ],
+  },
+  pef_eol_fate: {
+    codeLabel: "Classification|country", nameLabel: "Country · classification",
+    note: "Recycling carries no impact or credit (cut-off). A product that cannot be recycled has incineration and landfill re-scaled to 100%.",
+    fields: [
+      { key: "eol_classification", label: "Classification", type: "text", required: true, column: true },
+      { key: "country_code", label: "Country", type: "text", required: true, column: true },
+      { key: "recycling_rate", label: "Recycling", type: "number", column: true },
+      { key: "incineration_rate", label: "Incineration", type: "number", column: true },
+      { key: "landfill_rate", label: "Landfill", type: "number", column: true },
+    ],
+  },
+  pef_eol_treatment: {
+    codeLabel: "Activity", nameLabel: "Substrate | destination",
+    fields: [
+      { key: "substrate_name", label: "Substrate", type: "text", required: true, column: true },
+      { key: "destination", label: "Destination", type: "enum", options: opts("Incineration", "Landfill", "Recycling"), required: true, column: true, filter: true },
+      ...ACT([{ key: "defra_factor", label: "DEFRA factor (GHG inventory)", type: "text" }]),
+    ],
+  },
+  pef_ecoinvent: {
+    codeLabel: "Activity|product|geography", nameLabel: "Activity",
+    note: "ecoinvent 3.12 cut-off results per reference unit for all 16 EF 3.1 categories. Only the activities the mapping tables use are loaded in the demo; import the full licensed set per environment as CSV (code = activity|reference product|geography).",
+    fields: [
+      { key: "activity", label: "Activity", type: "text", required: true },
+      { key: "geography", label: "Geography", type: "text", required: true, column: true },
+      { key: "reference_product", label: "Reference product", type: "text", required: true, column: true },
+      { key: "unit", label: "Unit", type: "text", column: true },
+      { key: "reference_amount", label: "Reference amount", type: "number", required: true },
+      ...CAT_CODES.map((c): LibraryField => ({ key: c, label: c === "GWP" ? "Climate change (kg CO2e)" : c, type: "number", required: true, column: c === "GWP" })),
+      { key: "dataset", label: "Dataset", type: "text" },
+      { key: "uuid", label: "ecoinvent UUID", type: "text" },
+      { key: "seq", label: "Dataset row (lookup order)", type: "number" },
+    ],
+  },
+  pef_worked_examples: {
+    codeLabel: "Example", nameLabel: "Components",
+    note: "Inputs and the results Excel gives are held with each example; the Watchtower overview recalculates them.",
+    fields: [{ key: "description", label: "Description", type: "text", column: true }, { key: "seq", label: "Order", type: "number" }],
+  },
+} satisfies Record<string, LibrarySchema>);
+
+// Impact Grade formula (migration 20261105000005; seeded by scripts/impact-grade/build-grade-seed.mjs from Impact Grade.xlsx).
+Object.assign(LIBRARY_SCHEMAS, {
+  ig_subscores: {
+    codeLabel: "Sub-score", nameLabel: "Sub-score", groupBy: "category",
+    note: "Impact Grade = Σ weight × sub-score ÷ Σ weight (sub-scores with data). Standard and Promo weights each add up to 100; a blank Promo weight means it does not apply to Promo.",
+    fields: [
+      { key: "category", label: "Category", type: "text", required: true, column: true },
+      { key: "weight_standard", label: "Weight", type: "number", required: true, column: true },
+      { key: "weight_promo", label: "Promo weight", type: "number", column: true, help: "Blank = not applicable to Promo" },
+      { key: "rule", label: "How it is scored", type: "textarea", required: true, column: true },
+      { key: "status", label: "Status", type: "enum", options: opts("live", "work_in_progress"), column: true, filter: true },
+      { key: "espr_aligned", label: "ESPR aligned", type: "boolean" },
+      { key: "description", label: "Description", type: "textarea" },
+      { key: "data_inputs", label: "Data inputs", type: "list" },
+      { key: "workbook_notes", label: "Workbook notes", type: "textarea" },
+      { key: "seq", label: "Order", type: "number" },
+    ],
+  },
+  ig_impact_levels: { codeLabel: "Level", nameLabel: "Impact", fields: [{ key: "level", label: "Level", type: "number", required: true, column: true }, { key: "score", label: "Score", type: "number", required: true, column: true }] },
+  ig_option_scores: {
+    codeLabel: "Kind|option", nameLabel: "Option", groupBy: "kind",
+    fields: [
+      { key: "kind", label: "Kind", type: "enum", options: opts("ink", "varnish", "finishing", "finish_type_2d", "accreditation", "activation_period", "electronics"), required: true, column: true, filter: true },
+      { key: "level", label: "Impact level", type: "number", required: true, column: true, help: "0 no impact to 5 very high" },
+      { key: "applies_to", label: "Applies to", type: "text", column: true },
+      { key: "min_days", label: "Shortest life (days)", type: "number", column: true },
+      { key: "material_group", label: "Material group", type: "text" },
+      { key: "seq", label: "Order", type: "number" },
+    ],
+  },
+  ig_substrates: {
+    codeLabel: "Substrate", nameLabel: "Substrate", groupBy: "category",
+    fields: [
+      { key: "category", label: "Category", type: "text", column: true },
+      { key: "plastic", label: "Plastic", type: "boolean", column: true, filter: true },
+      { key: "harmful", label: "Harmful", type: "boolean", column: true, filter: true },
+      { key: "plastic_type", label: "Plastic type", type: "text", column: true },
+      { key: "resin_code", label: "Resin code", type: "text" },
+      { key: "harmful_note", label: "Harmful note", type: "text" },
+    ],
+  },
+  ig_parameters: {
+    codeLabel: "Parameter", nameLabel: "What it controls",
+    fields: [{ key: "value", label: "Value", type: "number", column: true }, { key: "text_value", label: "Text value", type: "text", column: true }, { key: "unit", label: "Unit", type: "text", column: true }, { key: "note", label: "Note", type: "textarea", column: true }],
+  },
+  ig_open_items: {
+    codeLabel: "Item", nameLabel: "Item",
+    fields: [{ key: "status", label: "Status", type: "enum", options: opts("open", "decided", "resolved"), required: true, column: true, filter: true }, { key: "why", label: "Why it matters", type: "textarea", column: true }, { key: "next_step", label: "Next step", type: "textarea" }, { key: "decision", label: "Decision", type: "textarea" }],
+  },
+} satisfies Record<string, LibrarySchema>);
+
+// Shopper IQ design effectiveness (migration 20261105000003; seeded by scripts/shopper-iq/build-seed.mjs).
+// src/lib/design-effectiveness.ts reads these fields by name.
+Object.assign(LIBRARY_SCHEMAS, {
+  siq_de_criteria: {
+    codeLabel: "Criterion ID", nameLabel: "Criterion", groupBy: "pillar",
+    note: "Points = weight × answer value. S11 is scored from the Impact Grade (0-100 ÷ 100), not from an answer. Weights are not yet calibrated (open item DE-02).",
+    fields: [
+      { key: "block", label: "Block", type: "enum", options: opts("design", "sustainability"), required: true, column: true, filter: true },
+      { key: "pillar", label: "Pillar", type: "enum", options: opts("attract", "engage", "sell", "sustainability"), required: true, column: true, filter: true },
+      { key: "weight", label: "Weight", type: "number", required: true, column: true, help: "0 to 100" },
+      { key: "weight_basis", label: "Weight basis", type: "text", column: true },
+      { key: "applies_key_visual", label: "Key Visual", type: "boolean", column: true, filter: true },
+      { key: "applies_posm", label: "POSM", type: "boolean", column: true, filter: true },
+      { key: "applies_gwp", label: "GWP & Premiums", type: "boolean", column: true, filter: true },
+      { key: "input", label: "Scored from", type: "enum", options: [{ value: "answer", label: "Answer" }, { value: "impact_grade", label: "Impact Grade (0-100)" }], required: true },
+      { key: "what_assessed", label: "What is assessed", type: "textarea" },
+      { key: "high_score", label: "What a high score looks like", type: "textarea" },
+      { key: "calibrated", label: "Weight calibrated", type: "boolean", filter: true },
+      { key: "source", label: "Source", type: "text" },
+      { key: "legacy_reference", label: "Legacy reference", type: "text" },
+      { key: "note", label: "Note", type: "textarea" },
+      { key: "seq", label: "Order", type: "number" },
+    ],
+  },
+  siq_de_parameters: {
+    codeLabel: "Parameter", nameLabel: "What it controls",
+    fields: [{ key: "value", label: "Value", type: "number", required: true, column: true }, { key: "note", label: "Note", type: "textarea", column: true }, { key: "seq", label: "Order", type: "number" }],
+  },
+  siq_de_answers: {
+    codeLabel: "Answer", nameLabel: "Answer",
+    fields: [{ key: "value", label: "Value", type: "number", column: true, help: "Blank when the answer leaves the denominator" },
+      { key: "counts", label: "Counts in the denominator", type: "boolean", column: true }, { key: "rule", label: "Rule", type: "textarea", column: true }, { key: "seq", label: "Order", type: "number" }],
+  },
+  siq_de_bands: {
+    codeLabel: "Band code", nameLabel: "Band",
+    fields: [{ key: "min_score", label: "From", type: "number", required: true, column: true, help: "0 to 1" }, { key: "confirmed", label: "Confirmed", type: "boolean", column: true, filter: true }, { key: "seq", label: "Order", type: "number" }],
+  },
+  siq_de_asset_types: { codeLabel: "Code", nameLabel: "Asset type", fields: [{ key: "seq", label: "Order", type: "number", column: true }] },
+  siq_de_open_items: {
+    codeLabel: "Item", nameLabel: "Item",
+    fields: [
+      { key: "status", label: "Status", type: "text", required: true, column: true },
+      { key: "why", label: "Why it matters", type: "textarea", column: true },
+      { key: "proposed_default", label: "Proposed default", type: "textarea" },
+      { key: "owner", label: "Owner", type: "text", column: true },
+      { key: "decision", label: "Decision", type: "textarea" },
+      { key: "seq", label: "Order", type: "number" },
+    ],
+  },
+  siq_de_examples: {
+    codeLabel: "Example", nameLabel: "Asset",
+    note: "Answers and the results Excel gives are held with each example; the Shopper IQ Watchtower recalculates them.",
+    fields: [{ key: "description", label: "Description", type: "text", column: true }, { key: "seq", label: "Order", type: "number" }],
+  },
+} satisfies Record<string, LibrarySchema>);
+
+// HS code rules: an HS code for a combination of product, sub-product and material. Migration 20261106000045.
+LIBRARY_SCHEMAS.hs_code_rules = {
+  codeLabel: "Rule code", nameLabel: "Rule",
+  note: "Attach an HS code to a combination of product, sub-product and the material used in the spec. The most specific active rule that fits the spec is suggested: product type, then subcategory, category, form type; a rule with a material beats the same rule without one. Leave a scope blank for any. A spec's own HS code is never overwritten, and a product type's default HS code is the fallback.",
+  fields: [
+    { key: "hs_code", label: "HS code", type: "text", required: true, column: true, help: "4 to 10 digits, e.g. 3919.90" },
+    { key: "scope_form_type", label: "Form type", type: "enum", column: true, filter: true,
+      options: ["Print", "Packaging", "POS & Display", "Creative & Design", "Logistics", "Merchandise", "Digital", "Custom Goods & Services", "2D/3D", "Stocktool only"].map((v) => ({ value: v, label: v })) },
+    { key: "scope_category_code", label: "Product (category code)", type: "text", column: true, help: "Taxonomy category code, e.g. LGF. Set the form type too." },
+    { key: "scope_subcategory_code", label: "Sub-product (subcategory code)", type: "text", column: true, help: "e.g. BANNER. Set the category too." },
+    { key: "scope_product_type_code", label: "Product type code", type: "text", help: "e.g. VINYL. Set the subcategory too." },
+    { key: "material_type", label: "Material type", type: "enum", column: true, filter: true, options: SUBSTRATE_TYPES, help: "Matches when the spec uses a material of this type" },
+    { key: "material_code", label: "Specific material (substrate code)", type: "text", help: "Optional: a single substrate from the Substrates library" },
+    { key: "priority", label: "Priority", type: "number", help: "Lower wins when two rules are equally specific (default 100)" },
+    { key: "note", label: "Note", type: "textarea" },
+  ],
+};
 
 // AAC classification rules (master Watchtower → Product taxonomy → AAC rules). Scope codes come from the product
 // taxonomy; blank criteria fall back to the Sourcing settings. Migration 20261032000002.

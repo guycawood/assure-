@@ -78,6 +78,7 @@ begin
     'duplicate_confirmed', true));
   perform set_config('request.jwt.claim.sub', u_hana::text, true);
   v_sup := public.onboarding_triage(v_case, 'approve', 'standard', 'strategic', 'Strategic for Northbrew DACH packaging.');
+  perform public.onboarding_category_interest(v_sup, true, 'Fits the Northbrew DACH packaging category plan.');
   perform set_config('request.jwt.claim.sub', u_arjun::text, true);
   perform public.update_supplier_gate(v_sup, 'rfi', 'verified', null, false, 'Information request complete');
   perform public.update_supplier_gate(v_sup, 'registration', 'verified', null, false, 'Handelsregister extract and VAT checked in VIES');
@@ -103,6 +104,7 @@ begin
     'proposed_name', 'Lumen Signage Works', 'proposed_email', 'contact@lumensignage.example', 'proposed_registration', '0316677889', 'duplicate_confirmed', true));
   perform set_config('request.jwt.claim.sub', u_hana::text, true);
   v_sup := public.onboarding_triage(v_case, 'approve', 'standard', 'tactical', null);
+  perform public.onboarding_category_interest(v_sup, true, 'Fits the category panel.');
   perform set_config('request.jwt.claim.sub', u_arjun::text, true);
   foreach k in array array['rfi','registration','financial','capability','quality','environment','sustainability','sanctions'] loop
     perform public.update_supplier_gate(v_sup, k, 'verified', case when k in ('financial','quality','environment','sustainability','sanctions') then current_date + 330 end,
@@ -127,6 +129,7 @@ begin
     'proposed_registration', '91440300MA5FRR1234', 'duplicate_confirmed', true));
   perform set_config('request.jwt.claim.sub', u_hana::text, true);
   v_sup := public.onboarding_triage(v_case, 'approve', 'exception', 'tactical', 'Urgent replacement; exception route.');
+  perform public.onboarding_category_interest(v_sup, true, 'Needed as an urgent replacement.');
   perform set_config('request.jwt.claim.sub', u_arjun::text, true);
   perform public.update_supplier_gate(v_sup, 'rfi', 'received', null, false, 'Vendor form received');
   perform public.update_supplier_gate(v_sup, 'bank', 'received', null, false, 'Bank details received');
@@ -155,6 +158,7 @@ begin
     'proposed_registration', '812 345 678', 'proposed_vat', 'FR 12 812345678', 'duplicate_confirmed', true));
   perform set_config('request.jwt.claim.sub', u_hana::text, true);
   v_sup := public.onboarding_triage(v_case, 'approve', 'standard', 'tactical', null);
+  perform public.onboarding_category_interest(v_sup, true, 'Fits the category panel.');
   perform set_config('request.jwt.claim.sub', u_arjun::text, true);
   foreach k in array array['rfi','registration','financial','capability','quality','environment','sustainability','sanctions'] loop
     perform public.update_supplier_gate(v_sup, k, 'verified', case when k in ('financial','quality','environment','sustainability','sanctions') then current_date + 320 end,

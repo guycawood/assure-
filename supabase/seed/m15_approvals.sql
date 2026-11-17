@@ -1,5 +1,5 @@
 -- DUMMY DATA: approval policies (Watchtower library approval_policies). One record per approval point on the platform,
--- so the library documents who approves what (see docs/APPROVALS.md). Values are demo settings, not adm Indicia policy.
+-- so the library documents who approves what (see docs/APPROVALS.md). Values are demo settings, not real policy.
 -- Records are inserted active; later changes go through the library's maker-checker.
 
 insert into public.library_records (library_key, code, name, data, status, effective_from, notes)

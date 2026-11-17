@@ -63,7 +63,7 @@ MC = maker-checker (decider is never the requester). "Inbox" = approval type sho
 ### Shopper IQ
 | What | Function | Who may approve | MC | Threshold | UI | Inbox |
 |---|---|---|---|---|---|---|
-| Result verification (closed gap) | `siq_record_effectiveness` (pending), `siq_verify_effectiveness` | SIQ_EFFECTIVENESS policy role (default anyone at adm Indicia; demo briefing lead). Client Portal functions return verified rows only | Yes (not who recorded it) | – | `/shopper-iq/campaigns` | SIQ_EFFECTIVENESS |
+| Result verification (closed gap) | `siq_record_effectiveness` (pending), `siq_verify_effectiveness` | SIQ_EFFECTIVENESS policy role (default anyone on the team; demo briefing lead). Client Portal functions return verified rows only | Yes (not who recorded it) | – | `/shopper-iq/campaigns` | SIQ_EFFECTIVENESS |
 | Asset rights/brand sign-off (closed gap) | `siq_add_asset` (pending), `siq_asset_signoff` | SIQ_ASSET policy role (default anyone; demo briefing lead). Briefing+ reuses only `siq_assets_available` | Yes (not who added it) | – | `/shopper-iq/assets` | SIQ_ASSET |
 
 ### RFQ+ (Sourcing, module key `rfq`)
@@ -119,7 +119,7 @@ MC = maker-checker (decider is never the requester). "Inbox" = approval type sho
 | Deployment audit | `execution_audit_deployment` | Any internal user | Yes (not who recorded the install) | Pass mark EXR-PASS | `/execution/deployments/<id>` | DEPLOYMENT_AUDIT |
 | Quality gates (closed gap) | `execution_gate_sign_off` | QUALITY_GATE policy role (demo: quality), in order, check sheet uploaded | Yes, not the check-sheet uploader (policy) | – | `/execution/jobs/<id>` | QUALITY_GATE |
 | Job close with overrides (closed gap) | `execution_close_job` (request), `approval_request_decide` | JOB_CLOSE policy role (demo: sourcing lead) | Yes (policy) | – | `/execution/jobs/<id>` | JOB_CLOSE |
-| Recce production ready (closed gap) | `execution_recce_set_status` (request), `approval_request_decide` | RECCE_READY policy role (demo: anyone at adm Indicia but the requester) | Yes (policy) | – | `/execution/recces/<id>` | RECCE_READY |
+| Recce production ready (closed gap) | `execution_recce_set_status` (request), `approval_request_decide` | RECCE_READY policy role (demo: anyone on the team but the requester) | Yes (policy) | – | `/execution/recces/<id>` | RECCE_READY |
 
 ### SRM (internal) and SRT desk
 | What | Function | Who may approve | MC | Threshold | UI | Inbox |

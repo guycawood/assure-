@@ -9,6 +9,8 @@ import { AUDIT_STATUS, ISSUE_TYPES, SEVERITIES, STAGE, TICKET_STATUS, cap, grade
 import { FileList } from "@/components/file-list";
 import { FileUpload } from "@/components/file-upload";
 import { PageHead, Panel, Pill } from "@/components/ui";
+import { ImpactGradeBadge } from "@/components/impact-grade/grade-badge";
+import { getSpecGrades } from "@/lib/impact-grade-data";
 import { ActionForm, Field } from "@/components/sourcing/action-form";
 import { Facts, StatusPill, fmtDate, fmtDateTime } from "@/components/sourcing/bits";
 import { AuditForm } from "@/components/execution/audit-form";
@@ -29,6 +31,7 @@ export default async function DeploymentPage({ params }: { params: Promise<{ id:
   const canInstall = ["planned", "in_transit", "delivered"].includes(d.stage) && (!d.delivery_id || d.stage === "delivered");
   const canAudit = ["installed", "audited", "rejected"].includes(d.stage) && d.installed_by !== me.id;
   const g = grade(d.audit_score);
+  const grades = await getSpecGrades(supabase, [(d as typeof d & { spec_id?: string }).spec_id]);
   const today = new Date().toISOString().slice(0, 10);
 
   return (
@@ -45,7 +48,7 @@ export default async function DeploymentPage({ params }: { params: Promise<{ id:
               ["Region / market", `${d.region} / ${d.market}`],
               ["Job", <Link key="j" className="hover:underline" href={`/execution/jobs/${d.job_id}`}>{d.job_number}</Link>],
               ["PO", <Link key="p" className="hover:underline" href={`/orders/purchase-orders/${d.po_id}`}>{d.po_number}</Link>],
-              ["Spec", `${d.spec_title}${d.spec_version_name ? ` · ${d.spec_version_name}` : ""}`], ["Quantity", d.quantity],
+              ["Spec", <span key="s">{`${d.spec_title}${d.spec_version_name ? ` · ${d.spec_version_name}` : ""}`} <ImpactGradeBadge score={grades.get((d as typeof d & { spec_id?: string }).spec_id ?? "")} /></span>], ["Quantity", d.quantity],
               ["Delivery", d.delivery_id ? <Link key="d" className="hover:underline" href={`/logistics/deliveries/${d.delivery_id}`}>{d.delivery_number} ({cap(d.delivery_status)})</Link> : "Not linked"],
               ["Planned install", fmtDate(d.planned_date)], ["Campaign", d.campaign_name ?? "—"],
             ]} />

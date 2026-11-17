@@ -1,0 +1,132 @@
+<title>Brief to Cash Walkthrough</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;700&display=swap">
+<style>
+/* Layout: a single column journey, one card per step, grouped by stage; the first unfinished step is marked "Next". */
+:root{--bg:#f6f7f8;--card:#fff;--fg:#14202b;--muted:#5d6b78;--line:#dde3e8;--accent:#0d6b6e;--accent-fg:#fff;--ok:#1f7a4d;--warn:#a15c00;--bad:#b3261e;--chip:#eaf0f3;
+--display:"Space Grotesk","Inter",system-ui,sans-serif;--body:"Inter",system-ui,-apple-system,"Segoe UI",sans-serif}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0f1a22;--card:#16232d;--fg:#e8eef2;--muted:#9aaab6;--line:#2a3a46;--accent:#4fc3c6;--accent-fg:#06282a;--ok:#5fd09a;--warn:#f0b35a;--bad:#ff8a80;--chip:#1f2f3a;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#0f1a22;--card:#16232d;--fg:#e8eef2;--muted:#9aaab6;--line:#2a3a46;--accent:#4fc3c6;--accent-fg:#06282a;--ok:#5fd09a;--warn:#f0b35a;--bad:#ff8a80;--chip:#1f2f3a;color-scheme:dark}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);padding-block:24px 56px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));line-height:1.5}
+main{max-width:860px;margin:0 auto;display:flex;flex-direction:column;gap:20px}
+h1{font-family:var(--display);font-size:1.9rem;margin:0;text-wrap:balance}
+h2{font-family:var(--display);font-size:1.05rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin:12px 0 0}
+p{margin:0}.sub{color:var(--muted);max-width:65ch}
+.bar{display:flex;gap:12px;flex-wrap:wrap;align-items:center}
+.meter{flex:1;min-width:160px;height:8px;background:var(--chip);border-radius:4px;overflow:hidden}.meter i{display:block;height:100%;background:var(--ok)}
+.stat{font-variant-numeric:tabular-nums;color:var(--muted);font-size:.9rem}
+.step{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:16px;display:flex;flex-direction:column;gap:10px}
+.step.next{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent)}
+.head{display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}.head b{font-family:var(--display);font-size:1.05rem}
+.n{font-variant-numeric:tabular-nums;color:var(--muted);font-size:.85rem}
+.tag{font-size:.72rem;font-weight:600;padding:2px 8px;border-radius:10px;background:var(--chip);color:var(--fg)}
+.tag.next{background:var(--accent);color:var(--accent-fg)}.tag.built{color:var(--ok)}.tag.check{color:var(--warn)}.tag.outside{color:var(--muted)}
+.tag.done{color:var(--ok)}.tag.problem{color:var(--bad)}.tag.doing{color:var(--accent)}
+.meta{display:flex;gap:6px;flex-wrap:wrap}
+.row{display:grid;grid-template-columns:7.5rem 1fr;gap:4px 12px;font-size:.92rem}.row span:first-child{color:var(--muted)}
+.row>*{min-width:0}
+.ctl{display:flex;gap:8px;flex-wrap:wrap;align-items:flex-start}
+button{font:inherit;font-size:.85rem;padding:6px 12px;border-radius:6px;border:1px solid var(--line);background:var(--card);color:var(--fg);cursor:pointer}
+button:hover{border-color:var(--accent)}button.on{background:var(--accent);color:var(--accent-fg);border-color:var(--accent)}
+button:focus-visible,textarea:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+textarea{flex:1;min-width:200px;font:inherit;font-size:.9rem;padding:8px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--fg);resize:vertical}
+.note{background:var(--chip);border-radius:6px;padding:8px 10px;font-size:.9rem}
+.legend{font-size:.85rem;color:var(--muted)}
+.off{font-size:.85rem;color:var(--muted)}
+@media (max-width:520px){.row{grid-template-columns:1fr}}
+</style>
+
+<main>
+  <header style="display:flex;flex-direction:column;gap:8px">
+    <h1>Brief to Cash Walkthrough</h1>
+    <p class="sub">One job followed from the client's brief to the cash in the bank, with every stakeholder's action and where it happens in System Guy. Do each step, mark it, and add what you saw. Anything that does not work becomes a problem to fix.</p>
+    <div class="bar"><div class="meter" aria-hidden="true"><i id="fill" style="width:0"></i></div><span class="stat" id="stat"></span></div>
+    <p class="legend"><b>In the system:</b> Built means built and covered by tests. Check means not assessed yet, so this walk is how we find out. Outside means handled in another tool.</p>
+    <p class="off" id="offline" hidden>Saving is off here. You can read the steps, but marks and notes are not kept.</p>
+  </header>
+  <div id="list" style="display:flex;flex-direction:column;gap:14px"></div>
+</main>
+
+<script>
+// Steps are fixed here. Progress (status and note per step) lives in the shared store, under steps/<id>.
+var STEPS=[
+ {s:"Brief",id:"b1",t:"Client brief arrives",who:["Client","Account team"],where:"Briefing, new brief",b:"built",do:"Create a brief for a test client with a title, a deadline and a short description. Check the client can see it in their portal."},
+ {s:"Brief",id:"b1c",t:"Repeat work: start from an existing rate card",who:["Account team","Sourcing lead"],where:"Briefing, New brief, Existing rate card",b:"built",do:"On New brief choose Existing rate card and pick an approved card. Create the brief with the card's own size and quantity (Adopt), then another with a slightly different size (Adapt). Check the spec arrives with the card's Impact Grade and no concepts. A second brief a size too far away is refused."},
+ {s:"Brief",id:"b2",t:"Creative kickoff: retainer or paid quote",who:["Account team","Client approver"],where:"Briefing, Commercials panel; CRM client, Creative retainer",b:"built",do:"Mark the client on retainer and start the kickoff, or send a creative quote and confirm it with the client's PO. Concepts stay blocked until one of these is done."},
+ {s:"Brief",id:"b3",t:"Creative RFI to suppliers (optional)",who:["Account team","Supplier"],where:"Briefing, RFI panel; vendor portal, Creative requests",b:"built",do:"Invite one supplier, let them respond or propose, then select one."},
+ {s:"Brief",id:"b4",t:"Concepts, samples and final files",who:["Creative supplier","Account team","Client"],where:"Briefing, Samples and Final files panels; client portal brief page",b:"built",do:"Submit a concept, request a sample, then send the final files to the client. Open the files from the client side."},
+ {s:"Spec and grade",id:"g1",t:"Spec the job and calculate the Impact Grade",who:["Account team","Sustainability"],where:"Spec / calculators; Impact Grade",b:"built",do:"Create the spec, calculate the grade and check the confidence and evidence level look right."},
+ {s:"Supplier readiness",id:"v0",t:"Supplier is onboarded and eligible",who:["Supplier","Supplier onboarding team"],where:"Vendor portal, Your onboarding; Supplier management, Onboarding control",b:"check",do:"Complete onboarding as a supplier: company profile, documents and gates. Check that only a verified supplier can be invited to quote or picked for a rate card."},
+ {s:"Triage and rate cards",id:"t0",t:"Rate cards carry a reviewed Impact Grade",who:["Procurement","Second reviewer"],where:"Sourcing, Rate cards",b:"built",do:"Open Rate cards. Recalculate a card's grade, then try to mark it reviewed as the same person (it should refuse) and as someone else. Check the card leaves the approved list until it is reviewed."},
+ {s:"Triage and rate cards",id:"t0r",t:"No card fits: request a new rate card",who:["Account team","Sourcing team","Governors","Supplier"],where:"Briefing, New brief, Existing rate card, Request a new rate card; Sourcing, Rate card requests",b:"built",do:"Request a card from the Existing rate card list. As the sourcing team take it, optionally link an RFQ for the price, then build the card. A different governor approves it in Rate cards, and a second person reviews its Impact Grade. The request should close itself and tell the requester."},
+ {s:"Triage and rate cards",id:"t1",t:"Triage the spec line",who:["Procurement"],where:"Sourcing, Spec page, Triage panel",b:"built",do:"Run triage. Read the route (Adopt, Adapt, Push or Create), the reason and the card price. Adopt and Adapt skip the RFQ."},
+ {s:"Triage and rate cards",id:"t2",t:"Choose a different rate card",who:["Sourcing lead","Second lead (if the policy says so)"],where:"Sourcing, Spec page, Choose a rate card",b:"built",do:"As a sourcing lead, open Choose a rate card, pick another card and give a reason. The price should change and each card shows its Impact Grade. A card whose supplier is blocked, or without a reviewed grade, can't be chosen. If the policy needs a second lead, approve it."},
+ {s:"Triage and rate cards",id:"t3",t:"Supplier confirms a pushed price",who:["Supplier"],where:"Vendor portal, Pushed prices",b:"built",do:"For a Push line, accept as the supplier. Then decline on another line and check it goes to an RFQ."},
+ {s:"Sourcing",id:"r1",t:"Create the RFQ; the grade gate stops sending",who:["Procurement"],where:"RFQ page, gate panel",b:"built",do:"Try to send the RFQ before there is a grade. It should refuse. Then calculate or waive with a reason and send."},
+ {s:"Sourcing",id:"r2",t:"Suppliers quote under seal",who:["Supplier","Procurement"],where:"Vendor portal, Quote requests",b:"built",do:"Quote as one supplier, decline as another. Check the team cannot see sealed prices early."},
+ {s:"Sourcing",id:"r3",t:"Sample job (when the client wants a sample first)",who:["Procurement","Supplier","Client approver"],where:"RFQ, Sampling panel; vendor Sample jobs; client Samples",b:"built",do:"Request a sample quote, let the client approve it with a PO, send the drawing, launch, ship, check, and let the client approve the sample."},
+ {s:"Sourcing",id:"r4",t:"Award, or cancel with a reason",who:["Procurement","Supplier"],where:"RFQ page",b:"built",do:"Award one supplier. On a second RFQ, cancel it and check every invited supplier is told."},
+ {s:"Order",id:"o1",t:"Estimate to the client",who:["Account team","Client approver"],where:"Orders, Estimates; client portal, Estimates",b:"check",do:"Create the estimate and send it. See what the client sees."},
+ {s:"Order",id:"o2",t:"Client PO received, or chased",who:["Account team","Client approver"],where:"Orders, Waiting for the client's PO; client portal, Your purchase order",b:"built",do:"Leave the PO out, chase it, then provide it from the client portal. The chase waits 3 days between reminders."},
+ {s:"Order",id:"o3",t:"Purchase order to the supplier",who:["Procurement","Supplier"],where:"Vendor portal, Orders",b:"check",do:"Place the order with the awarded supplier and accept it as the supplier."},
+ {s:"Production and quality",id:"v2",t:"Supplier shares proofs and the technical sheet",who:["Supplier","Account team","Client"],where:"Vendor portal, Orders and Technical & packaging data; client portal, Proofs",b:"built",do:"Upload a proof as the supplier, approve or reject it, and check the client sees it. Complete the technical and packaging sheet for the order."},
+ {s:"Production and quality",id:"v3",t:"Supplier produces and reports progress",who:["Supplier","Account team"],where:"Vendor portal, Orders",b:"check",do:"Move the order through production as the supplier and check the team sees each status and any delay."},
+ {s:"Production and quality",id:"d1",t:"Supplier QA/QC plan and checkpoint results",who:["Supplier","QA"],where:"Vendor portal, QA/QC; Orders, QA/QC and OTIF",b:"check",do:"Agree a quality plan, record checkpoint results as the supplier, and see them on the QA/QC and OTIF view."},
+ {s:"Production and quality",id:"v4",t:"Quality issue: NCR raised and answered",who:["QA","Supplier"],where:"Vendor portal, Quality & NCRs; Supplier management, Quality",b:"check",do:"Raise a non-conformance on the order, answer it as the supplier with a corrective action, and close it."},
+ {s:"Delivery",id:"d0",t:"Supplier ships and the delivery is planned",who:["Supplier","Logistics"],where:"Logistics, Plan from a PO; vendor portal, Shipping & POD",b:"check",do:"Plan the delivery from the PO and have the supplier send it with tracking."},
+ {s:"Delivery",id:"d2",t:"Proof of delivery",who:["Supplier","Logistics","Client"],where:"Logistics, Proof of delivery; vendor portal, Shipping & POD",b:"check",do:"Upload proof of delivery and confirm receipt. Warehouse and webshop stock sit in Stocktool, outside System Guy."},
+ {s:"Cash",id:"c1",t:"Ready-to-invoice gate",who:["Finance"],where:"Finance, Billing, Delivery column",b:"built",do:"Try to bill before delivery is confirmed. It should refuse. Then confirm delivery, or waive with a reason."},
+ {s:"Cash",id:"c2",t:"Invoice the client",who:["Finance","Client"],where:"Finance, Billing",b:"check",do:"Create the client invoice and check the VAT and PO number on it."},
+ {s:"Cash",id:"c3",t:"Supplier invoice and payment",who:["Supplier","Finance"],where:"Vendor portal, Invoices & payments",b:"check",do:"Submit the supplier's invoice, match it to the PO and approve payment."},
+ {s:"Cash",id:"c4",t:"Cash received and reconciled",who:["Finance"],where:"Finance",b:"check",do:"Record the client's payment against the invoice and close the job."},
+ {s:"After",id:"v5",t:"Supplier performance and review",who:["Supplier","Procurement","Supplier management"],where:"Vendor portal, Performance & issues, Business reviews; Supplier management, Reviews",b:"check",do:"Check the job's on-time, in-full and quality results show on the supplier's scorecard, then hold a business review."},
+ {s:"After",id:"a1",t:"Asset into the library with its grade",who:["Account team","Sustainability"],where:"Shopper IQ, Asset library",b:"built",do:"Link the finished asset to its spec so the library shows the Impact Grade."}
+];
+var BT={built:"Built",check:"Check",outside:"Outside"},ST={todo:"To do",doing:"Doing",done:"Done",problem:"Problem"};
+var prog={},col=null,listEl=document.getElementById("list");
+function esc(s){return String(s==null?"":s).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
+function st(id){return (prog[id]&&prog[id].status)||"todo"}
+function render(){
+  var done=STEPS.filter(function(x){return st(x.id)==="done"}).length;
+  var next=STEPS.filter(function(x){return st(x.id)!=="done"})[0];
+  document.getElementById("fill").style.width=(done/STEPS.length*100)+"%";
+  document.getElementById("stat").textContent=done+" of "+STEPS.length+" steps done";
+  var html="",stage="",n=0;
+  STEPS.forEach(function(x){
+    n++; if(x.s!==stage){stage=x.s;html+="<h2>"+esc(stage)+"</h2>"}
+    var p=prog[x.id]||{},s=st(x.id),isNext=next&&next.id===x.id;
+    html+='<section class="step'+(isNext?" next":"")+'" data-id="'+x.id+'"><div class="head"><span class="n">'+n+'</span><b>'+esc(x.t)+'</b>'+
+      (isNext?'<span class="tag next">Next</span>':'')+'<span class="tag '+x.b+'">'+BT[x.b]+'</span><span class="tag '+s+'">'+ST[s]+'</span></div>'+
+      '<div class="row"><span>Who</span><span class="meta">'+x.who.map(function(w){return '<span class="tag">'+esc(w)+'</span>'}).join("")+'</span><span>Where</span><span>'+esc(x.where)+'</span><span>Do this</span><span>'+esc(x.do)+'</span></div>'+
+      (p.note?'<p class="note">'+esc(p.note)+'</p>':'')+
+      '<div class="ctl">'+["todo","doing","done","problem"].map(function(k){return '<button type="button" data-set="'+k+'" class="'+(s===k?"on":"")+'">'+ST[k]+'</button>'}).join("")+
+      '<textarea id="note-'+x.id+'" rows="2" placeholder="What did you see?" aria-label="Note for step '+n+'">'+esc(p.note||"")+'</textarea><button type="button" data-save="1">Save note</button></div></section>';
+  });
+  var scroll=window.scrollY;listEl.innerHTML=html;window.scrollTo(0,scroll);
+}
+function write(id,patch){
+  if(!col){document.getElementById("offline").hidden=false;return}
+  var cur=prog[id]||{};var body={status:cur.status||"todo",note:cur.note||""};
+  for(var k in patch)body[k]=patch[k];body.at=new Date().toISOString();
+  prog[id]=body;render();
+  col.doc(id).set(body).catch(function(){document.getElementById("offline").hidden=false});
+}
+listEl.addEventListener("click",function(e){
+  var b=e.target.closest("button");if(!b)return;var sec=b.closest(".step");if(!sec)return;var id=sec.dataset.id;
+  if(b.dataset.set)write(id,{status:b.dataset.set});
+  if(b.dataset.save)write(id,{note:document.getElementById("note-"+id).value.trim()});
+});
+render();
+(async function(){
+  try{
+    if(!window.claude||!claude.use){document.getElementById("offline").hidden=false;return}
+    var db=await claude.use("db");if(!db){document.getElementById("offline").hidden=false;return}
+    col=db.collection("steps");
+    col.onSnapshot(function(snap){
+      var focus=document.activeElement&&document.activeElement.tagName==="TEXTAREA";if(focus)return;
+      prog={};snap.docs.forEach(function(d){prog[d.id]=d.data()});render();
+    },function(){document.getElementById("offline").hidden=false});
+  }catch(e){document.getElementById("offline").hidden=false}
+})();
+</script>

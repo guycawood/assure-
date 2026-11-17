@@ -6,7 +6,7 @@
 --      Geography / DOA, plain-language descriptions).
 --   3. Reads: every signed-in user (mappings: admins only). Writes: admin security-definer functions that audit in the
 --      same transaction. Direct writes are revoked.
---   4. Reference tree (production needs it): a generic starter tree for adm Indicia's world. The Base44 prototype has the
+--   4. Reference tree (production needs it): a generic starter tree for our world. The Base44 prototype has the
 --      entity shapes but no seed data; its Custom Goods & Services product list and spec-type → form-type map are used.
 --   5. job_specs gains tax_form_type / tax_category_id / tax_subcategory_id / tax_product_type_id plus display names.
 --      A trigger keeps the path consistent, refreshes names, classifies new or unclassified specs from their free text
@@ -947,7 +947,7 @@ end $$;
 create or replace function public.tax_usage(p_level text, p_id uuid) returns jsonb
 language plpgsql stable security definer set search_path = public as $$
 begin
-  if not public.is_internal() then raise exception 'Only adm Indicia staff can see taxonomy usage' using errcode = '42501'; end if;
+  if not public.is_internal() then raise exception 'Only staff can see taxonomy usage' using errcode = '42501'; end if;
   return case p_level
     when 'category' then jsonb_build_object(
       'children', (select count(*) from public.tax_subcategories where category_id = p_id),

@@ -46,6 +46,7 @@ class Query<T = unknown> implements PromiseLike<Result<T>> {
   private filters: Filter[] = [];
   private orders: string[] = [];
   private limitN: number | null = null;
+  private offsetN = 0;
   private mode: "select" | "insert" | "update" | "delete" = "select";
   private columns = "*";
   private returning: string | null = null;
@@ -104,6 +105,8 @@ class Query<T = unknown> implements PromiseLike<Result<T>> {
     return this;
   }
   limit(n: number) { this.limitN = n; return this; }
+  /** PostgREST-style inclusive row range, for paging. */
+  range(from: number, to: number) { this.offsetN = Math.max(0, Math.floor(from)); this.limitN = Math.max(0, Math.floor(to - from + 1)); return this; }
   maybeSingle() { this.singleMode = "maybe"; return this; }
   single() { this.singleMode = "one"; return this; }
 
@@ -135,7 +138,8 @@ class Query<T = unknown> implements PromiseLike<Result<T>> {
     if (this.countMode && this.head) return { sql: `select count(*)::int as n from ${t}${where}`, params };
     const order = this.orders.length ? " order by " + this.orders.join(", ") : "";
     const limit = this.limitN ? ` limit ${Math.floor(this.limitN)}` : "";
-    return { sql: `select ${this.columns} from ${t}${where}${order}${limit}`, params };
+    const offset = this.offsetN ? ` offset ${this.offsetN}` : "";
+    return { sql: `select ${this.columns} from ${t}${where}${order}${limit}${offset}`, params };
   }
 
   async run(): Promise<Result<T>> {

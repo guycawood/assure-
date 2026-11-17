@@ -323,7 +323,9 @@ async function recompute(supabase: Awaited<ReturnType<typeof createClient>>, spe
     spec, versions, components, substratesById: libs.substrates, factorsByCode: libs.factors,
     singleSubstrate: spec.substrate_id ? libs.substrates[spec.substrate_id] : null,
   });
-  const hs = spec.hs_code || (components.length ? suggestHsCode(components, libs.substrates) : null);
+  // The spec's own HS code wins; then the HS code rules (product, sub-product and material); then the dominant material's chapter.
+  const ruled = spec.hs_code ? null : ((await supabase.rpc("hs_code_resolve", { p_spec: specId })).data as { hs_code: string | null } | null)?.hs_code ?? null;
+  const hs = spec.hs_code || ruled || (components.length ? suggestHsCode(components, libs.substrates) : null);
   await supabase.from("job_specs").update({
     unit_weight_grams: r.unitWeightGrams, packaging_weight_grams: r.packagingGrams || null,
     weight_basis: r.unitWeightGrams == null ? spec.weight_basis : components.some((c) => c.direct_weight_grams) || ["promo_merch", "custom_goods_services"].includes(spec.spec_type) ? "supplier_confirmed" : "calculated_from_material",
@@ -389,6 +391,16 @@ export async function overrideTriage(_: FormResult, fd: FormData): Promise<FormR
   if (error) return { error: friendly(error) };
   revalidatePath("/sourcing", "layout");
   return { ok: true, message: (await sentForApproval(supabase, "TRIAGE_OVERRIDE", id(fd) ?? "")) ?? "Route changed" };
+}
+
+/** A sourcing lead picks a different rate card for the line; the existing override rules and approval policy still apply. */
+export async function pickRateCard(_: FormResult, fd: FormData): Promise<FormResult> {
+  await requireInternal();
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("spec_triage_pick_card", { p_spec: id(fd), p_card: str(fd, "card"), p_reason: str(fd, "reason") });
+  if (error) return { error: friendly(error) };
+  revalidatePath("/sourcing", "layout");
+  return { ok: true, message: (await sentForApproval(supabase, "TRIAGE_OVERRIDE", id(fd) ?? "")) ?? "Rate card applied" };
 }
 
 /** Adopt / Adapt / accepted Push lines on a job become estimates (one per supplier) in Order Management. */

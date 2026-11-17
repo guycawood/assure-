@@ -1,6 +1,6 @@
 -- DUMMY DATA: approval policies that switch on the approval steps added for the gaps in docs/APPROVALS.md
 -- (migrations 20261022000001-3). The steps are policy-driven: without these records the platform behaves as before.
--- Values are demo settings, not adm Indicia policy. Records are inserted active; later changes go through the library's
+-- Values are demo settings, not real policy. Records are inserted active; later changes go through the library's
 -- maker-checker. Existing m15 records are tightened in place (demo data only).
 
 -- ---------------------------------------------------------------------------
@@ -57,7 +57,7 @@ update public.library_records set data = data || x.patch::jsonb
     ('AP-SRT-GATE', '{"maker_checker":true,"description":"SRT agents or leads verify or reject received evidence on a gate; on critical gates never who requested or supplied the evidence."}'),
     ('AP-SRT-BANK', '{"maker_checker":true,"description":"Finance verifies the bank details gate; never who requested or supplied the evidence."}'),
     ('AP-SRT-APPROVAL', '{"maker_checker":true,"description":"Final onboarding approval gate (Procurement head); never who requested it."}'),
-    ('AP-FAST-TRACK', '{"sla_days":2,"description":"Anyone at adm Indicia asks for a fast-track route with a justification and close-by date; an SRT lead approves it (not the requester, not the supplier''s creator).","decided_in":"approve_fast_track, approval_request_decide"}'),
+    ('AP-FAST-TRACK', '{"sla_days":2,"description":"Anyone on the team asks for a fast-track route with a justification and close-by date; an SRT lead approves it (not the requester, not the supplier''s creator).","decided_in":"approve_fast_track, approval_request_decide"}'),
     ('AP-NCR-CLOSE', '{"approver_role":"quality","maker_checker":true,"sla_days":5,"description":"Close an NCR once every corrective action is verified; a quality role, never who raised it."}'),
     ('AP-SURVEY', '{"maker_checker":true,"description":"Approve or reject a vendor survey response; never who launched the survey."}'),
     ('AP-LIBRARY', '{"description":"New or superseding versions of libraries marked requires approval (core principles, DOA, Impact Grade, POD checklist, display scoring, finance rules, approval policies, and now substrates, emission factors and bypass reasons)."}')

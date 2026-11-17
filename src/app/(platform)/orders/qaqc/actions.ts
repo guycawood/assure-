@@ -5,7 +5,7 @@ import { requireInternal } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { friendly, id, str, type FormResult } from "@/lib/sourcing-actions";
 
-// QA/QC actions for adm Indicia staff. Every decision is made by a SQL function that checks the role (quality),
+// QA/QC actions for staff. Every decision is made by a SQL function that checks the role (quality),
 // maker-checker (never the uploader / requester) and the state, and writes the audit row in the same transaction.
 
 function refresh(fd: FormData) {

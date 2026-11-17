@@ -81,7 +81,7 @@ export async function declineRfq(_: ActionResult, fd: FormData): Promise<ActionR
 export async function respondPush(_: ActionResult, fd: FormData): Promise<ActionResult> {
   const accept = fd.get("decision") === "accept";
   return rpc("standard", "triage_push_respond", { p_triage: uuid(fd, "id"), p_accept: accept, p_reason: accept ? null : s(fd, "reason", 1000) },
-    accept ? "Price confirmed." : "Price declined. adm Indicia will run a quote request instead.");
+    accept ? "Price confirmed." : "Price declined. We will run a quote request instead.");
 }
 
 export async function respondPo(_: ActionResult, fd: FormData): Promise<ActionResult> {
@@ -120,7 +120,7 @@ export async function addCertificate(_: ActionResult, fd: FormData): Promise<Act
     p_cert_type: type, p_cert_number: s(fd, "cert_number", 100), p_issuer: s(fd, "issuer", 200), p_issue: issue, p_expiry: expiry, p_document_path: `files/${f.id}`,
   });
   if (error) return fail(error.message);
-  return done("Certificate uploaded. adm Indicia will check it.");
+  return done("Certificate uploaded. We will check it.");
 }
 
 export async function addDocument(_: ActionResult, fd: FormData): Promise<ActionResult> {
@@ -136,7 +136,7 @@ export async function addDocument(_: ActionResult, fd: FormData): Promise<Action
     supplier_id: v.ctx.company.id, doc_type: docType, title, file_path: `files/${f.id}`, po_reference: s(fd, "po_reference", 60),
   });
   if (error) return fail(error.message);
-  return done("Document uploaded. adm Indicia will check it.");
+  return done("Document uploaded. We will check it.");
 }
 
 // ---------------------------------------------------------------------------
@@ -146,11 +146,11 @@ export async function respondNcr(_: ActionResult, fd: FormData): Promise<ActionR
   const action = s(fd, "action", 20);
   if (!["acknowledge", "respond", "dispute"].includes(action ?? "")) return fail("Choose a response.");
   return rpc("standard", "assure_ncr_vendor_respond", { p_id: uuid(fd, "id"), p_action: action, p_response: s(fd, "response", 4000), p_root_cause: s(fd, "root_cause", 4000) },
-    action === "acknowledge" ? "NCR acknowledged." : "Response sent to adm Indicia.");
+    action === "acknowledge" ? "NCR acknowledged." : "Response sent to us.");
 }
 
 export async function markCorrectiveDone(_: ActionResult, fd: FormData): Promise<ActionResult> {
-  return rpc("standard", "assure_ca_set_status", { p_id: uuid(fd, "id"), p_status: "done", p_note: s(fd, "note", 2000) }, "Marked done. adm Indicia will verify it.");
+  return rpc("standard", "assure_ca_set_status", { p_id: uuid(fd, "id"), p_status: "done", p_note: s(fd, "note", 2000) }, "Marked done. We will verify it.");
 }
 
 export async function respondIssue(_: ActionResult, fd: FormData): Promise<ActionResult> {
@@ -158,7 +158,7 @@ export async function respondIssue(_: ActionResult, fd: FormData): Promise<Actio
   if (!["acknowledge", "respond", "dispute"].includes(action ?? "")) return fail("Choose a response.");
   return rpc("standard", "assure_issue_vendor_respond", {
     p_id: uuid(fd, "id"), p_action: action, p_response: s(fd, "response", 4000), p_corrective: s(fd, "corrective", 4000), p_target: date(fd, "target"),
-  }, action === "acknowledge" ? "Issue acknowledged." : "Response sent to adm Indicia.");
+  }, action === "acknowledge" ? "Issue acknowledged." : "Response sent to us.");
 }
 
 // ---------------------------------------------------------------------------
@@ -218,7 +218,7 @@ export async function setTaskStatus(_: ActionResult, fd: FormData): Promise<Acti
   const status = s(fd, "status", 20);
   if (!["in_progress", "completed"].includes(status ?? "")) return fail("Choose a status.");
   return rpc("standard", "assure_task_set_status", { p_id: uuid(fd, "id"), p_status: status, p_note: s(fd, "note", 2000) },
-    status === "completed" ? "Marked complete. adm Indicia will verify it." : "Marked in progress.");
+    status === "completed" ? "Marked complete. We will verify it." : "Marked in progress.");
 }
 
 export async function saveSurvey(_: ActionResult, fd: FormData): Promise<ActionResult> {
@@ -253,6 +253,17 @@ export async function savePreAssessment(id: string | null, raw: unknown, submit:
   if (submit && (!data.major_category || !data.head_office_country || !data.primary_contact_name)) {
     return fail("Complete the required supplier details (category, head office country and contact name) before submitting.");
   }
+  // Extra questions come from the published, jointly approved form version; keep only answers to those questions.
+  const fq = await v.supabase.rpc("vendor_form_questions", { p_form: "onboarding" });
+  const form = (fq.data ?? { version: 0, questions: [] }) as { version: number; questions: { id: string; text: string; type: string; required?: boolean }[] };
+  const answers = (data.custom as Record<string, string> | undefined) ?? {};
+  const custom: Record<string, string> = {};
+  for (const q of form.questions) if (answers[q.id]) custom[q.id] = answers[q.id];
+  if (submit) {
+    const missing = form.questions.find((q) => q.required !== false && !custom[q.id]);
+    if (missing) return fail(`Answer the additional question: "${missing.text}"`);
+  }
+  if (Object.keys(custom).length) { data.custom = custom; data.form_version = form.version; } else { delete data.custom; delete data.form_version; }
   const { data: saved, error } = await v.supabase.rpc("assure_pa_save", {
     p_id: id && /^[0-9a-f-]{36}$/i.test(id) ? id : null, p_company: company, p_contact_name: data.primary_contact_name ?? null, p_contact_email: email,
     p_category: data.major_category ?? null, p_country: data.head_office_country ?? null, p_data: data,
@@ -262,7 +273,7 @@ export async function savePreAssessment(id: string | null, raw: unknown, submit:
   if (submit) {
     const r = await v.supabase.rpc("assure_pa_submit", { p_id: paId });
     if (r.error) return { ...fail(r.error.message), id: paId };
-    return done("Submitted. adm Indicia's vendor managers will review it.", paId);
+    return done("Submitted. Our vendor managers will review it.", paId);
   }
   return done("Saved.", paId);
 }
@@ -273,7 +284,29 @@ export async function savePreAssessment(id: string | null, raw: unknown, submit:
 export async function inviteMember(_: ActionResult, fd: FormData): Promise<ActionResult> {
   const email = (s(fd, "email", 254) ?? "").toLowerCase();
   if (!isEmail(email)) return fail("Enter a valid email address.");
-  return rpc("admin", "vendor_team_invite", { p_email: email, p_level: s(fd, "level", 20) }, `Invited ${email}. They can sign in with that address.`);
+  const r = await rpc("admin", "vendor_team_invite", { p_email: email, p_level: s(fd, "level", 20) }, `Invited ${email}. They can sign in with that address.`);
+  const roles = fd.getAll("roles").map(String);
+  if (r.ok && r.id && roles.length) {
+    const rr = await rpc("admin", "vendor_team_set_roles", { p_member: r.id, p_roles: roles }, r.message ?? "Invited.");
+    if (!rr.ok) return { ok: false, message: `Invited ${email}, but the roles were not saved: ${rr.message}` };
+  }
+  return r;
+}
+
+export async function addMessageContact(_: ActionResult, fd: FormData): Promise<ActionResult> {
+  if (fd.get("consent") !== "on") return fail("Tick the box to confirm you agree to receive messages on this channel.");
+  const v = await vendor("standard");
+  if ("error" in v) return fail(v.error);
+  return rpc("standard", "messaging_contact_add", { p_supplier: v.ctx.company.id, p_channel: s(fd, "channel", 20), p_address: s(fd, "address", 120), p_name: s(fd, "name", 120), p_method: null },
+    "Added. We can now message you on this channel. Reply STOP to any message to stop them.");
+}
+
+export async function optOutMessageContact(_: ActionResult, fd: FormData): Promise<ActionResult> {
+  return rpc("standard", "messaging_contact_opt_out", { p_id: uuid(fd, "id") }, "Stopped. We won't message this number or ID again unless you add it back.");
+}
+
+export async function setMemberRoles(_: ActionResult, fd: FormData): Promise<ActionResult> {
+  return rpc("admin", "vendor_team_set_roles", { p_member: uuid(fd, "id"), p_roles: fd.getAll("roles").map(String) }, "Roles updated.");
 }
 
 export async function setMemberLevel(_: ActionResult, fd: FormData): Promise<ActionResult> {
@@ -316,7 +349,7 @@ export async function archiveSite(_: ActionResult, fd: FormData): Promise<Action
 
 export async function requestPlan(_: ActionResult, fd: FormData): Promise<ActionResult> {
   return rpc("admin", "vendor_request_subscription", { p_tier: s(fd, "tier", 20), p_note: s(fd, "note", 1000) },
-    "Request sent. adm Indicia's account team will contact you to confirm.");
+    "Request sent. Our account team will contact you to confirm.");
 }
 
 // ---------------------------------------------------------------------------
@@ -358,7 +391,7 @@ export async function attachPod(_: ActionResult, fd: FormData): Promise<ActionRe
     ? await v.supabase.rpc("logistics_vendor_attach_pod_at", { p_shipment: shipment, p_file_id: f.id, p_delivered_at: `${day}T${time}:00` })
     : await v.supabase.rpc("logistics_vendor_attach_pod", { p_shipment: shipment, p_file_id: f.id, p_delivered_on: day });
   if (error) return fail(error.message);
-  return done("POD uploaded. adm Indicia will check it against the checklist.");
+  return done("POD uploaded. We will check it against the checklist.");
 }
 
 // ---------------------------------------------------------------------------
@@ -386,7 +419,7 @@ export async function recordInstall(_: ActionResult, fd: FormData): Promise<Acti
     p_lat: lat, p_lon: lon, p_notes: s(fd, "notes", 2000),
   });
   if (error) return fail(error.message);
-  return done("Install recorded. adm Indicia will audit it.");
+  return done("Install recorded. We will audit it.");
 }
 
 export async function saveRecce(_: ActionResult, fd: FormData): Promise<ActionResult> {
@@ -408,5 +441,17 @@ export async function saveRecce(_: ActionResult, fd: FormData): Promise<ActionRe
   const recce = uuid(fd, "recce"), outlet = uuid(fd, "outlet");
   if (!recce && !outlet) return fail("Choose the outlet.");
   return rpc("standard", "execution_vendor_recce_save", { p_recce: recce, p_outlet: recce ? null : outlet, p_data: data, p_confirm: confirm },
-    confirm ? "Recce confirmed and sent to adm Indicia." : "Recce saved as a draft.");
+    confirm ? "Recce confirmed and sent to us." : "Recce saved as a draft.");
+}
+
+// ---------------------------------------------------------------------------
+// HS codes: the vendor declares the code they use for a spec they supply. It is an input for staff; it never changes the spec itself.
+// ---------------------------------------------------------------------------
+export async function declareHsCode(_: ActionResult, fd: FormData): Promise<ActionResult> {
+  const code = s(fd, "hs_code", 20) ?? "";
+  const spec = uuid(fd, "spec_id");
+  if (!spec) return fail("Spec not found.");
+  const r = await rpc("standard", "vendor_hs_declare", { p_spec: spec, p_code: code, p_note: s(fd, "note", 300) }, code ? "HS code sent to us." : "Your HS code was removed.");
+  if (r.ok) revalidatePath("/vendor/hs-codes");
+  return r;
 }

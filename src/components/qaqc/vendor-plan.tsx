@@ -50,7 +50,7 @@ export function VendorQaqcPlans({ plans, bodies, canAct, accepted }: { plans: Qa
                     </ul>
                   )}
                   {c.checks.length > 0 && <div className="mt-2"><CheckList checks={c.checks} /></div>}
-                  {c.rejection_reason && <p className="mt-2 rounded bg-bad-soft px-2 py-1 text-xs text-bad">Rejected by adm Indicia: {c.rejection_reason}. Upload corrected evidence.</p>}
+                  {c.rejection_reason && <p className="mt-2 rounded bg-bad-soft px-2 py-1 text-xs text-bad">Rejected by us: {c.rejection_reason}. Upload corrected evidence.</p>}
                   {open && canAct && accepted && (
                     <details className="mt-3" open={c.status === "required" || c.status === "rejected"}>
                       <summary className="cursor-pointer text-sm font-semibold text-accent">{c.submission_count > 0 ? "Upload again" : "Upload evidence and mark done"}</summary>

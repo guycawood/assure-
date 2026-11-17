@@ -11,10 +11,20 @@ import {
 } from "@/lib/rfq";
 import { testingLabel, type DeliveryPoint, type PointPrice, type QuoteAlternative, type QuoteLineDetail, type SpecHub } from "@/lib/sourcing-hub";
 import { Card, PageHead, Panel, Pill } from "@/components/ui";
+import { ImpactGradeBadge } from "@/components/impact-grade/grade-badge";
+import { getSpecGrades } from "@/lib/impact-grade-data";
 import { ActionForm, Field } from "@/components/sourcing/action-form";
 import { ApprovalRequests } from "@/components/approvals/requests";
 import { ActivityList, Facts, StatusPill, Td, Th, fmtDate, fmtDateTime } from "@/components/sourcing/bits";
-import { approveHighValue, awardRfq, cancelRfq, copyRfq, financeDecide, logQuote, sendRfq, setSuppliers } from "../actions";
+import { CalculateButton } from "@/components/impact-grade/grade-record";
+import { SamplingPanel } from "@/components/sampling/sampling-panel";
+import type { SamplingJob } from "@/lib/sampling";
+import { approveHighValue, awardRfq, cancelRfq, copyRfq, financeDecide, logQuote, sendRfq, setSuppliers, waiveImpactGrade } from "../actions";
+
+type GradeGate = {
+  required: boolean; waived: boolean; waived_reason: string | null; blocked: boolean;
+  specs: { spec_id: string; title: string; score: number | null; letter: string | null; review_status: string | null; blocked_by: "not_graded" | "disputed" | null }[];
+};
 
 export const metadata: Metadata = { title: "RFQ" };
 
@@ -53,6 +63,11 @@ export default async function RfqPage({ params }: { params: Promise<{ id: string
   const incotermCode = (iid: string | null) => (iid ? incoterms.find((x) => x.id === iid)?.code ?? null : null);
   const detailOf = (resp: string, line: string) => detailRows.find((d) => d.response_id === resp && d.line_id === line);
   const specById = new Map(specs.map((s) => [s.id, s]));
+  const grades = await getSpecGrades(supabase, lines.map((l) => l.spec_id));
+  // Impact Grade is a required step before the offer goes out (the database enforces it at send).
+  const samplingJobs = rfq.status === "draft" ? [] : (((await supabase.rpc("sampling_jobs_internal", { p_rfq: id })).data ?? []) as SamplingJob[]);
+  const gateRes =rfq.status === "draft" ? await supabase.rpc("rfq_impact_grade_status", { p_rfq: id }) : null;
+  const gate = (gateRes?.data ?? null) as GradeGate | null;
   const lineTitle = (l: LineHub) => `${specById.get(l.spec_id)?.title ?? "Spec"}${l.variant_label ? `: ${l.variant_label}` : ""}`;
   const priceOf = (resp: string, line: string, qty: number) => priceRows.find((p) => p.response_id === resp && p.line_id === line && Number(p.quantity) === Number(qty));
   const open = isBiddingOpen(rfq);
@@ -109,6 +124,36 @@ export default async function RfqPage({ params }: { params: Promise<{ id: string
                     </ActionForm>
                   ) : <p className="rounded-lg bg-warn-soft px-3 py-2 text-warn">Over the {rfq.market} high-value threshold. A different sourcing lead must approve it before it can be sent.</p>
                 )}
+                {gate?.required && (
+                  <div className={`space-y-2 rounded-lg border px-3 py-2 ${gate.blocked ? "border-warn/40 bg-warn-soft" : "border-line"}`}>
+                    <p className="font-semibold">Impact Grade before the offer goes out</p>
+                    {gate.waived ? <p className="text-muted">Waived by a sourcing lead: {gate.waived_reason}</p>
+                      : !gate.blocked ? <p className="text-muted">Every spec on this RFQ has a grade.</p>
+                      : (
+                        <>
+                          <p className="text-warn">Every spec needs a calculated grade before this RFQ can be sent.</p>
+                          <ul className="space-y-2">
+                            {gate.specs.filter((s) => s.blocked_by).map((s) => (
+                              <li key={s.spec_id} className="flex flex-wrap items-center justify-between gap-2">
+                                <span><Link className="hover:underline" href={`/sourcing/specs/${s.spec_id}`}>{s.title}</Link>: {s.blocked_by === "disputed" ? "grade is disputed, resolve it on the spec" : "no grade yet"}</span>
+                                {s.blocked_by === "not_graded" && <CalculateButton specId={s.spec_id} label="Calculate" />}
+                              </li>
+                            ))}
+                          </ul>
+                          {access.is_lead ? (
+                            <details className="rounded-lg border border-line p-3">
+                              <summary className="cursor-pointer font-semibold">Waive for this RFQ</summary>
+                              <div className="mt-3">
+                                <ActionForm action={waiveImpactGrade} hidden={{ id }} submit="Waive Impact Grade" variant="secondary">
+                                  <Field label="Why it is being waived" htmlFor="waive_reason"><input id="waive_reason" name="reason" required minLength={10} className="input" /></Field>
+                                </ActionForm>
+                              </div>
+                            </details>
+                          ) : <p className="text-xs text-muted">Only a sourcing lead can waive this.</p>}
+                        </>
+                      )}
+                  </div>
+                )}
                 <p>Choose eligible suppliers below, then send. When you send, the database works out the control-matrix band from the value and checks you have invited enough suppliers.</p>
                 <ActionForm action={sendRfq} hidden={{ id }} submit="Send to suppliers" confirm="Send this RFQ? Lines and suppliers are locked once it goes out." />
               </>
@@ -136,6 +181,10 @@ export default async function RfqPage({ params }: { params: Promise<{ id: string
         </Panel>
       </div>
 
+      {rfq.status !== "draft" && rfq.status !== "cancelled" && (
+        <SamplingPanel rfq={id} canAct jobs={samplingJobs} suppliers={invites.filter((i) => i.status === "quoted").map((i) => ({ id: i.supplier_id, name: i.supplier_name }))} />
+      )}
+
       <Panel title="Lines" sub="Quantity breaks, targets, variants, run-on, incoterm and delivery">
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
@@ -146,7 +195,7 @@ export default async function RfqPage({ params }: { params: Promise<{ id: string
               return (
                 <tr key={l.id}>
                   <Td>{l.line_no}</Td>
-                  <Td><Link className="font-semibold hover:underline" href={`/sourcing/specs/${l.spec_id}`}>{lineTitle(l)}</Link>
+                  <Td><Link className="font-semibold hover:underline" href={`/sourcing/specs/${l.spec_id}`}>{lineTitle(l)}</Link> <ImpactGradeBadge score={grades.get(l.spec_id)} compact />
                     {s?.spec_type === "promo_merch" && <div className="text-xs text-muted">HS {s.hs_code ?? <span className="text-bad">missing</span>}</div>}</Td>
                   <Td className="tabular-nums">{l.quantity_breaks.map((q) => Number(q).toLocaleString("en-GB")).join(" · ")}</Td>
                   <Td className="tabular-nums">{l.target_prices ? l.target_prices.map((t) => (t == null ? "—" : unitMoney(Number(t), rfq.currency))).join(" · ") : "—"}{l.target_prices && <div className="text-xs text-muted">{l.show_targets ? "Shown to suppliers" : "Hidden"}</div>}</Td>
