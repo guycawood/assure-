@@ -11,9 +11,13 @@ export interface StockCount {
 
 /** Every order line with its ordered / delivered / installed / in stock reconciliation. */
 export async function getOrderLines(s: Client): Promise<OrderLine[]> {
-  const { data, error } = await s.rpc("conscious_ordering_lines");
+  const [{ data, error }, { data: specs }] = await Promise.all([
+    s.rpc("conscious_ordering_lines"),
+    s.from("job_specs").select("id, unit_weight_grams").limit(20000),
+  ]);
   if (error) console.error("[conscious-ordering] lines:", error.message);
-  return (data as OrderLine[] | null) ?? [];
+  const weight = new Map(((specs ?? []) as { id: string; unit_weight_grams: number | null }[]).map((x) => [x.id, x.unit_weight_grams]));
+  return ((data as OrderLine[] | null) ?? []).map((l) => ({ ...l, unit_weight_g: weight.get(l.spec_id) ?? null }));
 }
 
 /** The governed thresholds, falling back to the defaults for any that are missing. */

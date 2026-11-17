@@ -13,6 +13,8 @@ export interface OrderLine {
   in_stock: number; aged_stock: number; last_count: string | null;
   status: LineStatus; surplus: number; unaccounted: number; wasted: number;
   co2e_kg_per_unit: number | null; co2e_basis: "spec" | "spend" | null;
+  /** Unit weight in grams from the spec, when it has one (added by the data helper). */
+  unit_weight_g?: number | null;
 }
 
 /** Governed thresholds (Watchtower library conscious_ordering_rules). */
@@ -64,6 +66,8 @@ export interface Totals {
   trackedLines: number; trackedUnits: number; coverage: number | null;
   reconciledLines: number; reconciledOrdered: number; installed: number; inStock: number; agedStock: number; unaccounted: number; wasted: number;
   utilisation: number | null; wastedEur: number; wastedKg: number;
+  /** Material in the presumed-wasted units (kg), and the reconciled units whose spec has a weight. */
+  wastedMaterialKg: number; weighedUnits: number; estWastedMaterialKg: number;
   /** Untracked orders: surplus estimated from spend at the measured (or default) rate. */
   untrackedLines: number; untrackedUnits: number; untrackedSpendEur: number; estWastedEur: number; estWastedKg: number;
 }
@@ -71,23 +75,25 @@ export interface Totals {
 function blank(): Totals {
   return { lines: 0, ordered: 0, delivered: 0, spendEur: 0, trackedLines: 0, trackedUnits: 0, coverage: null, reconciledLines: 0, reconciledOrdered: 0,
     installed: 0, inStock: 0, agedStock: 0, unaccounted: 0, wasted: 0, utilisation: null, wastedEur: 0, wastedKg: 0,
+    wastedMaterialKg: 0, weighedUnits: 0, estWastedMaterialKg: 0,
     untrackedLines: 0, untrackedUnits: 0, untrackedSpendEur: 0, estWastedEur: 0, estWastedKg: 0 };
 }
 
 function add(t: Totals, l: OrderLine, rates: ReturnType<typeof wasteRates>) {
-  const eur = n(l.unit_cost_eur), kg = n(l.co2e_kg_per_unit);
+  const eur = n(l.unit_cost_eur), kg = n(l.co2e_kg_per_unit), wt = n(l.unit_weight_g) / 1000;
   t.lines += 1; t.ordered += n(l.ordered); t.delivered += n(l.delivered); t.spendEur += n(l.ordered) * eur;
   if (l.status === "untracked") {
     const rate = (rates.byType.get(l.spec_type) ?? rates.overall) / 100;
     t.untrackedLines += 1; t.untrackedUnits += n(l.ordered); t.untrackedSpendEur += n(l.ordered) * eur;
-    t.estWastedEur += n(l.ordered) * eur * rate; t.estWastedKg += n(l.ordered) * kg * rate;
+    t.estWastedEur += n(l.ordered) * eur * rate; t.estWastedKg += n(l.ordered) * kg * rate; t.estWastedMaterialKg += n(l.ordered) * wt * rate;
     return;
   }
   t.trackedLines += 1; t.trackedUnits += n(l.ordered);
   if (l.status !== "reconciled") return;
   t.reconciledLines += 1; t.reconciledOrdered += n(l.ordered); t.installed += n(l.installed);
   t.inStock += n(l.in_stock) - n(l.aged_stock); t.agedStock += n(l.aged_stock); t.unaccounted += n(l.unaccounted); t.wasted += n(l.wasted);
-  t.wastedEur += n(l.wasted) * eur; t.wastedKg += n(l.wasted) * kg;
+  t.wastedEur += n(l.wasted) * eur; t.wastedKg += n(l.wasted) * kg; t.wastedMaterialKg += n(l.wasted) * wt;
+  if (wt > 0) t.weighedUnits += n(l.ordered);
 }
 
 function finish(t: Totals): Totals {
@@ -102,6 +108,22 @@ export function totals(lines: OrderLine[], rules: Rules): Totals {
   for (const l of lines) add(t, l, rates);
   return finish(t);
 }
+
+/** Totals per bucket of lines (product type, month, brand, market), in the order the buckets first appear. */
+export function totalsBy(lines: OrderLine[], rules: Rules, key: (l: OrderLine) => string): { key: string; totals: Totals }[] {
+  const rates = wasteRates(lines, rules);
+  const m = new Map<string, Totals>();
+  for (const l of lines) {
+    const k = key(l);
+    let t = m.get(k);
+    if (!t) { t = blank(); m.set(k, t); }
+    add(t, l, rates);
+  }
+  return [...m.entries()].map(([k, t]) => ({ key: k, totals: finish(t) }));
+}
+
+/** Saving opportunity = what the presumed-wasted units cost, measured plus the estimate for untracked orders. */
+export const savingEur = (t: Totals) => t.wastedEur + t.estWastedEur;
 
 export type Verdict = "over_ordering" | "watch" | "on_target" | "not_enough" | "untracked";
 export interface Group extends Totals {
@@ -176,5 +198,9 @@ export const STATUS_META: Record<LineStatus, { label: string; tone: "ok" | "warn
 export const int = (v: number) => Math.round(v).toLocaleString("en-GB");
 export const eur = (v: number) => `€${Math.round(v).toLocaleString("en-GB")}`;
 export const pct = (v: number | null, d = 0) => (v == null ? "—" : `${v.toFixed(d)}%`);
+/** Material weight, switching to tonnes above 1,000 kg. */
+export const mass = (kg: number) => (kg >= 1000 ? `${(kg / 1000).toFixed(1)} t` : `${Math.round(kg).toLocaleString("en-GB")} kg`);
+/** "2026-03" -> "Mar 26". */
+export const monthLabel = (ym: string) => new Date(`${ym}-01T00:00:00`).toLocaleDateString("en-GB", { month: "short", year: "2-digit" });
 /** kgCO2e, switching to tonnes above 1,000 kg. */
 export const co2 = (kg: number) => (kg >= 1000 ? `${(kg / 1000).toFixed(1)} tCO2e` : `${Math.round(kg).toLocaleString("en-GB")} kgCO2e`);

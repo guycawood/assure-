@@ -3,58 +3,65 @@ import Link from "next/link";
 import { requireInternal } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { getOrderLines, getRules } from "@/lib/conscious-ordering-data";
-import { co2, eur, groups, int, pct, specGroup, STATUS_META, totals, VERDICT_META, wasteRates } from "@/lib/conscious-ordering";
+import { co2, eur, groups, int, mass, monthLabel, pct, savingEur, specGroup, totals, totalsBy, VERDICT_META, wasteRates } from "@/lib/conscious-ordering";
 import { Card, Empty, PageHead, Panel, Pill, Stat } from "@/components/ui";
-import { Tabs, Td, Th, fmtDate } from "@/components/sourcing/bits";
+import { Bars } from "@/components/crm/bits";
 import { MSymbol } from "@/components/symbol";
+import { CO_BASE, ConsciousNav } from "./sub-nav";
 
 export const metadata: Metadata = { title: "Conscious ordering" };
 
-const BASE = "/sustainability/conscious-ordering";
-const VIEWS = [
-  { key: "brand_market", label: "Brand and market" },
-  { key: "brand", label: "Brand" },
-  { key: "market", label: "Market" },
-] as const;
-type View = (typeof VIEWS)[number]["key"];
-
-// Conscious ordering: what was ordered against what was delivered, installed and held in stock, who is over-ordering,
-// and a spend-based estimate for orders with no evidence.
-export default async function ConsciousOrdering({ searchParams }: { searchParams: Promise<{ tab?: string }> }) {
+// Conscious ordering dashboard: the saving on offer (cost, material, emissions, units) across the top, then where the
+// units went, who to advise, and where the saving sits by product type, month, brand and market.
+export default async function ConsciousOrderingDashboard() {
   await requireInternal();
-  const sp = await searchParams;
-  const view: View = VIEWS.some((v) => v.key === sp.tab) ? (sp.tab as View) : "brand_market";
   const supabase = await createClient();
   const [lines, rules] = await Promise.all([getOrderLines(supabase), getRules(supabase)]);
   const t = totals(lines, rules);
   const rates = wasteRates(lines, rules);
-  const rollup = groups(lines, rules, view);
   const advise = groups(lines, rules, "brand_market").filter((g) => g.verdict === "over_ordering" || g.verdict === "watch");
   const flagged = advise.filter((g) => g.verdict === "over_ordering");
-  const worst = lines.filter((l) => l.status !== "untracked")
-    .sort((a, b) => b.wasted * Number(b.unit_cost_eur ?? 0) - a.wasted * Number(a.unit_cost_eur ?? 0) || b.ordered - a.ordered).slice(0, 15);
   const split: [string, number, string][] = [
     ["Installed", t.installed, "bg-ok"], ["In stock", t.inStock, "bg-info"], ["Stock past its age limit", t.agedStock, "bg-warn"], ["Unaccounted for", t.unaccounted, "bg-bad"],
   ];
   const splitTotal = split.reduce((a, [, v]) => a + v, 0);
+  const top = (key: (l: (typeof lines)[number]) => string, n = 6) =>
+    totalsBy(lines, rules, key).sort((a, b) => savingEur(b.totals) - savingEur(a.totals)).slice(0, n)
+      .map((x) => ({ label: x.key, value: savingEur(x.totals), text: eur(savingEur(x.totals)) }));
+  const byType = totalsBy(lines, rules, (l) => specGroup(l.spec_type)).sort((a, b) => savingEur(b.totals) - savingEur(a.totals));
+  const months = totalsBy(lines.filter((l) => l.status === "reconciled"), rules, (l) => String(l.po_date).slice(0, 7))
+    .sort((a, b) => a.key.localeCompare(b.key)).slice(-12);
+  const weighed = pct(t.reconciledOrdered ? (100 * t.weighedUnits) / t.reconciledOrdered : null);
 
   return (
     <>
-      <PageHead crumbs={[{ label: "Sustainability", href: "/sustainability" }, { label: "Conscious ordering" }]}
-        title="Conscious ordering"
-        sub="Every unit ordered is checked against what was delivered, installed in an outlet or counted in stock. Anything left over with no evidence is presumed wasted, and brands and markets that keep over-ordering are advised to order less." />
+      <PageHead crumbs={[{ label: "Sustainability", href: "/sustainability" }, { label: "Conscious ordering" }]} title="Conscious ordering"
+        sub="What could be saved by ordering only what gets used: cost, material and emissions in the units that were delivered but never installed or accounted for." />
+      <ConsciousNav current="dashboard" />
 
       {lines.length === 0 ? <Card><Empty title="No issued purchase orders yet">Orders appear here once a purchase order is issued.</Empty></Card> : (
         <>
-          <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-            <Stat label="Orders with evidence" value={pct(t.coverage)} tone={t.coverage == null ? undefined : t.coverage >= 80 ? "ok" : t.coverage >= 40 ? "warn" : "bad"}
-              hint={`${int(t.trackedUnits)} of ${int(t.ordered)} units ordered have installs or a stock count`} icon={<MSymbol name="fact_check" size={20} />} />
+          <section aria-label="Saving opportunity">
+            <h2 className="eyebrow mb-2">Saving opportunity</h2>
+            <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+              <Stat label="Cost" value={eur(t.wastedEur)} tone={t.wastedEur > 0 ? "bad" : "ok"}
+                hint={<>Measured · plus {eur(t.estWastedEur)} estimated on untracked orders</>} icon={<MSymbol name="payments" size={20} />} />
+              <Stat label="Material" value={mass(t.wastedMaterialKg)} tone={t.wastedMaterialKg > 0 ? "bad" : "ok"}
+                hint={<>Measured · plus {mass(t.estWastedMaterialKg)} estimated · weight known on {weighed} of units</>} icon={<MSymbol name="scale" size={20} />} />
+              <Stat label="Emissions" value={co2(t.wastedKg)} tone={t.wastedKg > 0 ? "bad" : "ok"}
+                hint={<>Measured · plus {co2(t.estWastedKg)} estimated · indicative</>} icon={<MSymbol name="co2" size={20} />} />
+              <Stat label="Units" value={int(t.wasted)} tone={t.wasted > 0 ? "bad" : "ok"}
+                hint={`Presumed wasted of ${int(t.reconciledOrdered)} ordered on reconciled lines`} icon={<MSymbol name="inventory_2" size={20} />} />
+            </div>
+          </section>
+
+          <section className="grid gap-3 sm:grid-cols-3">
             <Stat label="Installed of ordered" value={pct(t.utilisation)} tone={t.utilisation == null ? undefined : t.utilisation >= rules.target ? "ok" : "bad"}
-              hint={`Measured on ${t.reconciledLines} reconciled order lines · target ${rules.target}%`} icon={<MSymbol name="storefront" size={20} />} />
-            <Stat label="Presumed wasted (measured)" value={int(t.wasted)} tone={t.wasted > 0 ? "bad" : "ok"}
-              hint={`${eur(t.wastedEur)} · ${co2(t.wastedKg)}`} icon={<MSymbol name="delete_sweep" size={20} />} />
-            <Stat label="Likely waste in untracked orders" value={eur(t.estWastedEur)} tone={t.untrackedLines ? "warn" : "ok"}
-              hint={`Estimated from ${eur(t.untrackedSpendEur)} of spend · ${co2(t.estWastedKg)}`} icon={<MSymbol name="query_stats" size={20} />} />
+              hint={`${t.reconciledLines} reconciled order lines · target ${rules.target}%`} icon={<MSymbol name="storefront" size={20} />} />
+            <Stat label="Orders with evidence" value={pct(t.coverage)} tone={t.coverage == null ? undefined : t.coverage >= 80 ? "ok" : t.coverage >= 40 ? "warn" : "bad"}
+              hint={`${int(t.trackedUnits)} of ${int(t.ordered)} units have installs or a stock count`} icon={<MSymbol name="fact_check" size={20} />} />
+            <Stat label="Over-ordering" value={flagged.length} tone={flagged.length ? "warn" : "ok"}
+              hint={`Brand and market combinations under target on ${rules.minOrders} or more orders`} icon={<MSymbol name="flag" size={20} />} />
           </section>
 
           <section className="grid gap-4 xl:grid-cols-5">
@@ -76,15 +83,16 @@ export default async function ConsciousOrdering({ searchParams }: { searchParams
                 </div>
               )}
             </Panel>
-            <Panel className="xl:col-span-3" title="Who to advise" sub={`${flagged.length} brand and market combination${flagged.length === 1 ? "" : "s"} over-ordering on ${rules.minOrders} or more orders`}>
+            <Panel className="xl:col-span-3" title="Who to advise" sub={`${flagged.length} brand and market combination${flagged.length === 1 ? "" : "s"} over-ordering`}
+              actions={<Link href={`${CO_BASE}/breakdown`} className="text-sm font-semibold text-accent hover:underline">All brands and markets</Link>}>
               {advise.length === 0 ? <p className="px-5 py-4 text-sm text-muted">No brand and market is under the {rules.target}% target.</p> : (
-                <ul className="max-h-[22rem] divide-y divide-line overflow-y-auto">
-                  {advise.slice(0, 12).map((g) => (
+                <ul className="divide-y divide-line">
+                  {advise.slice(0, 4).map((g) => (
                     <li key={g.key} className="flex items-start gap-3 px-5 py-3 text-sm">
                       <Pill tone={VERDICT_META[g.verdict].tone}>{VERDICT_META[g.verdict].label}</Pill>
                       <div className="min-w-0">
                         <p>{g.advice}</p>
-                        <p className="mt-0.5 text-xs text-muted">{int(g.wasted)} units presumed wasted · {eur(g.wastedEur)} · {co2(g.wastedKg)}</p>
+                        <p className="mt-0.5 text-xs text-muted">Saving: {eur(g.wastedEur)} · {mass(g.wastedMaterialKg)} of material · {co2(g.wastedKg)}</p>
                       </div>
                     </li>
                   ))}
@@ -93,65 +101,39 @@ export default async function ConsciousOrdering({ searchParams }: { searchParams
             </Panel>
           </section>
 
-          <Card className="min-w-0">
-            <div className="px-5 pt-3"><Tabs base={BASE} current={view} tabs={VIEWS.map((v) => ({ key: v.key, label: v.label }))} /></div>
-            <div className="max-h-[34rem] overflow-auto">
-              <table className="w-full text-sm">
-                <thead className="sticky top-0 z-10 bg-surface"><tr>
-                  {view !== "market" && <Th>Brand</Th>}{view !== "brand" && <Th>Market</Th>}
-                  <Th>Verdict</Th><Th className="text-right">Order lines</Th><Th className="text-right">Ordered</Th><Th className="text-right">Evidence</Th>
-                  <Th className="text-right">Installed</Th><Th className="text-right">Presumed wasted</Th><Th className="text-right">Wasted spend</Th><Th className="text-right">Wasted CO2e</Th>
-                  <Th className="text-right">Estimated (untracked)</Th>
-                </tr></thead>
-                <tbody>{rollup.map((g) => (
-                  <tr key={g.key}>
-                    {view !== "market" && <Td className="font-semibold">{g.brand}</Td>}
-                    {view !== "brand" && <Td className="whitespace-nowrap">{g.market}{g.region && <span className="text-xs text-muted"> · {g.region}</span>}</Td>}
-                    <Td><Pill tone={VERDICT_META[g.verdict].tone} title={g.advice}>{VERDICT_META[g.verdict].label}</Pill></Td>
-                    <Td className="whitespace-nowrap text-right tabular-nums">{g.lines}<span className="text-xs text-muted"> · {g.reconciledLines} reconciled</span></Td>
-                    <Td className="text-right tabular-nums">{int(g.ordered)}</Td>
-                    <Td className="text-right tabular-nums">{pct(g.coverage)}</Td>
-                    <Td className="text-right tabular-nums">{pct(g.utilisation)}</Td>
-                    <Td className="text-right tabular-nums">{g.reconciledLines ? int(g.wasted) : "—"}</Td>
-                    <Td className="text-right tabular-nums">{g.reconciledLines ? eur(g.wastedEur) : "—"}</Td>
-                    <Td className="text-right tabular-nums">{g.reconciledLines ? co2(g.wastedKg) : "—"}</Td>
-                    <Td className="text-right tabular-nums text-muted">{g.untrackedLines ? eur(g.estWastedEur) : "—"}</Td>
-                  </tr>))}</tbody>
-              </table>
-            </div>
-            <p className="border-t border-line px-5 py-2 text-[0.7rem] text-muted">
-              Evidence = share of ordered units with installs or a stock count. Installed = installed ÷ ordered on reconciled lines. Estimated = spend on untracked orders × the surplus rate measured for that product type.
-            </p>
-          </Card>
-
-          <Panel title="Order lines to look at first" sub="Tracked order lines, biggest wasted spend first. Open one to see its counts or record a stock count.">
-            {worst.length === 0 ? <p className="px-5 py-4 text-sm text-muted">No order has install or stock evidence yet.</p> : (
+          <section className="grid gap-4 xl:grid-cols-2">
+            <Panel title="Saving by product type" sub="Measured plus estimated">
               <div className="overflow-x-auto"><table className="w-full text-sm">
-                <thead><tr><Th>Order</Th><Th>Brand and market</Th><Th>Item</Th><Th>Status</Th><Th className="text-right">Ordered</Th><Th className="text-right">Delivered</Th>
-                  <Th className="text-right">Installed</Th><Th className="text-right">In stock</Th><Th className="text-right">Unaccounted</Th><Th className="text-right">Wasted spend</Th></tr></thead>
-                <tbody>{worst.map((l) => (
-                  <tr key={`${l.po_id}-${l.spec_id}`}>
-                    <Td><Link className="font-semibold hover:underline" href={`${BASE}/${l.po_id}`}>{l.po_number}</Link><div className="text-xs text-muted">{fmtDate(l.po_date)}</div></Td>
-                    <Td>{l.brand}<div className="text-xs text-muted">{l.market}</div></Td>
-                    <Td>{l.spec_title}<div className="text-xs text-muted">{specGroup(l.spec_type)}</div></Td>
-                    <Td><Pill tone={STATUS_META[l.status].tone}>{STATUS_META[l.status].label}</Pill></Td>
-                    <Td className="text-right tabular-nums">{int(l.ordered)}</Td><Td className="text-right tabular-nums">{int(l.delivered)}</Td>
-                    <Td className="text-right tabular-nums">{int(l.installed)}</Td>
-                    <Td className="text-right tabular-nums">{int(l.in_stock)}{l.aged_stock > 0 && <div className="text-xs text-warn">{int(l.aged_stock)} past age limit</div>}</Td>
-                    <Td className="text-right tabular-nums">{int(l.unaccounted)}</Td>
-                    <Td className="text-right tabular-nums">{eur(l.wasted * Number(l.unit_cost_eur ?? 0))}</Td>
+                <thead><tr><th className="th">Product type</th><th className="th text-right">Installed</th><th className="th text-right">Cost</th><th className="th text-right">Material</th><th className="th text-right">Emissions</th></tr></thead>
+                <tbody>{byType.map(({ key, totals: x }) => (
+                  <tr key={key}>
+                    <td className="td font-semibold">{key}</td>
+                    <td className="td text-right tabular-nums">{pct(x.utilisation)}</td>
+                    <td className="td text-right tabular-nums">{eur(savingEur(x))}</td>
+                    <td className="td text-right tabular-nums">{mass(x.wastedMaterialKg + x.estWastedMaterialKg)}</td>
+                    <td className="td text-right tabular-nums">{co2(x.wastedKg + x.estWastedKg)}</td>
                   </tr>))}</tbody>
               </table></div>
-            )}
-          </Panel>
+            </Panel>
+            <Panel title="Wasted spend by order month" sub="Reconciled order lines, last 12 months with orders">
+              {months.length === 0 ? <p className="px-5 py-4 text-sm text-muted">Nothing reconciled yet.</p> : (
+                <Bars rows={months.map((m) => ({ label: monthLabel(m.key), value: m.totals.wastedEur, text: `${eur(m.totals.wastedEur)} · ${pct(m.totals.utilisation)} installed`,
+                  tone: m.totals.utilisation != null && m.totals.utilisation < rules.target ? "bg-bad" : "bg-ok" }))} />
+              )}
+            </Panel>
+            <Panel title="Brands with the most to save" sub="Cost, measured plus estimated"><Bars rows={top((l) => l.brand)} /></Panel>
+            <Panel title="Markets with the most to save" sub="Cost, measured plus estimated"><Bars rows={top((l) => l.market)} /></Panel>
+          </section>
 
           <Card className="space-y-2 p-5 text-sm">
             <h2 className="font-bold">How the figures are worked out</h2>
             <ul className="list-disc space-y-1 pl-5 text-muted">
+              <li><span className="text-fg">Saving opportunity:</span> the cost, material and emissions in units presumed wasted. It is what ordering to actual use would have avoided, not money already saved.</li>
               <li><span className="text-fg">Measured:</span> orders with installs recorded in Execution or a stock count. Surplus = delivered − installed; stock on hand explains part of it, the rest is unaccounted for.</li>
               <li><span className="text-fg">Estimated:</span> orders with no evidence. Spend × the surplus rate measured on tracked orders of the same product type
-                ({rates.measured ? `${pct(rates.overall, 1)} overall today` : `${rules.defaultRate}% default until ${rules.minOrders} orders are reconciled`}). The least accurate method, so it is always shown separately.</li>
-              <li><span className="text-fg">CO2e:</span> the spec&apos;s own footprint where it has one, otherwise spend × a spend-based factor. Indicative, not a product carbon footprint.</li>
+                ({rates.measured ? `${pct(rates.overall, 1)} overall today` : `${rules.defaultRate}% default until ${rules.minOrders} orders are reconciled`}). Always shown separately.</li>
+              <li><span className="text-fg">Material:</span> wasted units × the spec&apos;s unit weight. Specs with no weight add nothing, so the figure is a floor.</li>
+              <li><span className="text-fg">Emissions:</span> the spec&apos;s own footprint where it has one, otherwise spend × a spend-based factor. Indicative, not a product carbon footprint.</li>
               <li><span className="text-fg">Money:</span> order cost converted to EUR at the Watchtower reporting rates.</li>
             </ul>
             <p className="text-xs">

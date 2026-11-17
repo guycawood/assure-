@@ -34,6 +34,9 @@ Each line has a status:
 - **CO2e** uses the spec's own footprint where it has one, otherwise spend × a spend-based factor (library `spend_emission_factors`). Indicative only.
 - **Money** is converted to EUR with the Watchtower reporting rates.
 
+### Dashboard and saving opportunity
+`/sustainability/conscious-ordering` is the dashboard. Across the top it shows the **saving opportunity**: the cost (EUR), material (kg, from the spec's unit weight), emissions (CO2e) and units in what is presumed wasted. Measured is the headline; the estimate for untracked orders sits beside it. It is what ordering to actual use would have avoided, not money already saved. Below: where the delivered units went, who to advise, saving by product type, wasted spend by order month, and the brands and markets with the most to save. The full tables are on `/breakdown` (brands and markets) and `/orders` (order lines).
+
 ### Who gets advised
 Brand × market roll-up (`src/lib/conscious-ordering.ts`):
 
