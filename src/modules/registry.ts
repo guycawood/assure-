@@ -1,4 +1,4 @@
-export type ModuleKey = "watchtower" | "crm" | "briefing" | "shopper-iq" | "rfq" | "sourcing" | "orders" | "logistics" | "execution" | "finance" | "assure";
+export type ModuleKey = "watchtower" | "crm" | "briefing" | "shopper-iq" | "rfq" | "sourcing" | "orders" | "logistics" | "execution" | "finance" | "assure" | "sustainability";
 
 export type ModuleDef = {
   key: ModuleKey;
@@ -203,19 +203,35 @@ const ALL: ModuleDef[] = [
     ],
     flow: "Works hand in hand with Briefing+: insight shapes what gets briefed, and measured results from every stage feed the next brief.",
   },
+  {
+    key: "sustainability",
+    name: "Sustainability",
+    tagline: "Impact Grade and conscious ordering",
+    icon: "eco",
+    colour: "#78C7AE",
+    basePath: "/sustainability",
+    status: "live",
+    phase: "Live",
+    scope: [
+      "Impact Grade: one 0 to 10 grade per spec on shared substrates and emission factors",
+      "Conscious ordering: ordered against delivered, installed and in stock, with stock counts",
+      "Over-ordering brands and markets flagged and advised; spend-based estimates where nothing is tracked",
+    ],
+    flow: "Runs under every section: grades what is specified in Sourcing, and checks what Order Management delivered and installed against what was ordered.",
+  },
 ];
 
 // Sections in tab order. CRM opens the flow (the client relationship and the won opportunity start every job).
 // Shopper IQ sits next to Briefing+ (insight decides what to brief).
 // Sourcing includes RFQs; Order Management includes Logistics and Execution (areas with partOf set, no tab of their own).
 // SRM goes last: it manages the supply base; vendors engage at set points (see LAYERS supplier touches).
-const TAB_ORDER: ModuleKey[] = ["watchtower", "crm", "briefing", "shopper-iq", "sourcing", "rfq", "orders", "logistics", "execution", "assure", "finance"];
+const TAB_ORDER: ModuleKey[] = ["watchtower", "crm", "briefing", "shopper-iq", "sourcing", "rfq", "orders", "logistics", "execution", "assure", "sustainability", "finance"];
 /**
  * Sections that run across the whole workflow rather than being a step in it. They keep a tab (their team's
  * workspace) but the architecture draws them as layers: Watchtower over everything, Finance+ under everything
- * (like Sustainability and Supplier Engagement).
+ * and Sustainability under everything (like Supplier Engagement).
  */
-export const HORIZONTALS: ModuleKey[] = ["watchtower", "finance"];
+export const HORIZONTALS: ModuleKey[] = ["watchtower", "finance", "sustainability"];
 ALL.sort((a, b) => TAB_ORDER.indexOf(a.key) - TAB_ORDER.indexOf(b.key));
 
 /** The sections people see: one tab, one sidebar, one About and one Watchtower each. */
@@ -259,9 +275,9 @@ export const LAYERS: LayerDef[] = [
     touches: { sourcing: "Quote, decline or confirm pushed prices", orders: "Accept PO, ship with POD, install, upload invoice", assure: "Onboard, keep compliant, reviews, see payments" },
   },
   {
-    key: "sustainability", name: "Sustainability", colour: "#78C7AE", href: "/watchtower/sustainability",
-    summary: "Shared emission factors, substrates and Impact Grade from the Watchtower, applied the same way in every module.",
-    touches: { crm: "Client sustainability commitments in the contract", briefing: "Targets on the brief", "shopper-iq": "Footprint beside effectiveness", sourcing: "CO2e and Impact Grade per spec; weighting in evaluation", orders: "Transport CO2e per delivery; reuse and maintenance", assure: "Audits and certificates in the score" },
+    key: "sustainability", name: "Sustainability", colour: "#78C7AE", href: "/sustainability",
+    summary: "Impact Grade and conscious ordering on one set of governed emission factors and substrates: how sustainable each item is, and whether what was ordered was actually used. The Sustainability tab is the team's workspace.",
+    touches: { crm: "Client sustainability commitments in the contract", briefing: "Targets on the brief", "shopper-iq": "Footprint beside effectiveness", sourcing: "CO2e and Impact Grade per spec; weighting in evaluation", orders: "Ordered against delivered, installed and in stock; transport CO2e per delivery", assure: "Audits and certificates in the score" },
   },
   {
     key: "internal_reporting", name: "Internal Reporting", colour: "#9DC5ED", href: "/watchtower/reporting",
