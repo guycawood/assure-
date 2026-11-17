@@ -17,6 +17,6 @@ export async function recordStockCount(_: FormResult, fd: FormData): Promise<For
     p_source: str(fd, "source") ?? "warehouse", p_notes: str(fd, "notes"),
   });
   if (error) return { error: friendly(error) };
-  revalidatePath("/watchtower/sustainability", "layout");
+  revalidatePath("/sustainability", "layout");
   return { ok: true, message: "Stock count recorded." };
 }

@@ -33,7 +33,7 @@ export default async function ImpactGrade() {
 
   return (
     <>
-      <PageHead crumbs={[{ label: "Watchtower", href: "/watchtower" }, { label: "Sustainability", href: "/watchtower/sustainability" }, { label: "Impact Grade" }]} title="Impact Grade"
+      <PageHead crumbs={[{ label: "Sustainability", href: "/sustainability" }, { label: "Impact Grade" }]} title="Impact Grade"
         sub="One 0 to 10 grade per spec, built from weighted dimensions and one set of substrates and emission factors, governed here and applied the same way in every module." />
       <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
         <Stat label="Impact Grade weights" value={`${weight}%`} tone={weight === 100 ? "ok" : "bad"} hint={weight === 100 ? "Adds up to 100%" : "Must add up to 100%"} icon={<MSymbol name="grade" size={20} />} />
@@ -44,7 +44,7 @@ export default async function ImpactGrade() {
       </section>
 
       <section className="grid gap-4 lg:grid-cols-2">
-        <Panel title="Impact Grade methodology" actions={<Link href="/watchtower/libraries/impact_grade_dimensions" className="text-sm font-semibold text-accent hover:underline">Manage</Link>}>
+        <Panel title="Impact Grade methodology" actions={<Link href="/sustainability/watchtower/libraries/impact_grade_dimensions" className="text-sm font-semibold text-accent hover:underline">Manage</Link>}>
           <ul className="space-y-2 px-5 py-4">
             {[...dims].sort((a, b) => Number(b.data.weight_percent) - Number(a.data.weight_percent)).map((d) => (
               <li key={d.code} className="text-sm">
@@ -54,7 +54,7 @@ export default async function ImpactGrade() {
             ))}
           </ul>
         </Panel>
-        <Panel title="Substrates and their factors" actions={<Link href="/watchtower/libraries/substrates" className="text-sm font-semibold text-accent hover:underline">Manage</Link>}>
+        <Panel title="Substrates and their factors" actions={<Link href="/sustainability/watchtower/libraries/substrates" className="text-sm font-semibold text-accent hover:underline">Manage</Link>}>
           <table className="w-full text-sm">
             <thead><tr><th className="th">Substrate</th><th className="th">Recycled</th><th className="th">FSC</th><th className="th">Factor</th></tr></thead>
             <tbody>
@@ -77,7 +77,7 @@ export default async function ImpactGrade() {
       <Card className="p-5 text-sm">
         <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
           <h2 className="font-bold">Transport factors in use</h2>
-          <Link href="/watchtower/libraries/transport_emission_factors" className="text-sm font-semibold text-accent hover:underline">Manage</Link>
+          <Link href="/sustainability/watchtower/libraries/transport_emission_factors" className="text-sm font-semibold text-accent hover:underline">Manage</Link>
         </div>
         <div className="flex flex-wrap gap-2">{tef.map((t) => <Pill key={t.code} tone="info">{t.name}: {String(t.data.factor_gco2e_per_tonne_km)} g/t·km</Pill>)}</div>
         <p className="mt-3 text-xs text-muted">Material factors cover raw material production only. They exclude conversion, production waste and end-of-life, so totals are not a product carbon footprint. Demo values are indicative; verify against licensed sources before reporting.</p>

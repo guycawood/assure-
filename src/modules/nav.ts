@@ -40,14 +40,6 @@ const SECTION_NAV: Record<Exclude<ModuleKey, "rfq" | "logistics" | "execution">,
         { label: "All libraries", href: "/watchtower/libraries", icon: "library_books", exact: true },
         { label: "Product taxonomy & AAC", href: "/watchtower/taxonomy", icon: "category" },
       ] },
-      // Sustainability module: Impact Grade (how sustainable each item is) and conscious ordering (was it needed).
-      { label: "Sustainability", items: [
-        { label: "Overview", href: "/watchtower/sustainability", icon: "eco", exact: true },
-        { label: "Impact Grade", href: "/watchtower/sustainability/impact-grade", icon: "grade" },
-        { label: "Conscious ordering", href: "/watchtower/sustainability/conscious-ordering", icon: "inventory" },
-        { label: "Substrates", href: "/watchtower/libraries/substrates", icon: "layers" },
-        { label: "Emission factors", href: "/watchtower/libraries/material_emission_factors", icon: "co2" },
-      ] },
       { label: "Layers & platform", items: [
         { label: "Data management", href: "/watchtower/data", icon: "database" },
         { label: "Internal reporting", href: "/watchtower/reporting", icon: "monitoring" },
@@ -199,6 +191,26 @@ const SECTION_NAV: Record<Exclude<ModuleKey, "rfq" | "logistics" | "execution">,
       ] },
       { label: "Insight", items: [{ label: "Spend & savings", href: "/finance/reports", icon: "monitoring" }] },
       watchtower("finance"),
+    ],
+  },
+  // Sustainability: Impact Grade (how sustainable each item is) and conscious ordering (was what we ordered used).
+  sustainability: {
+    portal: "Impact & ordering",
+    groups: [
+      about("sustainability", "Sustainability"),
+      { label: "Overview", items: [{ label: "Dashboard", href: "/sustainability", icon: "space_dashboard", exact: true }] },
+      { label: "Impact Grade", items: [
+        { label: "Impact Grade", href: "/sustainability/impact-grade", icon: "grade" },
+        { label: "Substrates", href: "/sustainability/watchtower/libraries/substrates", icon: "layers" },
+        { label: "Material emission factors", href: "/sustainability/watchtower/libraries/material_emission_factors", icon: "co2" },
+        { label: "Transport emission factors", href: "/sustainability/watchtower/libraries/transport_emission_factors", icon: "local_shipping" },
+      ] },
+      { label: "Conscious ordering", items: [
+        { label: "Conscious ordering", href: "/sustainability/conscious-ordering", icon: "inventory" },
+        { label: "Ordering rules", href: "/sustainability/watchtower/libraries/conscious_ordering_rules", icon: "tune" },
+        { label: "Spend-based factors", href: "/sustainability/watchtower/libraries/spend_emission_factors", icon: "payments" },
+      ] },
+      watchtower("sustainability"),
     ],
   },
   assure: {

@@ -10,7 +10,7 @@ import { MSymbol } from "@/components/symbol";
 
 export const metadata: Metadata = { title: "Conscious ordering" };
 
-const BASE = "/watchtower/sustainability/conscious-ordering";
+const BASE = "/sustainability/conscious-ordering";
 const VIEWS = [
   { key: "brand_market", label: "Brand and market" },
   { key: "brand", label: "Brand" },
@@ -40,7 +40,7 @@ export default async function ConsciousOrdering({ searchParams }: { searchParams
 
   return (
     <>
-      <PageHead crumbs={[{ label: "Watchtower", href: "/watchtower" }, { label: "Sustainability", href: "/watchtower/sustainability" }, { label: "Conscious ordering" }]}
+      <PageHead crumbs={[{ label: "Sustainability", href: "/sustainability" }, { label: "Conscious ordering" }]}
         title="Conscious ordering"
         sub="Every unit ordered is checked against what was delivered, installed in an outlet or counted in stock. Anything left over with no evidence is presumed wasted, and brands and markets that keep over-ordering are advised to order less." />
 
@@ -155,8 +155,8 @@ export default async function ConsciousOrdering({ searchParams }: { searchParams
               <li><span className="text-fg">Money:</span> order cost converted to EUR at the Watchtower reporting rates.</li>
             </ul>
             <p className="text-xs">
-              <Link className="font-semibold text-accent hover:underline" href="/watchtower/libraries/conscious_ordering_rules">Rules</Link>{" · "}
-              <Link className="font-semibold text-accent hover:underline" href="/watchtower/libraries/spend_emission_factors">Spend-based emission factors</Link>{" · "}
+              <Link className="font-semibold text-accent hover:underline" href="/sustainability/watchtower/libraries/conscious_ordering_rules">Rules</Link>{" · "}
+              <Link className="font-semibold text-accent hover:underline" href="/sustainability/watchtower/libraries/spend_emission_factors">Spend-based emission factors</Link>{" · "}
               <Link className="font-semibold text-accent hover:underline" href="/execution/deployments">Installs in Execution</Link>
             </p>
           </Card>

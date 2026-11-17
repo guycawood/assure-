@@ -1,11 +1,13 @@
 # Sustainability module and the conscious ordering programme
 
-The Sustainability module lives in the Watchtower sidebar (`/watchtower/sustainability`) and holds two programmes on one set of governed factors:
+Sustainability is its own module, with a tab in the top bar (`/sustainability`), its own sidebar, About page and Watchtower, like SRM or Shopper IQ. It holds two programmes on one set of governed factors:
 
 | Programme | Path | Question it answers |
 |---|---|---|
-| Impact Grade | `/watchtower/sustainability/impact-grade` | How sustainable is each item? (0 to 10 per spec, weighted dimensions, substrates, emission factors) |
-| Conscious ordering | `/watchtower/sustainability/conscious-ordering` | Was what we ordered actually used? |
+| Impact Grade | `/sustainability/impact-grade` | How sustainable is each item? (0 to 10 per spec, weighted dimensions, substrates, emission factors) |
+| Conscious ordering | `/sustainability/conscious-ordering` | Was what we ordered actually used? |
+
+The module's libraries (substrates, material and transport emission factors, Impact Grade dimensions, conscious ordering rules, spend-based emission factors) are governed in the Sustainability Watchtower (`/sustainability/watchtower`) and still appear in the master Watchtower's list. Its health figures come from the view `watchtower_health_sustainability`.
 
 ## Conscious ordering: how it works
 

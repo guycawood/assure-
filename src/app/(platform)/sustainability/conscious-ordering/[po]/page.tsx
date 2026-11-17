@@ -13,7 +13,7 @@ import { recordStockCount } from "../../actions";
 
 export const metadata: Metadata = { title: "Order reconciliation" };
 
-const BASE = "/watchtower/sustainability/conscious-ordering";
+const BASE = "/sustainability/conscious-ordering";
 const SOURCES = [{ value: "warehouse", label: "Warehouse" }, { value: "vendor", label: "Vendor" }, { value: "market", label: "Market" }];
 
 // One purchase order: each line's ordered / delivered / installed / in stock, its stock counts, and a form to add a count.
@@ -31,7 +31,7 @@ export default async function OrderReconciliation({ params }: { params: Promise<
 
   return (
     <>
-      <PageHead crumbs={[{ label: "Watchtower", href: "/watchtower" }, { label: "Sustainability", href: "/watchtower/sustainability" }, { label: "Conscious ordering", href: BASE }, { label: head.po_number }]}
+      <PageHead crumbs={[{ label: "Sustainability", href: "/sustainability" }, { label: "Conscious ordering", href: BASE }, { label: head.po_number }]}
         title={`Order ${head.po_number}`} sub={`${head.brand} · ${head.market} (${head.region}) · ${head.client_name} · ${head.job_number}`} />
 
       <Panel title="Ordered against delivered, installed and in stock"

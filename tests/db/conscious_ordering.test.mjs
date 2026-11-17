@@ -127,3 +127,16 @@ test("only issued orders are reconciled, and only staff can read the reconciliat
   await rejects(count("agent", l, 1, day(-1), "Central warehouse"), /issued purchase order/);
   await rejects(as("vendor", "select * from public.conscious_ordering_lines()"), /Only adm Indicia staff/);
 });
+
+test("Sustainability is its own module: its libraries and health roll up under it", async () => {
+  const libs = (await as("agent", "select key from public.library_definitions where module = 'sustainability' order by key")).rows.map((r) => r.key);
+  assert.deepEqual(libs, ["conscious_ordering_rules", "impact_grade_dimensions", "material_emission_factors", "spend_emission_factors", "substrates", "transport_emission_factors"]);
+  const h = (await as("agent", "select metric, value, target, status from public.watchtower_health_sustainability order by metric")).rows;
+  assert.deepEqual(h.map((r) => r.metric), ["ordering_evidence", "ordering_utilisation", "over_ordering", "substrates_unlinked"]);
+  const util = h.find((r) => r.metric === "ordering_utilisation");
+  // Reconciled lines above: 80/100, 70/100 and 90/100 installed.
+  assert.deepEqual([Number(util.value), Number(util.target), util.status], [80, 85, "warn"]);
+  // One brand and market with three reconciled lines under the 85% target.
+  assert.equal(Number(h.find((r) => r.metric === "over_ordering").value), 1);
+  await rejects(as("vendor", "select * from public.watchtower_health_sustainability"), /Only adm Indicia staff/);
+});
