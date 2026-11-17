@@ -90,6 +90,25 @@ export const LIBRARY_SCHEMAS: Record<string, LibrarySchema> = {
       { key: "source_description", label: "Data source", type: "textarea", column: true },
     ],
   },
+  conscious_ordering_rules: {
+    codeLabel: "Rule code", nameLabel: "Rule",
+    note: "Used by the conscious ordering programme in Sustainability. A change applies to every figure from its effective date.",
+    fields: [
+      { key: "value", label: "Value", type: "number", required: true, column: true },
+      { key: "unit", label: "Unit", type: "text", column: true },
+      { key: "description", label: "What it controls", type: "textarea", column: true },
+    ],
+  },
+  spend_emission_factors: {
+    codeLabel: "Factor code", nameLabel: "Product type",
+    note: "Used only where a spec has no measured footprint. Spend-based figures are the least accurate and are always labelled estimated.",
+    fields: [
+      { key: "spec_type", label: "Spec type", type: "enum", options: opts("2d", "3d", "promo_merch", "custom_goods_services", "design"), required: true, column: true, filter: true },
+      { key: "factor_kgco2e_per_eur", label: "Factor", type: "number", unit: "kgCO2e per EUR", required: true, column: true },
+      { key: "verification_status", label: "Verification", type: "enum", options: opts("indicative", "licensed"), column: true, filter: true },
+      { key: "source", label: "Source", type: "textarea" },
+    ],
+  },
   certification_types: {
     codeLabel: "Code",
     fields: [

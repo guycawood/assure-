@@ -39,13 +39,17 @@ const SECTION_NAV: Record<Exclude<ModuleKey, "rfq" | "logistics" | "execution">,
       { label: "Governed libraries", items: [
         { label: "All libraries", href: "/watchtower/libraries", icon: "library_books", exact: true },
         { label: "Product taxonomy & AAC", href: "/watchtower/taxonomy", icon: "category" },
+      ] },
+      // Sustainability module: Impact Grade (how sustainable each item is) and conscious ordering (was it needed).
+      { label: "Sustainability", items: [
+        { label: "Overview", href: "/watchtower/sustainability", icon: "eco", exact: true },
+        { label: "Impact Grade", href: "/watchtower/sustainability/impact-grade", icon: "grade" },
+        { label: "Conscious ordering", href: "/watchtower/sustainability/conscious-ordering", icon: "inventory" },
         { label: "Substrates", href: "/watchtower/libraries/substrates", icon: "layers" },
-        { label: "Emission factors", href: "/watchtower/libraries/material_emission_factors", icon: "eco" },
-        { label: "Impact Grade", href: "/watchtower/libraries/impact_grade_dimensions", icon: "grade" },
+        { label: "Emission factors", href: "/watchtower/libraries/material_emission_factors", icon: "co2" },
       ] },
       { label: "Layers & platform", items: [
         { label: "Data management", href: "/watchtower/data", icon: "database" },
-        { label: "Sustainability", href: "/watchtower/sustainability", icon: "eco" },
         { label: "Internal reporting", href: "/watchtower/reporting", icon: "monitoring" },
         { label: "Audit trail", href: "/watchtower/audit", icon: "manage_history" },
         { label: "Users & access", href: "/assure/admin/users", icon: "group", adminOnly: true },

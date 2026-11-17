@@ -260,8 +260,8 @@ export const LAYERS: LayerDef[] = [
   },
   {
     key: "sustainability", name: "Sustainability", colour: "#78C7AE", href: "/watchtower/sustainability",
-    summary: "Shared emission factors, substrates and Impact Grade from the Watchtower, applied the same way in every module.",
-    touches: { crm: "Client sustainability commitments in the contract", briefing: "Targets on the brief", "shopper-iq": "Footprint beside effectiveness", sourcing: "CO2e and Impact Grade per spec; weighting in evaluation", orders: "Transport CO2e per delivery; reuse and maintenance", assure: "Audits and certificates in the score" },
+    summary: "Impact Grade and conscious ordering on one set of governed emission factors and substrates: how sustainable each item is, and whether what was ordered was actually used.",
+    touches: { crm: "Client sustainability commitments in the contract", briefing: "Targets on the brief", "shopper-iq": "Footprint beside effectiveness", sourcing: "CO2e and Impact Grade per spec; weighting in evaluation", orders: "Ordered against delivered, installed and in stock; transport CO2e per delivery", assure: "Audits and certificates in the score" },
   },
   {
     key: "internal_reporting", name: "Internal Reporting", colour: "#9DC5ED", href: "/watchtower/reporting",
