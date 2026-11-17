@@ -22,7 +22,7 @@ export default async function ImpactGradeHome() {
 
   return (
     <>
-      <PageHead crumbs={[{ label: "Impact Grade" }]} title="Impact Grade"
+      <PageHead crumbs={[{ label: "Sustainability", href: "/sustainability" }, { label: "Impact Grade" }]} title="Impact Grade"
         sub="A product's environmental footprint across its whole life, measured one way for every spec (the PEF score) and turned into an Impact Grade (0-100, A-E).">
         <ButtonLink href="/impact-grade/watchtower/grade" variant="primary"><MSymbol name="calculate" size={18} /> Impact Grade calculator</ButtonLink>
         <ButtonLink href="/impact-grade/jobs"><MSymbol name="work" size={18} /> Jobs</ButtonLink>

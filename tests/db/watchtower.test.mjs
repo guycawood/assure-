@@ -16,7 +16,7 @@ test("module owners govern their own module only", async () => {
   await asSuper("insert into public.module_owners values ('assure', $1)", [t.ids.lead]);
   const r = await as("lead", "select public.library_create('certification_types','FSC','FSC Chain of Custody','{\"validity_months\":60}',null,null) as id");
   assert.ok(r.rows[0].id);
-  await rejects(as("lead", "select public.library_create('substrates','SB-9','x','{}',null,null)"), /Only admins and watchtower owners/);
+  await rejects(as("lead", "select public.library_create('substrates','SB-9','x','{}',null,null)"), /Only admins and sustainability owners/);
 });
 
 test("create, correct with a reason, supersede: history stays queryable by date", async () => {

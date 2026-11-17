@@ -11,6 +11,7 @@ System Guy is our platform. It is made of **modules that each stand alone** and 
 | 5 | Logistics+ | `/logistics` | Deliveries, shipments, POD, transport CO2e |
 | 6 | Execution+ | `/execution` | Outlets, recces, deployments, installs, audits |
 | 7 | SRM | `/assure` + `/vendor` | Horizontal SRM: internal supply-chain management + external vendor portal |
+| 8 | Sustainability | `/sustainability` + `/impact-grade` | Runs under every module: Impact Grade (the PEF model) and conscious ordering (see `docs/CONSCIOUS_ORDERING.md`) |
 
 SRM is **one module**, not the platform. Its external half is the vendor portal (`/vendor`), where vendors subscribe, quote, update production, upload QA/QC, invoices and control documents. Vendor-facing steps of other modules surface through it.
 

@@ -22,7 +22,7 @@ const watchtower = (key: string, extra: NavItem[] = []): NavGroup => ({
   ],
 });
 
-const SECTION_NAV: Record<Exclude<ModuleKey, "rfq" | "logistics" | "execution">, { portal: string; groups: NavGroup[] }> = {
+const SECTION_NAV: Record<Exclude<ModuleKey, "rfq" | "logistics" | "execution" | "impact-grade">, { portal: string; groups: NavGroup[] }> = {
   watchtower: {
     portal: "Oversight",
     groups: [
@@ -41,13 +41,9 @@ const SECTION_NAV: Record<Exclude<ModuleKey, "rfq" | "logistics" | "execution">,
       { label: "Governed libraries", items: [
         { label: "All libraries", href: "/watchtower/libraries", icon: "library_books", exact: true },
         { label: "Product taxonomy & AAC", href: "/watchtower/taxonomy", icon: "category" },
-        { label: "Substrates", href: "/watchtower/libraries/substrates", icon: "layers" },
-        { label: "Emission factors", href: "/watchtower/libraries/material_emission_factors", icon: "eco" },
-        { label: "Impact Grade (PEF)", href: "/impact-grade/watchtower", icon: "grade" },
       ] },
       { label: "Layers & platform", items: [
         { label: "Data management", href: "/watchtower/data", icon: "database" },
-        { label: "Sustainability", href: "/watchtower/sustainability", icon: "eco" },
         { label: "Internal reporting", href: "/watchtower/reporting", icon: "monitoring" },
         { label: "Audit trail", href: "/watchtower/audit", icon: "manage_history" },
         { label: "Users & access", href: "/assure/admin/users", icon: "group", adminOnly: true },
@@ -209,6 +205,43 @@ const SECTION_NAV: Record<Exclude<ModuleKey, "rfq" | "logistics" | "execution">,
       watchtower("finance"),
     ],
   },
+  // Sustainability: Impact Grade (how sustainable each item is, the PEF model) and conscious ordering (was what we
+  // ordered used). Impact Grade is an area inside it, like RFQs inside Sourcing; its pages keep their /impact-grade URLs.
+  sustainability: {
+    portal: "Impact & ordering",
+    groups: [
+      about("sustainability", "Sustainability"),
+      { label: "Overview", items: [{ label: "Dashboard", href: "/sustainability", icon: "space_dashboard", exact: true }] },
+      { label: "Impact Grade", items: [
+        { label: "Impact Grade overview", href: "/impact-grade", icon: "grade", exact: true },
+        { label: "Impact Grade by job", href: "/impact-grade/jobs", icon: "work" },
+        { label: "Impact Grade calculator", href: "/impact-grade/watchtower/grade", icon: "calculate" },
+        { label: "Methodology", href: "/impact-grade/watchtower/methodology", icon: "functions" },
+        { label: "Open issues", href: "/impact-grade/watchtower/issues", icon: "report" },
+        { label: "PEF model Watchtower", href: "/impact-grade/watchtower", icon: "cell_tower", exact: true },
+      ] },
+      { label: "Key PEF libraries", items: [
+        { label: "Impact categories", href: "/impact-grade/watchtower/libraries/pef_impact_categories", icon: "category" },
+        { label: "Grade letters", href: "/impact-grade/watchtower/libraries/pef_grade_bands", icon: "grade" },
+        { label: "Parameters", href: "/impact-grade/watchtower/libraries/pef_parameters", icon: "tune" },
+        { label: "ecoinvent factors", href: "/impact-grade/watchtower/libraries/pef_ecoinvent", icon: "eco" },
+      ] },
+      { label: "Conscious ordering", items: [
+        { label: "Ordering dashboard", href: "/sustainability/conscious-ordering", icon: "inventory", exact: true },
+        { label: "Brands and markets", href: "/sustainability/conscious-ordering/breakdown", icon: "leaderboard" },
+        { label: "Order lines", href: "/sustainability/conscious-ordering/orders", icon: "list_alt" },
+        { label: "Ordering rules", href: "/sustainability/watchtower/libraries/conscious_ordering_rules", icon: "tune" },
+        { label: "Spend-based factors", href: "/sustainability/watchtower/libraries/spend_emission_factors", icon: "payments" },
+      ] },
+      { label: "Shared factors", items: [
+        { label: "Factors overview", href: "/sustainability/factors", icon: "layers", exact: true },
+        { label: "Substrates", href: "/sustainability/watchtower/libraries/substrates", icon: "layers" },
+        { label: "Material emission factors", href: "/sustainability/watchtower/libraries/material_emission_factors", icon: "co2" },
+        { label: "Transport emission factors", href: "/sustainability/watchtower/libraries/transport_emission_factors", icon: "local_shipping" },
+      ] },
+      watchtower("sustainability"),
+    ],
+  },
   assure: {
     portal: "SRM portal",
     // Grouped by the vendor journey: bring vendors on, work with them, keep them performing, keep them compliant, talk to them, then set-up.
@@ -265,26 +298,6 @@ const SECTION_NAV: Record<Exclude<ModuleKey, "rfq" | "logistics" | "execution">,
       watchtower("assure"),
     ],
   },
-  // Step 1: the Watchtower over the PEF model. Step 2 adds the journey screens (spec grades, targets, reporting).
-  "impact-grade": {
-    portal: "Impact Grade",
-    groups: [
-      about("impact-grade", "Impact Grade"),
-      overview("impact-grade"),
-      { label: "Jobs", items: [{ label: "Impact Grade by job", href: "/impact-grade/jobs", icon: "work" }] },
-      watchtower("impact-grade", [
-        { label: "Methodology", href: "/impact-grade/watchtower/methodology", icon: "functions" },
-        { label: "Impact Grade calculator", href: "/impact-grade/watchtower/grade", icon: "calculate" },
-        { label: "Open issues", href: "/impact-grade/watchtower/issues", icon: "report" },
-      ]),
-      { label: "Key libraries", items: [
-        { label: "Impact categories", href: "/impact-grade/watchtower/libraries/pef_impact_categories", icon: "category" },
-        { label: "Grade letters", href: "/impact-grade/watchtower/libraries/pef_grade_bands", icon: "grade" },
-        { label: "Parameters", href: "/impact-grade/watchtower/libraries/pef_parameters", icon: "tune" },
-        { label: "ecoinvent factors", href: "/impact-grade/watchtower/libraries/pef_ecoinvent", icon: "eco" },
-      ] },
-    ],
-  },
 };
 
 /** Sidebar per module key; areas inside a section use their section's sidebar. */
@@ -293,5 +306,6 @@ export const NAV: Record<ModuleKey, { portal: string; groups: NavGroup[] }> = {
   rfq: SECTION_NAV.sourcing,
   logistics: SECTION_NAV.orders,
   execution: SECTION_NAV.orders,
+  "impact-grade": SECTION_NAV.sustainability,
 };
 

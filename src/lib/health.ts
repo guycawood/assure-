@@ -23,6 +23,7 @@ const SOURCES: Partial<Record<ModuleKey, Source[]>> = {
   crm: [{ view: "watchtower_health_crm" }],
   "impact-grade": [{ view: "watchtower_health_impact_grade" }],
   "shopper-iq": [{ view: "watchtower_health_shopper_iq" }],
+  sustainability: [{ view: "watchtower_health_sustainability" }],
 };
 
 export async function getHealth(supabase: Client, module: ModuleKey): Promise<HealthRow[]> {

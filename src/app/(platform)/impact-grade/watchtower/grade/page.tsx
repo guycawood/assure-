@@ -17,7 +17,7 @@ export default async function GradePage() {
   const pick = (...keys: string[]) => Object.fromEntries(keys.map((k) => [k, (libs[k] ?? []).map((r) => ({ code: r.code, name: r.name, data: r.data }))]));
   return (
     <>
-      <PageHead crumbs={[{ label: "Impact Grade", href: "/impact-grade" }, { label: "Watchtower", href: "/impact-grade/watchtower" }, { label: "Impact Grade calculator" }]}
+      <PageHead crumbs={[{ label: "Sustainability", href: "/sustainability" }, { label: "Impact Grade", href: "/impact-grade" }, { label: "Watchtower", href: "/impact-grade/watchtower" }, { label: "Impact Grade calculator" }]}
         title="Impact Grade calculator" sub="One specification, two calculations: the Impact Grade at the top, the PEF score (half the grade) at the bottom, both from the specification in between. Nothing is saved." />
       <GradeCalculator libs={pick("ig_subscores", "ig_impact_levels", "ig_option_scores", "ig_substrates", "ig_parameters", "pef_grade_bands", "pef_eol_materials")} pef={pefOptions(libs)} />
     </>

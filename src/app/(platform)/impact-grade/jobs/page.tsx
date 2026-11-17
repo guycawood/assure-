@@ -51,7 +51,7 @@ export default async function ImpactGradeJobs({ searchParams }: { searchParams: 
 
   return (
     <>
-      <PageHead crumbs={[{ label: "Impact Grade", href: "/impact-grade" }, { label: "Jobs" }]} title="Impact Grade by job"
+      <PageHead crumbs={[{ label: "Sustainability", href: "/sustainability" }, { label: "Impact Grade", href: "/impact-grade" }, { label: "Jobs" }]} title="Impact Grade by job"
         sub="Every job that has come through the system, rolled up from its specs. Open a job, then a spec, to see the evidence behind each sub-score, edit an input and review it.">
         <CalculateAllButton />
       </PageHead>

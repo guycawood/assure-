@@ -1,4 +1,4 @@
-export type ModuleKey = "watchtower" | "crm" | "briefing" | "shopper-iq" | "rfq" | "sourcing" | "orders" | "logistics" | "execution" | "finance" | "assure" | "impact-grade";
+export type ModuleKey = "watchtower" | "crm" | "briefing" | "shopper-iq" | "rfq" | "sourcing" | "orders" | "logistics" | "execution" | "finance" | "assure" | "sustainability" | "impact-grade";
 
 export type ModuleDef = {
   key: ModuleKey;
@@ -204,7 +204,24 @@ const ALL: ModuleDef[] = [
     flow: "Works hand in hand with Briefing+: insight shapes what gets briefed, and measured results from every stage feed the next brief.",
   },
   {
+    key: "sustainability",
+    name: "Sustainability",
+    tagline: "Impact Grade and conscious ordering",
+    icon: "eco",
+    colour: "#78C7AE",
+    basePath: "/sustainability",
+    status: "live",
+    phase: "Live",
+    scope: [
+      "Impact Grade: the Anthesis PEF model and a 0-100, A-E grade per spec, on shared substrates and emission factors",
+      "Conscious ordering: ordered against delivered, installed and in stock, with stock counts",
+      "Over-ordering brands and markets flagged and advised; spend-based estimates where nothing is tracked",
+    ],
+    flow: "Runs under every section: grades what is specified in Sourcing, and checks what Order Management delivered and installed against what was ordered.",
+  },
+  {
     key: "impact-grade",
+    partOf: "sustainability",
     name: "Impact Grade",
     tagline: "Product environmental footprint and grade",
     icon: "eco",
@@ -220,7 +237,7 @@ const ALL: ModuleDef[] = [
       "A PEF calculator that shows every activity behind the PEF score, checked against the workbook's worked examples",
       "The Impact Grade (0-100, A-E): circular design, resource use and the PEF score, shown as a scoring wheel",
     ],
-    flow: "Runs under the journey like the Sustainability layer: the brief sets the target, Sourcing grades every spec, Order Management adds the real delivery, and reporting rolls it up.",
+    flow: "Part of Sustainability. The brief sets the target, Sourcing grades every spec, Order Management adds the real delivery, and reporting rolls it up.",
   },
 ];
 
@@ -228,14 +245,14 @@ const ALL: ModuleDef[] = [
 // Shopper IQ sits next to Briefing+ (insight decides what to brief).
 // Sourcing includes RFQs; Order Management includes Logistics and Execution (areas with partOf set, no tab of their own).
 // SRM goes last: it manages the supply base; vendors engage at set points (see LAYERS supplier touches).
-const TAB_ORDER: ModuleKey[] = ["watchtower", "crm", "briefing", "shopper-iq", "sourcing", "rfq", "orders", "logistics", "execution", "assure", "finance", "impact-grade"];
+const TAB_ORDER: ModuleKey[] = ["watchtower", "crm", "briefing", "shopper-iq", "sourcing", "rfq", "orders", "logistics", "execution", "assure", "sustainability", "impact-grade", "finance"];
 /**
  * Sections that run across the whole workflow rather than being a step in it. They keep a tab (their team's
  * workspace) but the architecture draws them as layers: Watchtower over everything, Finance+ under everything
- * (like Sustainability and Supplier Engagement).
+ * and Sustainability under everything (like Supplier Engagement).
  */
-// Impact Grade is the engine of the Sustainability layer, so it is drawn as that layer, not as a step.
-export const HORIZONTALS: ModuleKey[] = ["watchtower", "finance", "impact-grade"];
+// Sustainability (with Impact Grade and conscious ordering inside it) runs under every section, so it is drawn as a layer, not a step.
+export const HORIZONTALS: ModuleKey[] = ["watchtower", "finance", "sustainability"];
 ALL.sort((a, b) => TAB_ORDER.indexOf(a.key) - TAB_ORDER.indexOf(b.key));
 
 /** The sections people see: one tab, one sidebar, one About and one Watchtower each. */
@@ -279,9 +296,9 @@ export const LAYERS: LayerDef[] = [
     touches: { sourcing: "Quote, decline or confirm pushed prices", orders: "Accept PO, ship with POD, install, upload invoice", assure: "Onboard, keep compliant, reviews, see payments" },
   },
   {
-    key: "sustainability", name: "Sustainability", colour: "#78C7AE", href: "/watchtower/sustainability",
-    summary: "Shared emission factors and substrates from the Watchtower, and the Impact Grade (PEF) methodology from the Impact Grade Watchtower, applied the same way in every module.",
-    touches: { crm: "Client sustainability commitments in the contract", briefing: "Targets on the brief", "shopper-iq": "Footprint beside effectiveness", sourcing: "CO2e and Impact Grade per spec; weighting in evaluation", orders: "Transport CO2e per delivery; reuse and maintenance", assure: "Audits and certificates in the score" },
+    key: "sustainability", name: "Sustainability", colour: "#78C7AE", href: "/sustainability",
+    summary: "Impact Grade (the PEF model) and conscious ordering on one set of governed emission factors and substrates: how sustainable each item is, and whether what was ordered was actually used. The Sustainability tab is the team's workspace.",
+    touches: { crm: "Client sustainability commitments in the contract", briefing: "Targets on the brief", "shopper-iq": "Footprint beside effectiveness", sourcing: "CO2e and Impact Grade per spec; weighting in evaluation", orders: "Ordered against delivered, installed and in stock; transport CO2e per delivery", assure: "Audits and certificates in the score" },
   },
   {
     key: "internal_reporting", name: "Internal Reporting", colour: "#9DC5ED", href: "/watchtower/reporting",

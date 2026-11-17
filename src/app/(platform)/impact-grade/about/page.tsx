@@ -1,8 +1,6 @@
-import type { Metadata } from "next";
-import { ModuleAboutPage } from "../../module-about";
+import { redirect } from "next/navigation";
 
-export const metadata: Metadata = { title: "About Impact Grade" };
-
-export default function AboutImpactGrade() {
-  return <ModuleAboutPage moduleKey="impact-grade" />;
+// Impact Grade is part of Sustainability; its About is the Sustainability About.
+export default function ImpactGradeAbout() {
+  redirect("/sustainability/about");
 }

@@ -77,7 +77,7 @@ export default async function Methodology() {
 
   return (
     <>
-      <PageHead crumbs={[{ label: "Impact Grade", href: "/impact-grade" }, { label: "Watchtower", href: BASE }, { label: "Methodology" }]} title="Methodology"
+      <PageHead crumbs={[{ label: "Sustainability", href: "/sustainability" }, { label: "Impact Grade", href: "/impact-grade" }, { label: "Watchtower", href: BASE }, { label: "Methodology" }]} title="Methodology"
         sub="The maths, stage by stage, next to the documented rule it applies. Rules, constants and factors are governed libraries: change them there, with a reason and a second approver." />
 
       {general.length > 0 && (

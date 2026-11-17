@@ -20,7 +20,7 @@ export type ModuleAbout = {
   value?: string[];
 };
 
-const SECTIONS: Record<Exclude<ModuleKey, "rfq">, ModuleAbout> = {
+const SECTIONS: Record<Exclude<ModuleKey, "rfq" | "impact-grade">, ModuleAbout> = {
   watchtower: {
     headline: "One view of the whole system, and the rules it runs on.",
     summary:
@@ -35,7 +35,7 @@ const SECTIONS: Record<Exclude<ModuleKey, "rfq">, ModuleAbout> = {
     ],
     inputs: ["Health metrics from every module", "Change requests from users"],
     outputs: ["Approved rules and libraries used by every module", "Leadership reporting"],
-    sustainability: "Owns the shared emission factors, substrate library and Impact Grade methodology, so every module calculates the same way.",
+    sustainability: "The Sustainability module owns the shared emission factors, substrate library and Impact Grade methodology; they roll up here like every other module's rules.",
     data: "Holds the canonical master data (regions, markets, clients, taxonomy) every other module references.",
     governance: "Rules are versioned and effective-dated; nothing is edited in place, it is superseded, with a named owner and an audit entry.",
   },
@@ -74,6 +74,31 @@ const SECTIONS: Record<Exclude<ModuleKey, "rfq">, ModuleAbout> = {
     sustainability: "Sustainability targets are set on the brief and only approved low-impact materials are offered in ideation.",
     data: "Every brief carries the Shopper IQ taxonomy and separate region and market fields from the start.",
     governance: "Brief field library and completeness rules governed in the Briefing+ Watchtower.",
+  },
+  sustainability: {
+    headline: "Make it lower impact, and only order what gets used.",
+    summary:
+      "Sustainability holds two programmes on one set of governed factors. Impact Grade measures how sustainable each item is: it runs the Anthesis Product Environmental Footprint (PEF) model, turns a spec's materials, manufacturing, transport, use and end of life into 16 EF 3.1 impact categories and one PEF score, and combines that with circular design and resource use into a 0-100 grade (A-E). Conscious ordering checks whether what was ordered was needed: every order line is compared across ordered, delivered, installed and in stock, anything left with no evidence is presumed wasted, and brands and markets that keep over-ordering are advised to order less.",
+    who: ["Sustainability and ESG leads", "Procurement & Supply Chain leadership", "Brand and market teams", "Account teams reporting to clients", "Module owners and admins", "Anthesis, as methodology partner"],
+    functions: [
+      { title: "Governed methodology", body: "Mapping tables, ecoinvent factors, EF 3.1 normalisation and weighting, parameters and grade bands as versioned libraries; changes that move results need a second person.", status: "live" },
+      { title: "PEF calculator", body: "Run the PEF model for any product and see the PEF score by stage and category, with every ecoinvent activity, geography and amount used.", status: "live" },
+      { title: "Impact Grade calculator and scoring wheel", body: "The 0-100 grade (A-E): circular design 35, resource use 15 and the PEF score 50, Promo weights for promo/merch.", status: "live" },
+      { title: "Methodology rules and open issues", body: "The documented rule for every step of the calculation, and the Anthesis review findings with their current treatment. Checked against the workbook's worked examples on every test run.", status: "live" },
+      { title: "Grades on specs, targets on briefs, reporting", body: "The grade flows through the end-to-end journey: targets on the brief, grades on every spec, and reporting.", status: "planned" },
+      { title: "Order reconciliation", body: "Ordered against delivered (verified proof of delivery), installed (Execution) and in stock, per order line.", status: "live" },
+      { title: "Stock counts", body: "Warehouse, vendor or market counts recorded against an order; every count is kept.", status: "live" },
+      { title: "Over-ordering advice", body: "Brand and market roll-up with a verdict and a suggested quantity for next time.", status: "live" },
+      { title: "Spend-based estimates", body: "Likely waste and CO2e for orders with no evidence, always shown separately from measured figures.", status: "live" },
+      { title: "Outlet list on the brief", body: "Order quantity calculated from the outlets it is for, plus a contingency allowance.", status: "planned" },
+      { title: "Advice and approval at the brief", body: "The brand team sees the suggested quantity when briefing; ordering above it needs sign-off.", status: "planned" },
+      { title: "Quantity received and stock uploads", body: "Good, damaged and short at proof of delivery; stock counts uploaded by warehouses and vendors.", status: "planned" },
+    ],
+    inputs: ["Substrates, weights, recycled content, coatings, printing and branding from the spec", "Factory country, renewable status and supplier role from SRM", "Purchase orders and their cost", "Deliveries and proof of delivery from Logistics", "Installs and audits from Execution", "Stock counts"],
+    outputs: ["Footprint per stage and impact category, the PEF score and the Impact Grade 0-100 (A-E)", "The Impact Grade for Shopper IQ design effectiveness (criterion S11)", "Who is over-ordering and by how much", "Wasted units, spend and CO2e for internal and client reporting"],
+    sustainability: "This is the module: it sets the factors and methods every other section calculates with, so grades and savings can be compared across clients, markets and suppliers.",
+    data: "ecoinvent 3.12 (cut-off) results for the activities the PEF model uses, loaded per environment through the Watchtower import. Conscious ordering reads orders, deliveries and installs where they already live; only stock counts are recorded here. Region and market stay separate on every record.",
+    governance: "Substrates, emission factors, the PEF libraries, Impact Grade weights, conscious ordering rules and spend-based factors are libraries in the Sustainability Watchtower, versioned and audited; normalisation, weighting, factors, mappings, parameters and grade bands are maker-checker. Grade letters stay provisional until confirmed.",
   },
   "shopper-iq": {
     headline: "What to make, and what worked.",
@@ -217,27 +242,7 @@ const SECTIONS: Record<Exclude<ModuleKey, "rfq">, ModuleAbout> = {
     promise: ["Transparent partnership", "Fair and ethical", "Data-led decisions", "Sustainable growth"],
     value: ["Greater visibility", "Stronger performance", "Actionable insights", "More opportunities"],
   },
-  "impact-grade": {
-    headline: "One way to measure a product's footprint, and a grade everyone can trust.",
-    summary:
-      "Impact Grade runs the Anthesis Product Environmental Footprint (PEF) model inside System Guy. A product's materials, coatings, printing and branding, the journey from factory to market, the electricity it uses in store and what happens to it at end of life are turned into 16 EF 3.1 impact categories, weighted into one PEF score. The PEF score is half of the Impact Grade (0-100, shown as a letter A-E); circular design and resource use from the spec make up the rest. Step 1 is the Watchtower: every table, factor and rule the maths uses is governed here, and every result can be traced to the activities behind it.",
-    who: ["Sustainability and ESG", "Sourcing and account teams (step 2)", "Module owners and admins", "Anthesis, as methodology partner"],
-    functions: [
-      { title: "Governed methodology", body: "Mapping tables, ecoinvent factors, EF 3.1 normalisation and weighting, parameters and grade bands as versioned libraries; changes that move results need a second person.", status: "live" },
-      { title: "Methodology rules", body: "The documented rule for every step of the calculation, stage by stage, next to the maths that applies it.", status: "live" },
-      { title: "PEF calculator", body: "Run the PEF model for any product and see the PEF score by stage and category, with every ecoinvent activity, geography and amount used.", status: "live" },
-      { title: "Impact Grade calculator and scoring wheel", body: "The 0-100 grade (A-E): circular design 35, resource use 15 and the PEF score 50 (scaled against the 95th percentile of our PEF scores), Promo weights for promo/merch.", status: "live" },
-      { title: "Checked against the workbook", body: "The worked examples in the Anthesis workbook are recalculated on every test run; results must match Excel.", status: "live" },
-      { title: "Open issues", body: "The Anthesis consistency review plus findings from porting the model, each with its current treatment.", status: "live" },
-      { title: "Grades on specs, targets on briefs, reporting", body: "Step 2: the grade flows through the end-to-end journey.", status: "planned" },
-    ],
-    inputs: ["Substrates, weights and recycled content from the spec", "Coatings, printing and branding", "Factory country, renewable status and supplier role from SRM", "Destination, transport and use-phase electricity"],
-    outputs: ["Footprint per stage and per impact category", "PEF score: weighted single score (Pt, mPt)", "Impact Grade 0-100 and letter A-E", "The 0-100 Impact Grade for ShopperIQ design effectiveness (criterion S11)"],
-    sustainability: "This is the sustainability calculation: the same factors and rules for every spec, so grades can be compared across clients, markets and suppliers.",
-    data: "ecoinvent 3.12 (cut-off) results for the activities the model uses. Licensed data: the full set is loaded per environment through the Watchtower import.",
-    governance: "Every library is versioned and audited; normalisation, weighting, factors, mappings, parameters and grade bands are maker-checker. Grade letters stay provisional until confirmed.",
-  },
 };
 
 /** About content per module key; RFQs are part of Sourcing and share its page. */
-export const ABOUT: Record<ModuleKey, ModuleAbout> = { ...SECTIONS, rfq: SECTIONS.sourcing };
+export const ABOUT: Record<ModuleKey, ModuleAbout> = { ...SECTIONS, rfq: SECTIONS.sourcing, "impact-grade": SECTIONS.sustainability };

@@ -24,7 +24,7 @@ export default async function Issues() {
 
   return (
     <>
-      <PageHead crumbs={[{ label: "Impact Grade", href: "/impact-grade" }, { label: "Watchtower", href: BASE }, { label: "Open issues" }]} title="Open issues"
+      <PageHead crumbs={[{ label: "Sustainability", href: "/sustainability" }, { label: "Impact Grade", href: "/impact-grade" }, { label: "Watchtower", href: BASE }, { label: "Open issues" }]} title="Open issues"
         sub="What has to be decided before grades are published. Record a decision by correcting the issue in the library (status and decision).">
         <Link href={`${BASE}/libraries/pef_open_issues`} className="text-sm font-semibold text-accent hover:underline">Manage in the library</Link>
       </PageHead>
